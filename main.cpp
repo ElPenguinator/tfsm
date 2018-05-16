@@ -182,14 +182,18 @@ void computePhiM(SATSolver * &solver, TFSM_TO * S, TFSM_TO * M)
 
 sequence checkCompleteness(SATSolver * &solver,vector<sequence> E, TFSM_TO * S, Product_TFSM_TO * D)
 {
+    cout << "Before PhiE" << endl;
     computePhiE(solver, E, D);
+    cout << "After PhiE" << endl;
     sequence alpha;
     TFSM_TO * P = D->mutationMachine;
     while (alpha.size() == 0 && P != NULL) {
+        cout << "CC" << endl;
         P = generateSubmachine(solver, D->mutationMachine);
+        cout << "GS" << endl;
         if (P != NULL) {
             Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
-            if (DP->hasNoSinkState) {
+            if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
             else {
@@ -214,15 +218,18 @@ vector<sequence> completeTestGeneration(vector<sequence> Einit, TFSM_TO * S, TFS
 
     double elapsed_secs = 0;
     do {
+        cout << "E" << endl;
         clock_t begin = clock();
-        cout << "CTG loop" << endl;
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
+        cout << "before CC" << endl;
         sequence alpha = checkCompleteness(solver, Ecurr, S, D);
+        cout << "After CC" << endl;
         Ecurr.clear();
         if (alpha.size() > 0)
             Ecurr.push_back(alpha);
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+        cout << elapsed_secs << endl;
     }
     while (Ecurr.size() != 0 && elapsed_secs < 400);
     if (elapsed_secs > 400) {
@@ -236,54 +243,55 @@ unsigned long long int computeNumberOfMutants(TFSM_TO * M) {
     for (int s : M->states) {
         for (string i : M->inputs) {
             if (M->getXi(s).size() > 1)
-                //cout << M->getXi(s, i).size() << " * ";
                 res *= M->getXi(s, i).size();
         }
     }
     for (int s : M->states) {
         if (M->getXi(s).size() > 1)
-            //cout << M->getXi(s).size() << " * ";
             res *= M->getXi(s).size();
     }
-    //cout << "1" << endl;
     return res;
 }
 
-int main()
+void checkExample1()
 {
-
     TFSM_TO * S;
     TFSM_TO * M;
     vector<sequence> E;
     example1(S, M, E);
 
     Product_TFSM_TO * P = new Product_TFSM_TO(S, M);
-    P->print();
-/*
-    E = {sequence({ts("b", 0),
-                   ts("a", 0),
-                   ts("b", 0),
-                   ts("a", 0)
-         }
-         )};
     SATSolver * solver = new SATSolver();
 
     solver->new_vars(M->timeouts.size() + M->transitions.size());
-    solver->log_to_file("/tmp/test.txt");
-    checkCompleteness(solver, E, S, P);
+    sequence res = checkCompleteness(solver, E, S, P);
+    if (res.empty())
+        cout << " Test suite complete." << endl;
+    else
+        cout << " Test suite incomplete." << endl;
+}
 
-    */
-    /*
+void generateExample1()
+{
+    TFSM_TO * S;
+    TFSM_TO * M;
+    vector<sequence> E;
+    example1(S, M, E);
+    SATSolver * solver = new SATSolver();
+
+    solver->new_vars(M->timeouts.size() + M->transitions.size());
+
     vector<sequence> Einit;
     E = completeTestGeneration(Einit, S, M);
     cout << "Result : " << endl;
     for (auto s : E) {
         printSequence(s);
     }
-    */
 
-/*
+}
 
+void generateBench()
+{
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
 
@@ -313,25 +321,39 @@ int main()
         }
         benchFile.close();
     }
-*/
-    /*
-    for (int i=0; i < 1; i++) {
-        TFSM_TO * randomSpec = generateRandomSpecification(15, 10, I, O);
-        TFSM_TO * randomMuta = generateRandomMutationMachine(randomSpec, 10*2, 400);
-        vector<sequence> E;
-        vector<sequence> Einit;
-        clock_t begin = clock();
-        E = completeTestGeneration(Einit, randomSpec, randomMuta);
-        clock_t end = clock();
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        cout << "Result (" << elapsed_secs << "s,"<< computeNumberOfMutants(randomMuta) << ", " << E.size() <<") : " << endl;
-        for (auto s : E) {
-            printSequence(s);
-        }
-        delete randomSpec;
-        delete randomMuta;
+}
+
+void testChaosMachine()
+{
+    set<string> I = {"a", "b"};
+    set<string> O = {"0", "1"};
+
+    TFSM_TO * randomSpec = generateRandomSpecification(4, 4, I, O);
+    randomSpec->print();
+    TFSM_TO * chaosMuta = generateChaosMachine(randomSpec, 4);
+    chaosMuta->print();
+
+    Product_TFSM_TO * P = new Product_TFSM_TO(randomSpec, chaosMuta);
+    P->print();
+    cout << P->states.size() << " " << P->transitions.size() << endl;
+
+    vector<sequence> E;
+    vector<sequence> Einit;
+    clock_t begin = clock();
+    E = completeTestGeneration(Einit, randomSpec, chaosMuta);
+    clock_t end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    cout << elapsed_secs << computeNumberOfMutants(chaosMuta) << endl;
+    cout << "Result : " << endl;
+    for (auto s : E) {
+        printSequence(s);
     }
-*/
-    cout << "Done" << endl;
+
+}
+
+int main()
+{
+    //generateExample1();
+    testChaosMachine();
     return 0;
 }

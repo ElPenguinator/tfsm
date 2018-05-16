@@ -3,6 +3,7 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <map>
 
 class Transition {
 public:
@@ -25,6 +26,8 @@ public:
 
 class TFSM_TO
 {
+private:
+    void computeMaps();
 public:
     std::set<int> states;
     int initialState;
@@ -32,6 +35,10 @@ public:
     std::set<std::string> outputs;
     std::vector<Transition> transitions;
     std::vector<Timeout> timeouts;
+    std::map<int, std::vector<Transition> > transitionsPerState;
+    std::map<int, std::vector<Timeout> > timeoutsPerState;
+    std::map<int, Transition> transitionIdMap;
+    std::map<int, Timeout> timeoutIdMap;
     TFSM_TO(std::set<int> S, int s0, std::set<std::string> I, std::set<std::string> O, std::vector<Transition> lambda, std::vector<Timeout> delta);
     void addTransitions(std::vector<Transition> transitions);
     void addTimeouts(std::vector<Timeout> timeouts);
@@ -41,6 +48,8 @@ public:
     Transition getTransitionFromId(int id);
     Timeout getTimeoutFromId(int id);
     int getMaxDelta(int s);
+    std::vector<Transition> lambda(int s);
+    std::vector<Timeout> delta(int s);
     void print();
 };
 

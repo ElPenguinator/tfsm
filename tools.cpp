@@ -131,7 +131,6 @@ TFSM_TO * generateRandomMutationMachine(TFSM_TO * S, int maxTime, int numberOfMu
                 }
                 Timeout newTimeout(randomSrc,randomT, randomTgt, newId);
                 if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
-                    cout << i << endl;
                     newDelta.push_back(newTimeout);
                     alreadyExisting = false;
                 }
@@ -141,7 +140,6 @@ TFSM_TO * generateRandomMutationMachine(TFSM_TO * S, int maxTime, int numberOfMu
                 string randomO = getRandomStringFromSet(O);
                 Transition newTransition(randomSrc,randomI, randomO, randomTgt, newId);
                 if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
-                    cout << i << endl;
                     newLambda.push_back(newTransition);
                     alreadyExisting = false;
                 }
@@ -199,8 +197,7 @@ TFSM_TO * generateRandomSpecification(int nbOfStates, int maxTime, set<string> I
     return res;
 }
 
-/*
-TFSM_TO * generateRandomMutationMachine(TFSM_TO * S, int maxTime, int numberOfMutationsTransition, int numberOfMutationsTimeout)
+TFSM_TO * generateChaosMachine(TFSM_TO * S, int maxTime)
 {
     set<int> States(S->states);
     int s0 = S->initialState;
@@ -213,38 +210,30 @@ TFSM_TO * generateRandomMutationMachine(TFSM_TO * S, int maxTime, int numberOfMu
     srand (time(NULL));
     vector<Transition> newLambda;
     vector<Timeout> newDelta;
-    for (int i=0; i<numberOfMutationsTransition; i++) {
-        bool alreadyExisting = true;
-        while (alreadyExisting) {
-            int randomSrc = floor(rand() % S->states.size());
-            int randomTgt = floor(rand() % S->states.size());
-            int newId = i + (S->transitions.size() + S->timeouts.size());
-            string randomI = getRandomStringFromSet(I);
-            string randomO = getRandomStringFromSet(O);
-            Transition newTransition(randomSrc,randomI, randomO, randomTgt, newId);
-            if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
-                cout << i << endl;
-                newLambda.push_back(newTransition);
-                alreadyExisting = false;
+
+    int newId = (S->transitions.size() + S->timeouts.size());
+
+    for (int src : States) {
+        for (int tgt : States) {
+            for (string i : I) {
+                for (string o : O) {
+                    Transition newTransition(src,i, o, tgt, newId);
+                    if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
+                        newLambda.push_back(newTransition);
+                        newId++;
+                    }
+                }
             }
-        }
-    }
-    for (int i=0; i<numberOfMutationsTimeout; i++) {
-        bool alreadyExisting = true;
-        while (alreadyExisting) {
-            int randomSrc = floor(rand() % S->states.size());
-            int randomTgt = floor(rand() % S->states.size());
-            int newId = numberOfMutationsTransition + i + (S->transitions.size() + S->timeouts.size());
-            int randomT = floor(rand() % maxTime);
-            if (randomT == 0) {
-                randomT = inf;
-                randomTgt = randomSrc;
-            }
-            Timeout newTimeout(randomSrc,randomT, randomTgt, newId);
-            if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
-                cout << i << endl;
-                newDelta.push_back(newTimeout);
-                alreadyExisting = false;
+            for (int t = 0; t <= maxTime; t++) {
+                int newT = t;
+                if (newT == 0) {
+                    newT = inf;
+                }
+                Timeout newTimeout(src,newT, tgt, newId);
+                if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
+                    newDelta.push_back(newTimeout);
+                    newId++;
+                }
             }
         }
     }
@@ -252,4 +241,3 @@ TFSM_TO * generateRandomMutationMachine(TFSM_TO * S, int maxTime, int numberOfMu
     M->addTimeouts(newDelta);
     return M;
 }
-*/

@@ -28,23 +28,26 @@ TFSM_TO::TFSM_TO(set<int> S, int s0, set<string> I, set<string> O, vector<Transi
     this->outputs = O;
     this->transitions = lambda;
     this->timeouts = delta;
+    this->computeMaps();
 }
 
 void TFSM_TO::addTransitions(vector<Transition> transitions)
 {
     this->transitions.insert(this->transitions.end(), transitions.begin(), transitions.end());
+    this->computeMaps();
 }
 
 void TFSM_TO::addTimeouts(vector<Timeout> timeouts)
 {
     this->timeouts.insert(this->timeouts.end(), timeouts.begin(), timeouts.end());
+    this->computeMaps();
 }
 
 vector<Transition> TFSM_TO::getXi(int s, string i)
 {
     vector<Transition> result;
-    for (auto transition : this->transitions) {
-        if (transition.src == s && transition.i == i)
+    for (auto transition : this->lambda(s)) {
+        if (transition.i == i)
             result.push_back(transition);
     }
     return result;
@@ -52,50 +55,65 @@ vector<Transition> TFSM_TO::getXi(int s, string i)
 
 vector<Timeout> TFSM_TO::getXi(int s)
 {
-    vector<Timeout> result;
-    for (auto timeout : this->timeouts) {
-        if (timeout.src == s)
-            result.push_back(timeout);
-    }
-    return result;
+    return this->delta(s);
+}
+
+vector<Transition> TFSM_TO::lambda(int s)
+{
+    return this->transitionsPerState.find(s)->second;
+}
+
+vector<Timeout> TFSM_TO::delta(int s)
+{
+    return this->timeoutsPerState.find(s)->second;
 }
 
 bool TFSM_TO::isIdTimeout(int id) {
-    for (auto timeout : this->timeouts) {
-        if (timeout.id == id)
-            return true;
-    }
-    return false;
+    return this->timeoutIdMap.find(id) != this->timeoutIdMap.end();
 }
 
 Transition TFSM_TO::getTransitionFromId(int id)
 {
-    for (auto transition : this->transitions) {
-        if (transition.id == id)
-            return transition;
-    }
+    return this->transitionIdMap.find(id)->second;
 }
 
 Timeout TFSM_TO::getTimeoutFromId(int id)
 {
-    for (auto timeout : this->timeouts) {
-        if (timeout.id == id)
-            return timeout;
-    }
+    return this->timeoutIdMap.find(id)->second;
 }
 
 int TFSM_TO::getMaxDelta(int s)
 {
     int res = 0;
-    for (auto t : this->timeouts) {
-        if (t.src == s) {
-            if (t.t != inf) {
-                if (t.t > res)
-                    res = t.t;
-            }
+    for (auto t : this->delta(s)) {
+        if (t.t != inf) {
+            if (t.t > res)
+                res = t.t;
         }
     }
     return res;
+}
+
+void TFSM_TO::computeMaps()
+{
+    this->transitionsPerState.clear();
+    this->timeoutsPerState.clear();
+    this->transitionIdMap.clear();
+    this->timeoutIdMap.clear();
+    for (int s : this->states) {
+        this->transitionsPerState.insert(make_pair(s, vector<Transition>()));
+        this->timeoutsPerState.insert(make_pair(s, vector<Timeout>()));
+    }
+
+    for (Transition t : this->transitions) {
+        this->transitionIdMap.insert(make_pair(t.id, t));
+        this->transitionsPerState.find(t.src)->second.push_back(t);
+    }
+
+    for (Timeout t : this->timeouts) {
+        this->timeoutIdMap.insert(make_pair(t.id, t));
+        this->timeoutsPerState.find(t.src)->second.push_back(t);
+    }
 }
 
 void TFSM_TO::print()
