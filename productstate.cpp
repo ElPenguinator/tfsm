@@ -12,6 +12,8 @@ ProductState::ProductState(int s, int m, int xs, int xm)
     this->specificationCounter = xs;
     this->mutationCounter = xm;
     this->isGenerated = false;
+    this->inputDistance = 0;
+    this->timeDistance = 0;
 }
 
 std::string ProductState::getKey()

@@ -24,8 +24,9 @@ public:
     bool isPathDeterministic(const path p);
     void revealingPathsRecursive(ProductState * state, path currentPath, std::vector<path> & results, sequence alpha, int sequenceIndex, int timeBuffer);
     void print();
-    sequence inputSequenceFromAcceptedLanguage();
-    std::deque<ProductTransition> Dijkstra();
+    sequence inputSequenceFromAcceptedLanguage(sequence prefix);
+    void reachableStates(ProductState * state, path currentPath, std::set<std::string> &results, sequence alpha, int sequenceIndex, int timeBuffer);
+    std::deque<ProductTransition> Dijkstra(std::string key);
 };
 
 #endif // PRODUCT_TFSM_TO_H

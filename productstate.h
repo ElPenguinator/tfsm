@@ -30,6 +30,8 @@ public:
     int mutationState;
     int specificationCounter;
     int mutationCounter;
+    int inputDistance;
+    int timeDistance;
     bool isGenerated;
     ProductState();
     ProductState(int s, int m, int xs, int xm);

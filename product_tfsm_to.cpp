@@ -195,7 +195,7 @@ string DijkstraFindMin(map<string, int> distances, set<string> Q) {
     string minState = "";
     for (auto state : Q) {
         cout << state << " " << distances.find(state)->second;
-        if (distances.find(state)->second < min) {
+        if (distances.find(state)->second <= min) {
             min = distances.find(state)->second;
             minState = state;
         }
@@ -240,7 +240,7 @@ bool Product_TFSM_TO::isProductConnected()
     return marked.size() == this->states.size();
 }
 
-deque<ProductTransition> Product_TFSM_TO::Dijkstra()
+deque<ProductTransition> Product_TFSM_TO::Dijkstra(string key)
 {
     map<string, ProductTransition> predecessors;
     set<string> Q;
@@ -251,7 +251,7 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra()
         predecessors.insert(make_pair(key, ProductTransition("", "", "", false, -1)));
         distances.insert(make_pair(key, inf));
     }
-    distances.find(this->initialState->getKey())->second = 0;
+    distances.find(key)->second = 0;
 
     while (Q.size() > 0) {
         cout << "Q : ";
@@ -274,24 +274,96 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra()
     string currentStateKey = "sink";
     deque<ProductTransition> results;
 
-    while (currentStateKey != initialState->getKey()) {
-        results.push_front(predecessors.find(currentStateKey)->second);
-        currentStateKey = predecessors.find(currentStateKey)->second.src;
+    if (distances.find("sink")->second != inf) {
+        while (currentStateKey != key) {
+            results.push_front(predecessors.find(currentStateKey)->second);
+            currentStateKey = predecessors.find(currentStateKey)->second.src;
+        }
     }
     return results;
 }
 
-sequence Product_TFSM_TO::inputSequenceFromAcceptedLanguage()
+void Product_TFSM_TO::reachableStates(ProductState * state, path currentPath, set<string> &results, sequence alpha, int sequenceIndex, int timeBuffer)
+{
+    if (state->getKey() != "sink") {
+        if (sequenceIndex < alpha.size()) {
+            ts timed_symbol = alpha[sequenceIndex];
+            string symbol = timed_symbol.first;
+            int symbol_time = timed_symbol.second;
+            int t = symbol_time - timeBuffer;
+            if (sequenceIndex > 0) {
+                t -= alpha[sequenceIndex -1].second;
+                symbol_time -= alpha[sequenceIndex -1].second;
+            }
+            //Time to spend, so take only timeouts
+            if (t > 0) {
+                for (auto transition : this->transitions) {
+                    if (transition.src == state->getKey() && transition.isTimeout) {
+                        int timeout = atoi(transition.i.c_str());
+                        ProductState * tgtNode = this->states.find(transition.tgt)->second;
+                        if (timeout <= t) {
+                            path newPath(currentPath);
+                            newPath.push_back(transition.id);
+                            if (this->isPathDeterministic(newPath)) {
+                                this->reachableStates(tgtNode, newPath, results, alpha, sequenceIndex, timeBuffer + timeout);
+                            }
+                        }
+                        else {
+                            for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
+                                if (timeout < mutaTimeout.t) {
+                                    path newPath(currentPath);
+                                    newPath.push_back(transition.id);
+                                    if (this->isPathDeterministic(newPath)) {
+                                        this->reachableStates(state, newPath, results, alpha, sequenceIndex, symbol_time);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                for (auto transition : this->transitions) {
+                    if (transition.src == state->getKey() && !transition.isTimeout) {
+                        if (transition.i == symbol) {
+                            ProductState * tgtNode = this->states.find(transition.tgt)->second;
+                            path newPath(currentPath);
+                            newPath.push_back(transition.id);
+                            if (this->isPathDeterministic(newPath))
+                                this->reachableStates(tgtNode, newPath, results, alpha, sequenceIndex+1, 0);
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            results.insert(state->getKey());
+        }
+    }
+}
+
+sequence Product_TFSM_TO::inputSequenceFromAcceptedLanguage(sequence prefix)
 {
     sequence input;
     if (!this->hasNoSinkState && this->isConnected) {
-        deque<ProductTransition> res = Dijkstra();
-        int time = 0;
-        for (auto transition : res) {
-            if (transition.isTimeout)
-                time += atoi(transition.i.c_str());
-            else
-                input.push_back(ts(transition.i, time));
+        set<string> results;
+        path currentPath;
+        reachableStates(this->initialState, currentPath, results, prefix, 0, 0);
+        for (string key : results) {
+            cout << "Reached state : " << key << endl;
+            deque<ProductTransition> res = Dijkstra(key);
+            printSequence(prefix);
+            int time = 0;
+            if (prefix.size() > 0)
+                time = prefix[prefix.size()-1].second;
+            for (auto transition : res) {
+                if (transition.isTimeout)
+                    time += atoi(transition.i.c_str());
+                else
+                    input.push_back(ts(transition.i, time));
+            }
+            if (res.size() > 0)
+                return input;
         }
     }
     return input;

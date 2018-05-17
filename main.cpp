@@ -180,24 +180,21 @@ void computePhiM(SATSolver * &solver, TFSM_TO * S, TFSM_TO * M)
     solver->add_clause(clause);
 }
 
-sequence checkCompleteness(SATSolver * &solver,vector<sequence> E, TFSM_TO * S, Product_TFSM_TO * D)
+sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM_TO * S, Product_TFSM_TO * D)
 {
-    cout << "Before PhiE" << endl;
     computePhiE(solver, E, D);
-    cout << "After PhiE" << endl;
     sequence alpha;
     TFSM_TO * P = D->mutationMachine;
     while (alpha.size() == 0 && P != NULL) {
-        cout << "CC" << endl;
         P = generateSubmachine(solver, D->mutationMachine);
-        cout << "GS" << endl;
         if (P != NULL) {
             Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
             else {
-                alpha = DP->inputSequenceFromAcceptedLanguage();
+                sequence nullPrefix;
+                alpha = DP->inputSequenceFromAcceptedLanguage(nullPrefix);
             }
             delete DP;
         }
@@ -205,7 +202,7 @@ sequence checkCompleteness(SATSolver * &solver,vector<sequence> E, TFSM_TO * S, 
     return alpha;
 }
 
-vector<sequence> completeTestGeneration(vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M)
+vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M)
 {
     SATSolver * solver = new SATSolver();
 
@@ -218,12 +215,9 @@ vector<sequence> completeTestGeneration(vector<sequence> Einit, TFSM_TO * S, TFS
 
     double elapsed_secs = 0;
     do {
-        cout << "E" << endl;
         clock_t begin = clock();
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
-        cout << "before CC" << endl;
-        sequence alpha = checkCompleteness(solver, Ecurr, S, D);
-        cout << "After CC" << endl;
+        sequence alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
         Ecurr.clear();
         if (alpha.size() > 0)
             Ecurr.push_back(alpha);
@@ -236,6 +230,80 @@ vector<sequence> completeTestGeneration(vector<sequence> Einit, TFSM_TO * S, TFS
         E.clear();
     }
     return E;
+}
+
+vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M)
+{
+    SATSolver * solver = new SATSolver();
+
+    solver->new_vars(M->timeouts.size() + M->transitions.size());
+    solver->log_to_file("/tmp/test.txt");
+    computePhiM(solver, S, M);
+    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
+    vector<sequence> E;
+    vector<sequence> Ecurr = Einit;
+    double elapsed_secs = 0;
+    sequence alpha;
+    do {
+        clock_t begin = clock();
+        E.insert(E.end(), Ecurr.begin(), Ecurr.end());
+        alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
+        Ecurr.clear();
+        Ecurr.push_back(alpha);
+        clock_t end = clock();
+        elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+        cout << elapsed_secs << endl;
+    }
+    while (alpha.size() != 0);
+    return E;
+}
+
+sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM_TO * S, Product_TFSM_TO * D)
+{
+    vector<sequence> E;
+    E.push_back(CS);
+    computePhiE(solver, E, D);
+    sequence alpha;
+    TFSM_TO * P = D->mutationMachine;
+    while (alpha.size() == 0 && P != NULL) {
+        cout << "SCC alpha " << endl;
+        printSequence(alpha);
+        P = generateSubmachine(solver, D->mutationMachine);
+        if (P != NULL) {
+            Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
+            if (DP->hasNoSinkState || !DP->isConnected) {
+                cout << "To delete" << endl;
+                computePhiP(solver, P);
+            }
+            else {
+                alpha = DP->inputSequenceFromAcceptedLanguage(CS);
+                if (alpha.size() == 0)
+                    computePhiP(solver, P);
+            }
+            delete DP;
+        }
+    }
+    return alpha;
+}
+
+sequence generateCheckingSequence(TFSM_TO * S, TFSM_TO * M)
+{
+    SATSolver * solver = new SATSolver();
+
+    solver->new_vars(M->timeouts.size() + M->transitions.size());
+    //solver->log_to_file("/tmp/test.txt");
+    computePhiM(solver, S, M);
+    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
+    sequence CS;
+    sequence alpha;
+    do {
+        cout << "CS : " << endl;
+        printSequence(CS);
+        CS.insert(CS.end(), alpha.begin(), alpha.end());
+        alpha = verifyCheckingSequence(solver, CS, S, D);
+    }
+    while (alpha.size() != 0);
+    return CS;
 }
 
 unsigned long long int computeNumberOfMutants(TFSM_TO * M) {
@@ -264,7 +332,7 @@ void checkExample1()
     SATSolver * solver = new SATSolver();
 
     solver->new_vars(M->timeouts.size() + M->transitions.size());
-    sequence res = checkCompleteness(solver, E, S, P);
+    sequence res = verifyCheckingExperiment(solver, E, S, P);
     if (res.empty())
         cout << " Test suite complete." << endl;
     else
@@ -277,17 +345,26 @@ void generateExample1()
     TFSM_TO * M;
     vector<sequence> E;
     example1(S, M, E);
-    SATSolver * solver = new SATSolver();
-
-    solver->new_vars(M->timeouts.size() + M->transitions.size());
 
     vector<sequence> Einit;
-    E = completeTestGeneration(Einit, S, M);
+    E = generateCheckingExperiment(Einit, S, M);
     cout << "Result : " << endl;
     for (auto s : E) {
         printSequence(s);
     }
 
+}
+
+void checkingSequenceExample1()
+{
+    TFSM_TO * S;
+    TFSM_TO * M;
+    vector<sequence> E;
+    sequence CS;
+    example1(S, M, E);
+
+    CS = generateCheckingSequence(S, M);
+    printSequence(CS);
 }
 
 void generateBench()
@@ -311,7 +388,7 @@ void generateBench()
                 vector<sequence> E;
                 vector<sequence> Einit;
                 clock_t begin = clock();
-                E = completeTestGeneration(Einit, randomSpec, randomMuta);
+                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
                 clock_t end = clock();
                 double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
                 benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
@@ -330,7 +407,7 @@ void testChaosMachine()
 
     TFSM_TO * randomSpec = generateRandomSpecification(4, 4, I, O);
     randomSpec->print();
-    TFSM_TO * chaosMuta = generateChaosMachine(randomSpec, 4);
+    TFSM_TO * chaosMuta = generateChaosMachine(randomSpec, 10);
     chaosMuta->print();
 
     Product_TFSM_TO * P = new Product_TFSM_TO(randomSpec, chaosMuta);
@@ -340,10 +417,10 @@ void testChaosMachine()
     vector<sequence> E;
     vector<sequence> Einit;
     clock_t begin = clock();
-    E = completeTestGeneration(Einit, randomSpec, chaosMuta);
+    E = generateCheckingExperiment(Einit, randomSpec, chaosMuta);
     clock_t end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    cout << elapsed_secs << computeNumberOfMutants(chaosMuta) << endl;
+    cout << elapsed_secs << " " << computeNumberOfMutants(chaosMuta) << endl;
     cout << "Result : " << endl;
     for (auto s : E) {
         printSequence(s);
@@ -354,6 +431,7 @@ void testChaosMachine()
 int main()
 {
     //generateExample1();
-    testChaosMachine();
+    checkingSequenceExample1();
+    //testChaosMachine();
     return 0;
 }
