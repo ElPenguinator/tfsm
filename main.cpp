@@ -194,7 +194,9 @@ sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM_T
             }
             else {
                 sequence nullPrefix;
-                alpha = DP->inputSequenceFromAcceptedLanguage(nullPrefix);
+                set<string> beginningStates;
+                beginningStates.insert(DP->initialState->getKey());
+                alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, nullPrefix);
             }
             delete DP;
         }
@@ -262,21 +264,19 @@ sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM_TO * S, Pr
 {
     vector<sequence> E;
     E.push_back(CS);
+    set<string> beginningStates;
     computePhiE(solver, E, D);
     sequence alpha;
     TFSM_TO * P = D->mutationMachine;
     while (alpha.size() == 0 && P != NULL) {
-        cout << "SCC alpha " << endl;
-        printSequence(alpha);
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
             Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
             if (DP->hasNoSinkState || !DP->isConnected) {
-                cout << "To delete" << endl;
                 computePhiP(solver, P);
             }
             else {
-                alpha = DP->inputSequenceFromAcceptedLanguage(CS);
+                alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, CS);
                 if (alpha.size() == 0)
                     computePhiP(solver, P);
             }
@@ -284,6 +284,29 @@ sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM_TO * S, Pr
         }
     }
     return alpha;
+}
+
+sequence generateCheckingSequenceTimeouted(TFSM_TO * S, TFSM_TO * M)
+{
+    SATSolver * solver = new SATSolver();
+
+    solver->new_vars(M->timeouts.size() + M->transitions.size());
+    //solver->log_to_file("/tmp/test.txt");
+    computePhiM(solver, S, M);
+    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
+    sequence CS;
+    sequence alpha;
+    double elapsed_secs = 0;
+    do {
+        clock_t begin = clock();
+        CS.insert(CS.end(), alpha.begin(), alpha.end());
+        alpha = verifyCheckingSequence(solver, CS, S, D);
+        clock_t end = clock();
+        elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+        cout << elapsed_secs << endl;
+    }
+    while (alpha.size() != 0 && elapsed_secs < 400);
+    return CS;
 }
 
 sequence generateCheckingSequence(TFSM_TO * S, TFSM_TO * M)
@@ -297,8 +320,6 @@ sequence generateCheckingSequence(TFSM_TO * S, TFSM_TO * M)
     sequence CS;
     sequence alpha;
     do {
-        cout << "CS : " << endl;
-        printSequence(CS);
         CS.insert(CS.end(), alpha.begin(), alpha.end());
         alpha = verifyCheckingSequence(solver, CS, S, D);
     }
@@ -339,7 +360,7 @@ void checkExample1()
         cout << " Test suite incomplete." << endl;
 }
 
-void generateExample1()
+void checkingExperimentExample1()
 {
     TFSM_TO * S;
     TFSM_TO * M;
@@ -367,7 +388,7 @@ void checkingSequenceExample1()
     printSequence(CS);
 }
 
-void generateBench()
+void checkingExperimentBenchmarks()
 {
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
@@ -381,8 +402,9 @@ void generateBench()
         ofstream benchFile;
 
         for (int j=2; j<3; j++) {
-            benchFile.open("bench_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
+            //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
             for (int i=0; i < 3; i++) {
+                benchFile.open("bench_CE_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
                 TFSM_TO * randomSpec = generateRandomSpecification(nbStates[j], maxTime, I, O);
                 TFSM_TO * randomMuta = generateRandomMutationMachine(randomSpec, maxTime*2, nbMutants[i]);
                 vector<sequence> E;
@@ -394,12 +416,46 @@ void generateBench()
                 benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
                 delete randomSpec;
                 delete randomMuta;
+                benchFile.close();
             }
+
         }
-        benchFile.close();
     }
 }
 
+
+void checkingSequenceBenchmarks()
+{
+    set<string> I = {"a", "b"};
+    set<string> O = {"0", "1"};
+
+
+    int nbStates [5] = {4, 8, 10, 12, 15};
+    int nbMutants [6] = {20, 50, 100, 200, 300, 400};
+    int maxTime = 5;
+
+    for (int nbOfBench=0; nbOfBench < 5; nbOfBench++) {
+        ofstream benchFile;
+
+        for (int j=2; j<3; j++) {
+            for (int i=0; i < 3; i++) {
+                benchFile.open("bench_CS_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+                TFSM_TO * randomSpec = generateRandomSpecification(nbStates[j], maxTime, I, O);
+                TFSM_TO * randomMuta = generateRandomMutationMachine(randomSpec, maxTime*2, nbMutants[i]);
+                sequence CS;
+                clock_t begin = clock();
+                CS = generateCheckingSequenceTimeouted(randomSpec, randomMuta);
+                clock_t end = clock();
+                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << CS.size() << "\n";
+                delete randomSpec;
+                delete randomMuta;
+                benchFile.close();
+            }
+        }
+
+    }
+}
 void testChaosMachine()
 {
     set<string> I = {"a", "b"};
@@ -430,8 +486,9 @@ void testChaosMachine()
 
 int main()
 {
-    //generateExample1();
+    checkingExperimentExample1();
     checkingSequenceExample1();
+    //checkingSequenceBenchmarks();
     //testChaosMachine();
     return 0;
 }

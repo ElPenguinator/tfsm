@@ -97,6 +97,14 @@ std::vector<path> Product_TFSM_TO::revealingPaths(sequence alpha)
     return results;
 }
 
+std::vector<path> Product_TFSM_TO::revealingPathsPrefixed(string beginningStateKey, sequence alpha)
+{
+    vector<path> results;
+    path currentPath;
+    revealingPathsRecursive(this->states.find(beginningStateKey)->second, currentPath, results, alpha, 0, 0);
+    return results;
+}
+
 bool Product_TFSM_TO::isPathDeterministic(const path p)
 {
     for (int id : p) {
@@ -194,7 +202,6 @@ string DijkstraFindMin(map<string, int> distances, set<string> Q) {
     int min = inf;
     string minState = "";
     for (auto state : Q) {
-        cout << state << " " << distances.find(state)->second;
         if (distances.find(state)->second <= min) {
             min = distances.find(state)->second;
             minState = state;
@@ -254,14 +261,7 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra(string key)
     distances.find(key)->second = 0;
 
     while (Q.size() > 0) {
-        cout << "Q : ";
         string s1 = DijkstraFindMin(distances, Q);
-
-        cout << endl << "s1 : " << s1 << endl;
-        cout << "found : " << (Q.find(s1) != Q.end()) << endl;
-        //Not normal
-        if (s1 == "")
-            this->print();
         Q.erase(Q.find(s1));
         for (auto transition : this->transitions) {
             if (transition.src == s1) {
@@ -342,7 +342,7 @@ void Product_TFSM_TO::reachableStates(ProductState * state, path currentPath, se
     }
 }
 
-sequence Product_TFSM_TO::inputSequenceFromAcceptedLanguage(sequence prefix)
+sequence Product_TFSM_TO::inputSequenceFromAcceptedLanguage(set<string> beginningStates, sequence prefix)
 {
     sequence input;
     if (!this->hasNoSinkState && this->isConnected) {
@@ -350,9 +350,7 @@ sequence Product_TFSM_TO::inputSequenceFromAcceptedLanguage(sequence prefix)
         path currentPath;
         reachableStates(this->initialState, currentPath, results, prefix, 0, 0);
         for (string key : results) {
-            cout << "Reached state : " << key << endl;
             deque<ProductTransition> res = Dijkstra(key);
-            printSequence(prefix);
             int time = 0;
             if (prefix.size() > 0)
                 time = prefix[prefix.size()-1].second;
