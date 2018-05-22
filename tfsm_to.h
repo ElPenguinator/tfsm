@@ -4,16 +4,7 @@
 #include <set>
 #include <vector>
 #include <map>
-
-class Transition {
-public:
-    int src;
-    std::string i;
-    std::string o;
-    int tgt;
-    int id;
-    Transition(int src, std::string i, std::string o, int tgt, int id);
-};
+#include "fsm.h"
 
 class Timeout {
 public:

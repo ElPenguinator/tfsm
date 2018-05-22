@@ -1,5 +1,6 @@
 #include <iostream>
 #include "tfsm_to.h"
+#include "fsm.h"
 #include <iostream>
 #include "structs.h"
 #include "product_tfsm_to.h"
@@ -7,8 +8,73 @@
 #include "tools.h"
 #include <ctime>
 #include <fstream>
+#include <math.h>
 using namespace std;
 using namespace CMSat;
+
+/*
+void example1FSM(FSM *& S, FSM *& M, vector<sequence> & E)
+{
+    set<int> S2 = {1, 2};
+    int s0 = 1;
+    set<string> I = {"a", "b"};
+    set<string> O = {"0", "1"};
+    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
+                                 Transition(1, "b", "0", 2, 1),
+                                 Transition(2, "a", "1", 1, 2),
+                                 Transition(2, "b", "1", 1, 3)
+                                };
+
+    S = new FSM(S2, s0, I, O, lambda);
+    M = new FSM(S2, s0, I, O, lambda);
+    M->addTransitions({Transition(2, "a", "1", 2, 4),
+                       Transition(2, "b", "1", 2, 5)
+                      });
+
+    E = {sequence({ts("a", 0),
+                   ts("a", 2),
+                   ts("a", 5),
+                   ts("a", 14),
+                   ts("a", 19)
+         }
+         )
+        };
+}
+*/
+
+void example1FSM(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
+{
+    set<int> S2 = {1, 2};
+    int s0 = 1;
+    set<string> I = {"a", "b"};
+    set<string> O = {"0", "1"};
+    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
+                                 Transition(1, "b", "0", 2, 1),
+                                 Transition(2, "a", "1", 1, 2),
+                                 Transition(2, "b", "1", 1, 3)
+                                };
+    vector<Timeout> delta = {Timeout(1, inf, 1, 4),
+                             Timeout(2, inf, 2, 5)
+                            };
+    S = new TFSM_TO(S2, s0, I, O, lambda, delta);
+    M = new TFSM_TO(S2, s0, I, O, lambda, delta);
+    M->addTransitions({Transition(2, "a", "1", 2, 6),
+                       Transition(2, "b", "1", 2, 7)
+                      });
+
+    M->addTransitions({Transition(1, "a", "0", 2, 8),
+                       Transition(1, "b", "0", 1, 9)
+                      });
+
+    E = {sequence({ts("b", 0),
+                   ts("a", 0),
+                   ts("b", 0),
+                   ts("b", 0),
+                   ts("a", 0)
+         }
+         )
+        };
+}
 
 
 void example1(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
@@ -250,6 +316,7 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM_TO * S,
         clock_t begin = clock();
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
         alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
+        printSequence(alpha);
         Ecurr.clear();
         Ecurr.push_back(alpha);
         clock_t end = clock();
@@ -365,7 +432,7 @@ void checkingExperimentExample1()
     TFSM_TO * S;
     TFSM_TO * M;
     vector<sequence> E;
-    example1(S, M, E);
+    example1FSM(S, M, E);
 
     vector<sequence> Einit;
     E = generateCheckingExperiment(Einit, S, M);
@@ -382,10 +449,85 @@ void checkingSequenceExample1()
     TFSM_TO * M;
     vector<sequence> E;
     sequence CS;
-    example1(S, M, E);
+    example1FSM(S, M, E);
 
     CS = generateCheckingSequence(S, M);
     printSequence(CS);
+}
+
+void checkExample1FSM()
+{
+    TFSM_TO * S;
+    TFSM_TO * M;
+    vector<sequence> E;
+    example1FSM(S, M, E);
+
+    Product_TFSM_TO * P = new Product_TFSM_TO(S, M);
+    P->print();
+    SATSolver * solver = new SATSolver();
+    solver->log_to_file("/tmp/test.txt");
+    solver->new_vars(M->timeouts.size() + M->transitions.size());
+
+    computePhiM(solver, S, M);
+    sequence res = verifyCheckingExperiment(solver, E, S, P);
+    printSequence(res);
+    if (res.empty())
+        cout << " Test suite complete." << endl;
+    else
+        cout << " Test suite incomplete." << endl;
+}
+
+void checkEverythingExampleFSM()
+{
+    TFSM_TO * S;
+    TFSM_TO * M;
+    vector<sequence> E;
+    example1FSM(S, M, E);
+
+    Product_TFSM_TO * P = new Product_TFSM_TO(S, M);
+    P->print();
+
+    for (int exp=0; exp<10; exp++) {
+        cout << "Exp : " << exp << " " << ( pow(2, exp)) << endl;
+        bool found = false;
+        for (int i=0; i<pow(2, exp); i++) {
+            //cout << i << endl;
+            vector<sequence> E;
+            sequence seq;
+            for (int j = 0; j < exp; ++j) {
+                bool value = (i >> j) & 1;
+                if (value)
+                    seq.push_back(ts("a", 0));
+                else
+                    seq.push_back(ts("b", 0));
+            }
+            E.push_back(seq);
+            SATSolver * solver = new SATSolver();
+            solver->new_vars(M->timeouts.size() + M->transitions.size());
+
+            computePhiM(solver, S, M);
+            sequence res = verifyCheckingExperiment(solver, E, S, P);
+            if (res.empty()) {
+                cout << " Test suite complete." << endl;
+                printSequence(seq);
+                found = true;
+            }
+        }
+        if (found)
+            return;
+    }
+    /*
+    SATSolver * solver = new SATSolver();
+    solver->new_vars(M->timeouts.size() + M->transitions.size());
+
+    computePhiM(solver, S, M);
+    sequence res = verifyCheckingExperiment(solver, E, S, P);
+    printSequence(res);
+    if (res.empty())
+        cout << " Test suite complete." << endl;
+    else
+        cout << " Test suite incomplete." << endl;
+        */
 }
 
 void checkingExperimentBenchmarks()
@@ -486,8 +628,12 @@ void testChaosMachine()
 
 int main()
 {
+    checkEverythingExampleFSM();
+    /*
+    checkExample1FSM();
     checkingExperimentExample1();
     checkingSequenceExample1();
+    */
     //checkingSequenceBenchmarks();
     //testChaosMachine();
     return 0;

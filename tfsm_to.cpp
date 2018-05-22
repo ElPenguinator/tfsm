@@ -5,14 +5,6 @@
 
 using namespace std;
 
-Transition::Transition(int src, string i, string o, int tgt, int id) {
-    this->src = src;
-    this->i = i;
-    this->o = o;
-    this->tgt = tgt;
-    this->id = id;
-}
-
 Timeout::Timeout(int src, int t, int tgt, int id) {
     this->src = src;
     this->t = t;
