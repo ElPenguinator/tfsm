@@ -25,7 +25,7 @@ void Product_TFSM_TO::insertState(ProductState * state, string i, ProductState *
     if (this->states.find(newState->getKey()) == this->states.end()) {
         this->states.insert(make_pair(newState->getKey(), newState));
     }
-    this->transitions.push_back(ProductTransition(state->getKey(), i, newState->getKey(), isTimeout, id));
+    this->transitions.push_back(ProductTransition(state->getKey(), i, newState->getKey(), isTimeout, id, false));
 }
 
 void Product_TFSM_TO::generateNext(ProductState * state)
@@ -255,7 +255,7 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra(string key)
     for (const auto &s : this->states) {
         string key = s.first;
         Q.insert(key);
-        predecessors.insert(make_pair(key, ProductTransition("", "", "", false, -1)));
+        predecessors.insert(make_pair(key, ProductTransition("", "", "", false, -1, false)));
         distances.insert(make_pair(key, inf));
     }
     distances.find(key)->second = 0;

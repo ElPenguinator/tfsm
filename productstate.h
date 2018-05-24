@@ -10,12 +10,14 @@ public:
     std::string tgt;
     int id;
     bool isTimeout;
-    ProductTransition(std::string src, std::string i, std::string tgt, bool isTimeout, int id) {
+    bool isDistinguishable;
+    ProductTransition(std::string src, std::string i, std::string tgt, bool isTimeout, int id, bool isDistinguishable) {
         this->src = src;
         this->i = i;
         this->tgt = tgt;
         this->isTimeout = isTimeout;
         this->id = id;
+        this->isDistinguishable = isDistinguishable;
     }
     std::string getKey()
     {
@@ -33,6 +35,7 @@ public:
     int inputDistance;
     int timeDistance;
     bool isGenerated;
+    bool isAlreadyDistinguishabled;
     ProductState();
     ProductState(int s, int m, int xs, int xm);
     virtual std::string getKey();
@@ -46,4 +49,16 @@ public:
     ProductSinkState();
     std::string getKey() override;
 };
+
+class ProductDeterministicExecutionState
+{
+public:
+    ProductDeterministicExecutionState(std::set<std::string> states, std::map<std::string, bool> passingThroughDistinguishingTransitions, std::map<int, bool> passingThroughMutatedTransitions, std::string prefix, std::set<std::string> inputs);
+    std::set<std::string> states;
+    std::map<std::string, ProductDeterministicExecutionState*> children;
+    std::map<int, bool> passingThroughMutatedTransitions;
+    std::map<std::string, bool> passingThroughDistinguishingTransitions;
+    std::string prefix;
+};
+
 #endif // PRODUCTSTATE_H

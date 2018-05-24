@@ -14,6 +14,7 @@ ProductState::ProductState(int s, int m, int xs, int xm)
     this->isGenerated = false;
     this->inputDistance = 0;
     this->timeDistance = 0;
+    this->isAlreadyDistinguishabled = false;
 }
 
 std::string ProductState::getKey()
@@ -42,4 +43,12 @@ ProductSinkState::ProductSinkState()
 std::string ProductSinkState::getKey()
 {
     return "sink";
+}
+
+ProductDeterministicExecutionState::ProductDeterministicExecutionState(std::set<std::string> states, std::map<string, bool> passingThroughDistinguishingTransitions, std::map<int, bool> passingThrough, std::string prefix, std::set<std::string> inputs)
+{
+    this->states = states;
+    this->passingThroughMutatedTransitions = passingThrough;
+    this->passingThroughDistinguishingTransitions = passingThroughDistinguishingTransitions;
+    this->prefix = prefix;
 }
