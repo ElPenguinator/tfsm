@@ -60,7 +60,7 @@ void Product_TFSM_TO::generateNext(ProductState * state)
         int muta_t = mutationTimeout.t;
         if (muta_t != inf)
             muta_t -= state->mutationCounter;
-        if (muta_t > 0 && muta_t != inf) {
+        if (muta_t > 0) {
             ProductState * newState;
             if (muta_t < spec_t) {
                 newState = new ProductState(state->specificationState, mutationTimeout.tgt, min(this->specification->getMaxDelta(state->specificationState), state->specificationCounter + muta_t), 0);
@@ -212,7 +212,8 @@ string DijkstraFindMin(map<string, int> distances, set<string> Q) {
 
 void DijkstraUpdateDistancesMin(map<string, int> & distances, map<string, ProductTransition> & predecessors, string s1, string s2, ProductTransition transition) {
     if (distances.find(s2)->second > distances.find(s1)->second + 1) {
-        distances.find(s2)->second = distances.find(s1)->second + 1;
+        if (distances.find(s1)->second != inf)
+            distances.find(s2)->second = distances.find(s1)->second + 1;
         predecessors.find(s2)->second = transition;
     }
 }
@@ -253,10 +254,10 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra(string key)
     set<string> Q;
     map<string, int> distances;
     for (const auto &s : this->states) {
-        string key = s.first;
-        Q.insert(key);
-        predecessors.insert(make_pair(key, ProductTransition("", "", "", false, -1, false)));
-        distances.insert(make_pair(key, inf));
+        string stateKey = s.first;
+        Q.insert(stateKey);
+        predecessors.insert(make_pair(stateKey, ProductTransition("", "", "", false, -1, false)));
+        distances.insert(make_pair(stateKey, inf));
     }
     distances.find(key)->second = 0;
 
@@ -276,6 +277,13 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra(string key)
 
     if (distances.find("sink")->second != inf) {
         while (currentStateKey != key) {
+            if (distances.find(currentStateKey)->second == inf) {
+                results.clear();
+                return results;
+            }
+            cout << "Res :" << endl;
+            cout << currentStateKey << endl;
+            cout << predecessors.find(currentStateKey)->second.getKey() << endl;
             results.push_front(predecessors.find(currentStateKey)->second);
             currentStateKey = predecessors.find(currentStateKey)->second.src;
         }
@@ -310,7 +318,7 @@ void Product_TFSM_TO::reachableStates(ProductState * state, path currentPath, se
                         }
                         else {
                             for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
-                                if (timeout < mutaTimeout.t) {
+                                if (timeout <= mutaTimeout.t) {
                                     path newPath(currentPath);
                                     newPath.push_back(transition.id);
                                     if (this->isPathDeterministic(newPath)) {

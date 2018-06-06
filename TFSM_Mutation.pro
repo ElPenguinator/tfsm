@@ -9,7 +9,8 @@ SOURCES += main.cpp \
     productstate.cpp \
     tools.cpp \
     fsm.cpp \
-    product_fsm_full.cpp
+    product_fsm_full.cpp \
+    checkingalgorithms.cpp
 
 HEADERS += \
     tfsm_to.h \
@@ -18,7 +19,8 @@ HEADERS += \
     productstate.h \
     tools.h \
     fsm.h \
-    product_fsm_full.h
+    product_fsm_full.h \
+    checkingalgorithms.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

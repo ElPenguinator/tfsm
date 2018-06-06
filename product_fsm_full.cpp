@@ -149,7 +149,7 @@ void Product_FSM_Full::minimalCheckingSequence()
     }
     */
 
-    while (!haveFound && cpt < 5) {
+    while (!haveFound && cpt < 8) {
         set<ProductDeterministicExecutionState*> toTreatCopy = set<ProductDeterministicExecutionState*>(toTreat);
         toTreat.clear();
         for (auto state : toTreatCopy) {
@@ -158,35 +158,45 @@ void Product_FSM_Full::minimalCheckingSequence()
                 map<int, bool> passingThrough = map<int, bool>(state->passingThroughMutatedTransitions);
                 map<string, bool> passingThroughDistinguishing = map<string, bool>(state->passingThroughDistinguishingTransitions);
                 set<string> reachables;
+                bool atleastOneDistinguishable = false;
+
+                ProductTransition testtmp("", "", "", false, 0, false);
+
                 for (ProductTransition transition : this->transitions) {
                     if (state->states.find(transition.src) != state->states.end() && transition.i == input) {
 
-
-
-                        if (passingThrough.find(transition.id) != passingThrough.end()) {
+                        if (passingThrough.find(transition.id) != passingThrough.end() && !transition.isDistinguishable) {
                             passingThrough.find(transition.id)->second = true;
                         }
-                        if (transition.isDistinguishable) {
+                        if (transition.isDistinguishable && !this->states.find(transition.src)->second->isAlreadyDistinguishabled) {
+                            testtmp = transition;
+                            atleastOneDistinguishable = true;
                             passingThroughDistinguishing.find(transition.getKey())->second = true;
                         }
-
-                        //Check if this is a checking sequence
-                        bool isOkay = true;
-                        for (auto value : passingThrough) {
-                            if (value.second == false)
-                                isOkay = false;
-                        }
-                        for (auto value : passingThroughDistinguishing) {
-                            if (value.second == false)
-                                isOkay = false;
-                        }
-                        if (isOkay)
-                            cout << "Yes ! " << prefix + input <<  " " << transition.getKey() << endl;
-
 
                         reachables.insert(transition.tgt);
                     }
                 }
+                //Check if this is a checking sequence
+                bool isOkay = true;
+                for (auto value : passingThrough) {
+                    if (value.second == false)
+                        isOkay = false;
+                }
+                for (auto value : passingThroughDistinguishing) {
+                    if (value.second == false)
+                        isOkay = false;
+                }
+                if (isOkay && atleastOneDistinguishable) {
+                    cout << "{";
+                    for (auto partState :state->states) {
+                        cout << partState << " ";
+                    }
+                    cout << "}" << endl;
+                    cout << testtmp.getKey() << endl;
+                    cout << "Yes ! " << prefix + input << endl;
+                }
+
                 ProductDeterministicExecutionState * child = new ProductDeterministicExecutionState(reachables, passingThroughDistinguishing, passingThrough, prefix + input, this->mutationMachine->inputs);
                 state->children.find(input)->second = child;
                 toTreat.insert(child);
