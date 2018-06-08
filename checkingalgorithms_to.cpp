@@ -1,8 +1,8 @@
-#include "checkingalgorithms.h"
+#include "checkingalgorithms_to.h"
 using namespace std;
 using namespace CMSat;
 
-TFSM * generateSubmachine(SATSolver * &solver, TFSM * M)
+TFSM_TO * generateSubmachine(SATSolver * &solver, TFSM_TO * M)
 {
     lbool ret = solver->solve();
     if (ret == l_True) {
@@ -10,7 +10,7 @@ TFSM * generateSubmachine(SATSolver * &solver, TFSM * M)
         int s0 = M->initialState;
         set<string> I(M->inputs);
         set<string> O(M->inputs);
-        vector<GuardedTransition> lambda;
+        vector<Transition> lambda;
         vector<Timeout> delta;
         for (int i=0; i<M->transitions.size() + M->timeouts.size(); i++) {
             if (solver->get_model()[i] == l_True) {
@@ -20,20 +20,20 @@ TFSM * generateSubmachine(SATSolver * &solver, TFSM * M)
                     delta.push_back(Timeout(corr.src, corr.t, corr.tgt, corr.id));
                 }
                 else {
-                    GuardedTransition corr = M->getTransitionFromId(id);
-                    lambda.push_back(GuardedTransition(corr.src, corr.i, corr.g, corr.o, corr.tgt, corr.id));
+                    Transition corr = M->getTransitionFromId(id);
+                    lambda.push_back(Transition(corr.src, corr.i, corr.o, corr.tgt, corr.id));
                 }
             }
         }
 
-        return new TFSM(S, s0, I, O, lambda, delta);
+        return new TFSM_TO(S, s0, I, O, lambda, delta);
     }
     else {
         return NULL;
     }
 }
 
-void computePhiP(SATSolver * &solver, TFSM * P)
+void computePhiP(SATSolver * &solver, TFSM_TO * P)
 {
     vector<Lit> clause;
     for (auto transition : P->transitions) {
@@ -45,7 +45,7 @@ void computePhiP(SATSolver * &solver, TFSM * P)
     solver->add_clause(clause);
 }
 
-void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
+void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM_TO * D)
 {
     for (auto alpha : E) {
         vector<path> rev = D->revealingPaths(alpha);
@@ -60,8 +60,8 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
                     }
                 }
                 else {
-                    GuardedTransition corresponding = D->mutationMachine->getTransitionFromId(id);
-                    vector<GuardedTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src, corresponding.i);
+                    Transition corresponding = D->mutationMachine->getTransitionFromId(id);
+                    vector<Transition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src, corresponding.i);
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
@@ -72,11 +72,11 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
     }
 }
 
-void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
+void computePhiM(SATSolver * &solver, TFSM_TO * S, TFSM_TO * M)
 {
     for (auto s : M->states) {
         for (auto i : M->inputs) {
-            vector<GuardedTransition> res = M->getXi(s, i);
+            vector<Transition> res = M->getXi(s, i);
             for (int k=0; k<res.size(); k++) {
                 for (int l=k+1; l<res.size(); l++) {
                     vector<Lit> clause;
@@ -118,16 +118,15 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
     solver->add_clause(clause);
 }
 
-/*
-sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM * S, Product_TFSM * D)
+sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM_TO * S, Product_TFSM_TO * D)
 {
     computePhiE(solver, E, D);
     sequence alpha;
-    TFSM * P = D->mutationMachine;
+    TFSM_TO * P = D->mutationMachine;
     while (alpha.size() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
-            Product_TFSM * DP = new Product_TFSM(S, P);
+            Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
@@ -143,15 +142,14 @@ sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM *
     return alpha;
 }
 
-
-vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFSM * S, TFSM * M)
+vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M)
 {
     SATSolver * solver = new SATSolver();
 
     solver->new_vars(M->timeouts.size() + M->transitions.size());
     solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
-    Product_TFSM * D = new Product_TFSM(S, M);
+    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
 
@@ -174,14 +172,14 @@ vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFS
     return E;
 }
 
-vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TFSM * M)
+vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M)
 {
     SATSolver * solver = new SATSolver();
 
     solver->new_vars(M->timeouts.size() + M->transitions.size());
     solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
-    Product_TFSM * D = new Product_TFSM(S, M);
+    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
     double elapsed_secs = 0;
@@ -201,18 +199,18 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TF
     return E;
 }
 
-sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM * S, Product_TFSM * D)
+sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM_TO * S, Product_TFSM_TO * D)
 {
     vector<sequence> E;
     E.push_back(CS);
     set<string> beginningStates;
     computePhiE(solver, E, D);
     sequence alpha;
-    TFSM * P = D->mutationMachine;
+    TFSM_TO * P = D->mutationMachine;
     while (alpha.size() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
-            Product_TFSM * DP = new Product_TFSM(S, P);
+            Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
@@ -228,14 +226,14 @@ sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM * S, Produ
     return alpha;
 }
 
-sequence generateCheckingSequenceTimeouted(TFSM * S, TFSM * M)
+sequence generateCheckingSequenceTimeouted(TFSM_TO * S, TFSM_TO * M)
 {
     SATSolver * solver = new SATSolver();
 
     solver->new_vars(M->timeouts.size() + M->transitions.size());
     //solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
-    Product_TFSM * D = new Product_TFSM(S, M);
+    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
     sequence CS;
     sequence alpha;
     double elapsed_secs = 0;
@@ -251,14 +249,14 @@ sequence generateCheckingSequenceTimeouted(TFSM * S, TFSM * M)
     return CS;
 }
 
-sequence generateCheckingSequence(TFSM * S, TFSM * M)
+sequence generateCheckingSequence(TFSM_TO * S, TFSM_TO * M)
 {
     SATSolver * solver = new SATSolver();
 
     solver->new_vars(M->timeouts.size() + M->transitions.size());
     //solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
-    Product_TFSM * D = new Product_TFSM(S, M);
+    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
     sequence CS;
     sequence alpha;
     do {
@@ -268,4 +266,3 @@ sequence generateCheckingSequence(TFSM * S, TFSM * M)
     while (alpha.size() != 0);
     return CS;
 }
-*/

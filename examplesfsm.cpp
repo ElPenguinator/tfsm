@@ -10,7 +10,7 @@
 #include <ctime>
 #include <fstream>
 #include <math.h>
-#include "checkingalgorithms.h"
+#include "checkingalgorithms_to.h"
 using namespace std;
 using namespace CMSat;
 

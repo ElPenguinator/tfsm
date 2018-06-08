@@ -1,10 +1,10 @@
 #ifndef CHECKINGALGORITHMS_H
 #define CHECKINGALGORITHMS_H
 #include <iostream>
-#include "tfsm_to.h"
+#include "tfsm.h"
 #include "fsm.h"
 #include "structs.h"
-#include "product_tfsm_to.h"
+#include "product_tfsm.h"
 #include "product_fsm_full.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "tools.h"
@@ -12,24 +12,24 @@
 #include <fstream>
 #include <math.h>
 
-TFSM_TO * generateSubmachine(CMSat::SATSolver * &solver, TFSM_TO * M);
+TFSM * generateSubmachine(CMSat::SATSolver * &solver, TFSM * M);
 
-void computePhiP(CMSat::SATSolver * &solver, TFSM_TO * P);
+void computePhiP(CMSat::SATSolver * &solver, TFSM * P);
 
-void computePhiE(CMSat::SATSolver * &solver, std::vector<sequence> E, Product_TFSM_TO * D);
+void computePhiE(CMSat::SATSolver * &solver, std::vector<sequence> E, Product_TFSM * D);
 
-void computePhiM(CMSat::SATSolver * &solver, TFSM_TO * S, TFSM_TO * M);
+void computePhiM(CMSat::SATSolver * &solver, TFSM * S, TFSM * M);
 
-sequence verifyCheckingExperiment(CMSat::SATSolver * &solver,std::vector<sequence> E, TFSM_TO * S, Product_TFSM_TO * D);
+sequence verifyCheckingExperiment(CMSat::SATSolver * &solver,std::vector<sequence> E, TFSM * S, Product_TFSM * D);
 
-std::vector<sequence> generateCheckingExperimentTimeouted(std::vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M);
+std::vector<sequence> generateCheckingExperimentTimeouted(std::vector<sequence> Einit, TFSM * S, TFSM * M);
 
-std::vector<sequence> generateCheckingExperiment(std::vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M);
+std::vector<sequence> generateCheckingExperiment(std::vector<sequence> Einit, TFSM * S, TFSM * M);
 
-sequence verifyCheckingSequence(CMSat::SATSolver * &solver,sequence CS, TFSM_TO * S, Product_TFSM_TO * D);
+sequence verifyCheckingSequence(CMSat::SATSolver * &solver,sequence CS, TFSM * S, Product_TFSM * D);
 
-sequence generateCheckingSequenceTimeouted(TFSM_TO * S, TFSM_TO * M);
+sequence generateCheckingSequenceTimeouted(TFSM * S, TFSM * M);
 
-sequence generateCheckingSequence(TFSM_TO * S, TFSM_TO * M);
+sequence generateCheckingSequence(TFSM * S, TFSM * M);
 
 #endif // CHECKINGALGORITHMS_H

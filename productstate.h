@@ -3,6 +3,31 @@
 #include <string>
 #include <vector>
 #include "tfsm_to.h"
+#include "tfsm.h"
+class GuardedProductTransition {
+public:
+    std::string src;
+    std::string i;
+    Guard g;
+    std::string tgt;
+    int id;
+    bool isTimeout;
+    bool isDistinguishable;
+    GuardedProductTransition(std::string src, std::string i, Guard g, std::string tgt, bool isTimeout, int id, bool isDistinguishable) {
+        this->src = src;
+        this->i = i;
+        this->g = g;
+        this->tgt = tgt;
+        this->isTimeout = isTimeout;
+        this->id = id;
+        this->isDistinguishable = isDistinguishable;
+    }
+    std::string getKey()
+    {
+        return this->src + "|" + this->i + "|" + this->tgt;
+    }
+};
+
 class ProductTransition {
 public:
     std::string src;

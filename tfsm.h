@@ -17,6 +17,9 @@ public:
     Guard();
     Guard(std::string left, int tmin, int tmax, std::string right);
     Guard(Bracket left, int tmin, int tmax, Bracket right);
+    std::string toString();
+    bool isIntersectionEmpty(Guard other);
+    Guard intersect(Guard other);
 };
 
 class GuardedTransition {
@@ -45,6 +48,7 @@ public:
     std::map<int, std::vector<Timeout> > timeoutsPerState;
     std::map<int, GuardedTransition> transitionIdMap;
     std::map<int, Timeout> timeoutIdMap;
+    std::map<int, std::map<std::string, std::set<std::set<int>>>> combinationsMaps;
     TFSM(std::set<int> S, int s0, std::set<std::string> I, std::set<std::string> O, std::vector<GuardedTransition> lambda, std::vector<Timeout> delta);
     void addTransitions(std::vector<GuardedTransition> transitions);
     void addTimeouts(std::vector<Timeout> timeouts);
