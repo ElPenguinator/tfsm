@@ -120,6 +120,24 @@ Guard Guard::intersect(Guard other) {
     return Guard(left, tmin, tmax, right);
 }
 
+bool Guard::contains(int x) {
+    bool guard1;
+    if (this->left == Bracket::Square) {
+        guard1 = x >= this->tmin;
+    }
+    else {
+        guard1 = x > this->tmin;
+    }
+    bool guard2;
+    if (this->right == Bracket::Square) {
+        guard2 = x <= this->tmax;
+    }
+    else {
+        guard2 = x < this->tmax;
+    }
+    return guard1 && guard2;
+}
+
 std::string Guard::toString() {
     string guardString;
     if (this->left == Bracket::Square)
@@ -161,9 +179,10 @@ TFSM::TFSM(set<int> S, int s0, set<string> I, set<string> O, vector<GuardedTrans
 bool isIntersectionEmpty(vector<Guard> guards) {
     for (Guard g1 : guards) {
         for (Guard g2 : guards) {
-            if (&g1 != &g2) {
-                if (!g1.isIntersectionEmpty(g2))
+            if (g1.toString() != g2.toString()) {
+                if (!g1.isIntersectionEmpty(g2)) {
                     return false;
+                }
             }
         }
     }
@@ -173,7 +192,8 @@ bool isIntersectionEmpty(vector<Guard> guards) {
 bool isUnionEverything(vector<Guard> guards) {
     vector<Guard> orderedGuards;
     int lastMax = 0;
-    for (int i=0; i<guards.size(); i++) {
+    int size = guards.size();
+    for (int i=0; i<size; i++) {
         int tmin = -1;
         vector<Guard>::iterator minGuard = guards.end();
         for (auto it = guards.begin(); it != guards.end(); it++) {
@@ -190,27 +210,37 @@ bool isUnionEverything(vector<Guard> guards) {
             guards.erase(minGuard);
         }
     }
+/*
     cout << "Ordered : ";
     for (Guard g : orderedGuards) {
         cout << g.toString() << " ";
     }
     cout << endl;
+*/
     lastMax = 0;
-    bool lastClose = false;
+    Bracket lastBracket = Bracket::Curly;
     for (Guard g : orderedGuards) {
+        //cout << lastMax << " " << g.tmin << " " << lastBracket << " " << g.left << endl;
         if (g.tmin <= lastMax) {
-            if (lastMax == g.tmin && !lastClose && g.left == Bracket::Curly) {
-                cout << "Here!" << endl;
+            if (lastMax == g.tmin && lastBracket == g.left) {
+                //cout << "Here!" << endl;
                 return false;
             }
         }
         else {
-            cout << "Here? " << g.tmin << " " << lastMax << endl;
-            return false;
+            if (lastMax == g.tmin && lastBracket == g.left) {
+                //cout << "Here? " << g.tmin << " " << lastMax << endl;
+                return false;
+            }
+            else {
+                return false;
+            }
         }
+        lastMax = g.tmax;
+        lastBracket = g.right;
     }
     if (lastMax != inf) {
-        cout << "Here:" << endl;
+        //cout << "Here:" << endl;
         return false;
     }
     return true;
@@ -247,7 +277,6 @@ void TFSM::computeMaps()
             set<set<int>> combinations;
             vector<GuardedTransition> xi = this->getXi(s, i);
             for (int word=0; word<pow(2, xi.size()); word++) {
-                cout << word << endl;
                 set<int> combination;
                 vector<Guard> guards;
                 int j=0;
@@ -260,17 +289,28 @@ void TFSM::computeMaps()
                     }
                     j++;
                 }
+                /*
                 cout << "Combination : {";
                 for (auto d : combination) {
                     cout << d << ",";
                 }
                 cout << "}" << endl;
+                cout << "guards : ";
+                for (Guard g : guards) {
+                    cout << g.toString() << " ";
+                }
+                cout << endl;
+                */
+                /*
                 if (isUnionEverything(guards)) {
                     cout << "Union ok" << endl;
                 }
+                */
+                /*
                 if (isIntersectionEmpty(guards)) {
                     cout << "Intersection ok" << endl;
                 }
+                */
                 if (isUnionEverything(guards) && isIntersectionEmpty(guards)) {
                     combinations.insert(combination);
                 }
@@ -279,7 +319,7 @@ void TFSM::computeMaps()
         }
         this->combinationsMaps.insert(make_pair(s, elt));
     }
-
+    /*
     for (auto a : this->combinationsMaps) {
         cout << "State : " << a.first << endl;
         for (auto b : a.second) {
@@ -287,12 +327,14 @@ void TFSM::computeMaps()
             for (auto c : b.second) {
                 cout << "Res : {";
                 for (auto d : c) {
-                    cout << d << ",";
+                    cout << d << " ";
+                    cout << this->getTransitionFromId(d).g.toString() << ", ";
                 }
                 cout << "}" << endl;
             }
         }
     }
+    */
 }
 
 void TFSM::addTransitions(vector<GuardedTransition> transitions)
@@ -344,6 +386,17 @@ GuardedTransition TFSM::getTransitionFromId(int id)
 Timeout TFSM::getTimeoutFromId(int id)
 {
     return this->timeoutIdMap.find(id)->second;
+}
+
+set<set<int>> TFSM::getEta(int s, string i)
+{
+    auto elemState = this->combinationsMaps.find(s);
+    if (elemState != this->combinationsMaps.end()) {
+        auto elemInput = elemState->second.find(i);
+        if (elemInput != elemState->second.end()) {
+            return elemInput->second;
+        }
+    }
 }
 
 int TFSM::getMaxDelta(int s)

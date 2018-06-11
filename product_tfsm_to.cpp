@@ -198,7 +198,7 @@ void Product_TFSM_TO::print()
     cout << "}" << endl;
 }
 
-string DijkstraFindMin(map<string, int> distances, set<string> Q) {
+string Product_TFSM_TO::DijkstraFindMin(map<string, int> distances, set<string> Q) {
     int min = inf;
     string minState = "";
     for (auto state : Q) {
@@ -210,7 +210,7 @@ string DijkstraFindMin(map<string, int> distances, set<string> Q) {
     return minState;
 }
 
-void DijkstraUpdateDistancesMin(map<string, int> & distances, map<string, ProductTransition> & predecessors, string s1, string s2, ProductTransition transition) {
+void Product_TFSM_TO::DijkstraUpdateDistancesMin(map<string, int> & distances, map<string, ProductTransition> & predecessors, string s1, string s2, ProductTransition transition) {
     if (distances.find(s2)->second > distances.find(s1)->second + 1) {
         if (distances.find(s1)->second != inf)
             distances.find(s2)->second = distances.find(s1)->second + 1;
@@ -266,8 +266,9 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra(string key)
         Q.erase(Q.find(s1));
         for (auto transition : this->transitions) {
             if (transition.src == s1) {
-                if (atoi(transition.i.c_str()) != inf)
+                if (atoi(transition.i.c_str()) != inf) {
                     DijkstraUpdateDistancesMin(distances, predecessors, s1, transition.tgt, transition);
+                }
             }
         }
     }

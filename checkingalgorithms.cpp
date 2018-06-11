@@ -48,8 +48,13 @@ void computePhiP(SATSolver * &solver, TFSM * P)
 void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
 {
     for (auto alpha : E) {
+        cout << "Begin computing Paths" << endl;
         vector<path> rev = D->revealingPaths(alpha);
+        cout << "Alpha To Eliminate : " << endl;
+        printSequence(alpha);
+        cout << "Paths : " << endl;
         for (auto path : rev) {
+            printPath(path);
             vector<Lit> clause;
             for (auto id : path) {
                 if (D->mutationMachine->isIdTimeout(id)) {
@@ -62,6 +67,7 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
                 else {
                     GuardedTransition corresponding = D->mutationMachine->getTransitionFromId(id);
                     vector<GuardedTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src, corresponding.i);
+                    cout << "CSS : " << correspondingSuspicious.size() << endl;
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
@@ -76,20 +82,69 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
 {
     for (auto s : M->states) {
         for (auto i : M->inputs) {
-            vector<GuardedTransition> res = M->getXi(s, i);
-            for (int k=0; k<res.size(); k++) {
-                for (int l=k+1; l<res.size(); l++) {
-                    vector<Lit> clause;
-                    clause.push_back(Lit(res[k].id, true));
-                    clause.push_back(Lit(res[l].id, true));
-                    solver->add_clause(clause);
+            vector<GuardedTransition> xi = M->getXi(s, i);
+            set<set<int>> eta = M->getEta(s, i);
+            for (set<int> combi : eta) {
+                for (int i : combi) {
+                    if (eta.size() == 1) {
+                        vector<Lit> clause;
+                        clause.push_back(Lit(i, false));
+                        solver->add_clause(clause);
+                    }
+                    else {
+                        for (set<int> otherCombi : eta) {
+                            if (combi != otherCombi) {
+                                for (int j : otherCombi) {
+                                    vector<Lit> clause;
+                                    clause.push_back(Lit(i, false));
+                                    clause.push_back(Lit(j, false));
+                                    solver->add_clause(clause);
+                                }
+                                for (GuardedTransition v : xi) {
+                                    if (otherCombi.find(v.id) == otherCombi.end()) {
+                                        vector<Lit> clause;
+                                        clause.push_back(Lit(i, false));
+                                        clause.push_back(Lit(v.id, true));
+                                        solver->add_clause(clause);
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+                for (GuardedTransition t : xi) {
+                    if (combi.find(t.id) == combi.end()) {
+                        if (eta.size() == 1) {
+                            vector<Lit> clause;
+                            clause.push_back(Lit(t.id, false));
+                            solver->add_clause(clause);
+                        }
+                        else {
+                            for (set<int> otherCombi : eta) {
+                                if (combi != otherCombi) {
+
+                                    for (int j : otherCombi) {
+                                        vector<Lit> clause;
+                                        clause.push_back(Lit(t.id, true));
+                                        clause.push_back(Lit(j, false));
+                                        solver->add_clause(clause);
+                                    }
+                                    for (GuardedTransition v : xi) {
+                                        if (otherCombi.find(v.id) == otherCombi.end()) {
+                                            vector<Lit> clause;
+                                            clause.push_back(Lit(t.id, true));
+                                            clause.push_back(Lit(v.id, true));
+                                            solver->add_clause(clause);
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            vector<Lit> clause;
-            for (int k=0; k<res.size(); k++) {
-                clause.push_back(Lit(res[k].id, false));
-            }
-            solver->add_clause(clause);
         }
     }
     for (auto s : M->states) {
@@ -118,7 +173,7 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
     solver->add_clause(clause);
 }
 
-/*
+
 sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM * S, Product_TFSM * D)
 {
     computePhiE(solver, E, D);
@@ -135,7 +190,16 @@ sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM *
                 sequence nullPrefix;
                 set<string> beginningStates;
                 beginningStates.insert(DP->initialState->getKey());
+                cout << "P : " << endl;
+                P->print();
+                cout << "DP : " << endl;
+                DP->print();
                 alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, nullPrefix);
+                //No deterministic input sequence
+                if (alpha.size() == 0) {
+                    cout << "Exclude this one" << endl;
+                    computePhiP(solver, P);
+                }
             }
             delete DP;
         }
@@ -143,7 +207,7 @@ sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM *
     return alpha;
 }
 
-
+/*
 vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFSM * S, TFSM * M)
 {
     SATSolver * solver = new SATSolver();
@@ -173,7 +237,7 @@ vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFS
     }
     return E;
 }
-
+*/
 vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TFSM * M)
 {
     SATSolver * solver = new SATSolver();
@@ -186,6 +250,7 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TF
     vector<sequence> Ecurr = Einit;
     double elapsed_secs = 0;
     sequence alpha;
+    int cpt = 0;
     do {
         clock_t begin = clock();
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
@@ -196,11 +261,13 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TF
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
         cout << elapsed_secs << endl;
+        cpt++;
     }
-    while (alpha.size() != 0);
+    while (alpha.size() != 0 && cpt < 4);
     return E;
 }
 
+/*
 sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM * S, Product_TFSM * D)
 {
     vector<sequence> E;

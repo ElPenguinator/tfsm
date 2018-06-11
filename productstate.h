@@ -24,7 +24,7 @@ public:
     }
     std::string getKey()
     {
-        return this->src + "|" + this->i + "|" + this->tgt;
+        return this->src + "|" + this->i +"|" + this->g.toString() +"|" + this->tgt;
     }
 };
 

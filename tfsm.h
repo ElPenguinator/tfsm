@@ -20,6 +20,7 @@ public:
     std::string toString();
     bool isIntersectionEmpty(Guard other);
     Guard intersect(Guard other);
+    bool contains(int x);
 };
 
 class GuardedTransition {
@@ -61,6 +62,7 @@ public:
     std::vector<GuardedTransition> lambda(int s);
     std::vector<Timeout> delta(int s);
     void print();
+    std::set<std::set<int>> getEta(int s, std::string i);
 };
 
 #endif // TFSM_H

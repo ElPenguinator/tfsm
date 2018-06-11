@@ -11,7 +11,7 @@
 #include <ctime>
 #include <fstream>
 #include <math.h>
-#include "checkingalgorithms_to.h"
+#include "checkingalgorithms.h"
 using namespace std;
 using namespace CMSat;
 
@@ -119,14 +119,15 @@ int main()
     TFSM * S;
     TFSM * M;
     vector<sequence> E;
-    sequence CS;
     example2FULL(S, M, E);
     S->print();
     M->print();
     Product_TFSM * P = new Product_TFSM(S, M);
     P->print();
-    //CS = generateCheckingSequence(S, M);
-    //printSequence(CS);
-    //checkingSequenceExample1();
+    vector<sequence> Einit;
+    E = generateCheckingExperiment(Einit, S, M);
+    for (auto s : E) {
+        printSequence(s);
+    }
     return 0;
 }

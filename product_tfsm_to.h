@@ -26,6 +26,8 @@ public:
     void print();
     sequence inputSequenceFromAcceptedLanguage(std::set<std::string> beginningStates, sequence prefix);
     void reachableStates(ProductState * state, path currentPath, std::set<std::string> &results, sequence alpha, int sequenceIndex, int timeBuffer);
+    std::string DijkstraFindMin(std::map<std::string, int> distances, std::set<std::string> Q);
+    void DijkstraUpdateDistancesMin(std::map<std::string, int> & distances, std::map<std::string, ProductTransition> & predecessors, std::string s1, std::string s2, ProductTransition transition);
     std::deque<ProductTransition> Dijkstra(std::string key);
     std::vector<path> revealingPathsPrefixed(std::string beginningStateKey, sequence alpha);
 };
