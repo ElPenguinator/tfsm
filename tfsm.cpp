@@ -120,6 +120,13 @@ Guard Guard::intersect(Guard other) {
     return Guard(left, tmin, tmax, right);
 }
 
+bool Guard::equals(Guard other) {
+    return (this->left == other.left
+            && this->tmin == other.tmin
+            && this->tmax == other.tmax
+            && this->right == other.right);
+}
+
 bool Guard::contains(int x) {
     bool guard1;
     if (this->left == Bracket::Square) {
@@ -176,11 +183,11 @@ TFSM::TFSM(set<int> S, int s0, set<string> I, set<string> O, vector<GuardedTrans
     this->computeMaps();
 }
 
-bool isIntersectionEmpty(vector<Guard> guards) {
-    for (Guard g1 : guards) {
-        for (Guard g2 : guards) {
-            if (g1.toString() != g2.toString()) {
-                if (!g1.isIntersectionEmpty(g2)) {
+bool isIntersectionEmpty(vector<GuardedTransition> toCheck) {
+    for (GuardedTransition g1 : toCheck) {
+        for (GuardedTransition g2 : toCheck) {
+            if (g1.id != g2.id) {
+                if (!g1.g.isIntersectionEmpty(g2.g)) {
                     return false;
                 }
             }
@@ -189,28 +196,28 @@ bool isIntersectionEmpty(vector<Guard> guards) {
     return true;
 }
 
-bool isUnionEverything(vector<Guard> guards) {
+bool isUnionEverything(vector<GuardedTransition> toCheck) {
     vector<Guard> orderedGuards;
     int lastMax = 0;
-    int size = guards.size();
+    int size = toCheck.size();
     for (int i=0; i<size; i++) {
         int tmin = -1;
-        vector<Guard>::iterator minGuard = guards.end();
-        for (auto it = guards.begin(); it != guards.end(); it++) {
-            if (tmin == -1 || (*it).tmin < tmin) {
-                tmin = (*it).tmin;
+        vector<GuardedTransition>::iterator minGuard = toCheck.end();
+        for (auto it = toCheck.begin(); it != toCheck.end(); it++) {
+            if (tmin == -1 || (*it).g.tmin < tmin) {
+                tmin = (*it).g.tmin;
                 minGuard = it;
             }
         }
-        if (minGuard != guards.end()) {
-            if ((*minGuard).tmax >= lastMax) {
-                orderedGuards.push_back((*minGuard));
-                lastMax = (*minGuard).tmax;
+        if (minGuard != toCheck.end()) {
+            if ((*minGuard).g.tmax >= lastMax) {
+                orderedGuards.push_back((*minGuard).g);
+                lastMax = (*minGuard).g.tmax;
             }
-            guards.erase(minGuard);
+            toCheck.erase(minGuard);
         }
     }
-/*
+    /*
     cout << "Ordered : ";
     for (Guard g : orderedGuards) {
         cout << g.toString() << " ";
@@ -278,14 +285,14 @@ void TFSM::computeMaps()
             vector<GuardedTransition> xi = this->getXi(s, i);
             for (int word=0; word<pow(2, xi.size()); word++) {
                 set<int> combination;
-                vector<Guard> guards;
+                vector<GuardedTransition> toCheck;
                 int j=0;
                 for (GuardedTransition transition : xi) {
 
                     bool value = (word >> j) & 1;
                     if (value) {
                         combination.insert(transition.id);
-                        guards.push_back(transition.g);
+                        toCheck.push_back(transition);
                     }
                     j++;
                 }
@@ -311,7 +318,7 @@ void TFSM::computeMaps()
                     cout << "Intersection ok" << endl;
                 }
                 */
-                if (isUnionEverything(guards) && isIntersectionEmpty(guards)) {
+                if (isUnionEverything(toCheck) && isIntersectionEmpty(toCheck)) {
                     combinations.insert(combination);
                 }
             }
@@ -335,6 +342,7 @@ void TFSM::computeMaps()
         }
     }
     */
+
 }
 
 void TFSM::addTransitions(vector<GuardedTransition> transitions)

@@ -21,6 +21,7 @@ public:
     bool isIntersectionEmpty(Guard other);
     Guard intersect(Guard other);
     bool contains(int x);
+    bool equals(Guard other);
 };
 
 class GuardedTransition {

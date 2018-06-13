@@ -48,13 +48,13 @@ void computePhiP(SATSolver * &solver, TFSM * P)
 void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
 {
     for (auto alpha : E) {
-        cout << "Begin computing Paths" << endl;
+        //cout << "Begin computing Paths" << endl;
         vector<path> rev = D->revealingPaths(alpha);
-        cout << "Alpha To Eliminate : " << endl;
-        printSequence(alpha);
-        cout << "Paths : " << endl;
+        //cout << "Alpha To Eliminate : " << endl;
+        //printSequence(alpha);
+        //cout << "Paths : " << endl;
         for (auto path : rev) {
-            printPath(path);
+            //printPath(path);
             vector<Lit> clause;
             for (auto id : path) {
                 if (D->mutationMachine->isIdTimeout(id)) {
@@ -67,7 +67,6 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
                 else {
                     GuardedTransition corresponding = D->mutationMachine->getTransitionFromId(id);
                     vector<GuardedTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src, corresponding.i);
-                    cout << "CSS : " << correspondingSuspicious.size() << endl;
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
@@ -78,73 +77,58 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
     }
 }
 
+void computePhiMRecur(SATSolver * &solver, const vector<GuardedTransition> &xi, const set<set<int>>::iterator &current, const set<set<int>>::iterator &end, vector<int> currentClause) {
+    set<int> combi = (*current);
+    for (int elt : combi) {
+        set<set<int>>::iterator copyCurrent(current);
+        copyCurrent++;
+        vector<int> copyCurrentClause(currentClause);
+        copyCurrentClause.push_back(elt);
+        if (copyCurrent != end) {
+            computePhiMRecur(solver, xi, copyCurrent, end, copyCurrentClause);
+        }
+        else {
+            vector<Lit> clause;
+            for (int li : copyCurrentClause) {;
+                if (li >= 0) {
+                    clause.push_back(Lit(li, false));
+                }
+                else {
+                    clause.push_back(Lit(-li, true));
+                }
+            }
+            solver->add_clause(clause);
+        }
+    }
+}
+
+
 void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
 {
     for (auto s : M->states) {
         for (auto i : M->inputs) {
             vector<GuardedTransition> xi = M->getXi(s, i);
             set<set<int>> eta = M->getEta(s, i);
+            vector<int> emptyClause;
+            set<set<int>> newEta;
+
             for (set<int> combi : eta) {
-                for (int i : combi) {
-                    if (eta.size() == 1) {
-                        vector<Lit> clause;
-                        clause.push_back(Lit(i, false));
-                        solver->add_clause(clause);
-                    }
-                    else {
-                        for (set<int> otherCombi : eta) {
-                            if (combi != otherCombi) {
-                                for (int j : otherCombi) {
-                                    vector<Lit> clause;
-                                    clause.push_back(Lit(i, false));
-                                    clause.push_back(Lit(j, false));
-                                    solver->add_clause(clause);
-                                }
-                                for (GuardedTransition v : xi) {
-                                    if (otherCombi.find(v.id) == otherCombi.end()) {
-                                        vector<Lit> clause;
-                                        clause.push_back(Lit(i, false));
-                                        clause.push_back(Lit(v.id, true));
-                                        solver->add_clause(clause);
-                                    }
-                                }
-
-                            }
-                        }
+                set<int> newSet;
+                for (int elt : combi) {
+                    newSet.insert(elt);
+                }
+                for (GuardedTransition elt : xi) {
+                    if (combi.find(elt.id) == combi.end()) {
+                        newSet.insert(-elt.id);
                     }
                 }
-                for (GuardedTransition t : xi) {
-                    if (combi.find(t.id) == combi.end()) {
-                        if (eta.size() == 1) {
-                            vector<Lit> clause;
-                            clause.push_back(Lit(t.id, false));
-                            solver->add_clause(clause);
-                        }
-                        else {
-                            for (set<int> otherCombi : eta) {
-                                if (combi != otherCombi) {
-
-                                    for (int j : otherCombi) {
-                                        vector<Lit> clause;
-                                        clause.push_back(Lit(t.id, true));
-                                        clause.push_back(Lit(j, false));
-                                        solver->add_clause(clause);
-                                    }
-                                    for (GuardedTransition v : xi) {
-                                        if (otherCombi.find(v.id) == otherCombi.end()) {
-                                            vector<Lit> clause;
-                                            clause.push_back(Lit(t.id, true));
-                                            clause.push_back(Lit(v.id, true));
-                                            solver->add_clause(clause);
-                                        }
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-                }
+                newEta.insert(newSet);
             }
+
+            set<set<int>>::iterator begin = newEta.begin();
+            set<set<int>>::iterator end = newEta.end();
+
+            computePhiMRecur(solver, xi, begin, end, emptyClause);
         }
     }
     for (auto s : M->states) {
@@ -190,14 +174,15 @@ sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM *
                 sequence nullPrefix;
                 set<string> beginningStates;
                 beginningStates.insert(DP->initialState->getKey());
+                /*
                 cout << "P : " << endl;
                 P->print();
                 cout << "DP : " << endl;
                 DP->print();
+                */
                 alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, nullPrefix);
                 //No deterministic input sequence
                 if (alpha.size() == 0) {
-                    cout << "Exclude this one" << endl;
                     computePhiP(solver, P);
                 }
             }
@@ -245,8 +230,10 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TF
     solver->new_vars(M->timeouts.size() + M->transitions.size());
     solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
+
     Product_TFSM * D = new Product_TFSM(S, M);
     vector<sequence> E;
+
     vector<sequence> Ecurr = Einit;
     double elapsed_secs = 0;
     sequence alpha;
@@ -255,6 +242,7 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TF
         clock_t begin = clock();
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
         alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
+        cout << "BIP" << endl;
         printSequence(alpha);
         Ecurr.clear();
         Ecurr.push_back(alpha);
@@ -263,7 +251,8 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM * S, TF
         cout << elapsed_secs << endl;
         cpt++;
     }
-    while (alpha.size() != 0 && cpt < 4);
+    while (alpha.size() != 0 && cpt < 50);
+
     return E;
 }
 
@@ -336,3 +325,53 @@ sequence generateCheckingSequence(TFSM * S, TFSM * M)
     return CS;
 }
 */
+
+unsigned long long int computeNumberOfMutants(TFSM * M) {
+    unsigned long long int res = 1;
+    for (int s : M->states) {
+        for (string i : M->inputs) {
+            if (M->getXi(s).size() > 1)
+                res *= M->getEta(s, i).size();
+        }
+    }
+    for (int s : M->states) {
+        if (M->getXi(s).size() > 1)
+            res *= M->getXi(s).size();
+    }
+    return res;
+}
+
+void checkingExperimentBenchmarks()
+{
+    set<string> I = {"a", "b"};
+    set<string> O = {"0", "1"};
+
+
+    int nbStates [5] = {4, 8, 10, 12, 15};
+    int nbMutants [6] = {20, 50, 100, 200, 300, 400};
+    int maxTime = 5;
+
+    for (int nbOfBench=0; nbOfBench < 5; nbOfBench++) {
+        ofstream benchFile;
+
+        for (int j=2; j<3; j++) {
+            //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
+            for (int i=0; i < 3; i++) {
+                benchFile.open("bench_CE_FULL_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+                TFSM * randomSpec = generateRandomSpecification(nbStates[j], maxTime, I, O);
+                TFSM * randomMuta = generateRandomMutationMachine(randomSpec, maxTime*2, nbMutants[i]);
+                vector<sequence> E;
+                vector<sequence> Einit;
+                clock_t begin = clock();
+                E = generateCheckingExperiment(Einit, randomSpec, randomMuta);
+                clock_t end = clock();
+                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
+                delete randomSpec;
+                delete randomMuta;
+                benchFile.close();
+            }
+
+        }
+    }
+}

@@ -125,6 +125,7 @@ void checkingSequenceExample1()
     printSequence(CS);
 }
 
+/*
 void checkingExperimentBenchmarks()
 {
     set<string> I = {"a", "b"};
@@ -142,8 +143,8 @@ void checkingExperimentBenchmarks()
             //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
             for (int i=0; i < 3; i++) {
                 benchFile.open("bench_CE_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
-                TFSM_TO * randomSpec = generateRandomSpecification(nbStates[j], maxTime, I, O);
-                TFSM_TO * randomMuta = generateRandomMutationMachine(randomSpec, maxTime*2, nbMutants[i]);
+                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
+                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
                 vector<sequence> E;
                 vector<sequence> Einit;
                 clock_t begin = clock();
@@ -159,7 +160,7 @@ void checkingExperimentBenchmarks()
         }
     }
 }
-
+*/
 
 void checkingSequenceBenchmarks()
 {
@@ -177,8 +178,8 @@ void checkingSequenceBenchmarks()
         for (int j=2; j<3; j++) {
             for (int i=0; i < 3; i++) {
                 benchFile.open("bench_CS_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
-                TFSM_TO * randomSpec = generateRandomSpecification(nbStates[j], maxTime, I, O);
-                TFSM_TO * randomMuta = generateRandomMutationMachine(randomSpec, maxTime*2, nbMutants[i]);
+                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
+                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
                 sequence CS;
                 clock_t begin = clock();
                 CS = generateCheckingSequenceTimeouted(randomSpec, randomMuta);
@@ -198,7 +199,7 @@ void testChaosMachine()
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
 
-    TFSM_TO * randomSpec = generateRandomSpecification(4, 4, I, O);
+    TFSM_TO * randomSpec = generateRandomSpecification_TO(4, 4, I, O);
     randomSpec->print();
     TFSM_TO * chaosMuta = generateChaosMachine(randomSpec, 10);
     chaosMuta->print();

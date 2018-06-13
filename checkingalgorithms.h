@@ -32,4 +32,6 @@ sequence generateCheckingSequenceTimeouted(TFSM * S, TFSM * M);
 
 sequence generateCheckingSequence(TFSM * S, TFSM * M);
 
+void checkingExperimentBenchmarks();
+
 #endif // CHECKINGALGORITHMS_H

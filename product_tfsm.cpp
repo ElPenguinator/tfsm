@@ -157,7 +157,6 @@ std::vector<path> Product_TFSM::revealingPaths(sequence alpha)
 {
     vector<path> results;
     path currentPath;
-    cout << "??" << endl;
     revealingPathsRecursive(this->initialState, currentPath, results, alpha, 0, 0, 0);
     return results;
 }
@@ -165,7 +164,6 @@ std::vector<path> Product_TFSM::revealingPaths(sequence alpha)
 void Product_TFSM::revealingPathsRecursive(ProductState * state, path currentPath, vector<path> &results, sequence alpha, int sequenceIndex, int timeBuffer, int timeLeftOver)
 {
     if (state->getKey() == "sink") {
-        cout << "Sink ?" << endl;
         results.push_back(currentPath);
     }
     else if (sequenceIndex < alpha.size()) {
@@ -177,8 +175,10 @@ void Product_TFSM::revealingPathsRecursive(ProductState * state, path currentPat
             t -= alpha[sequenceIndex -1].second;
             symbol_time -= alpha[sequenceIndex -1].second;
         }
+        /*
         cout << state->getKey() << endl;
         cout << symbol << " " << t << endl;
+        */
         //Time to spend, so take only timeouts
         if (t > 0) {
             for (auto transition : this->transitions) {
@@ -289,27 +289,29 @@ deque<GuardedProductTransition> Product_TFSM::Dijkstra(string key)
     if (distances.find("sink")->second != inf) {
         while (currentStateKey != key) {
             if (distances.find(currentStateKey)->second == inf) {
-                cout << "Sigh" << endl;
                 results.clear();
                 return results;
             }
+            /*
             cout << "Res :" << endl;
             cout << currentStateKey << endl;
             cout << predecessors.find(currentStateKey)->second.getKey() << endl;
+            */
             results.push_front(predecessors.find(currentStateKey)->second);
             currentStateKey = predecessors.find(currentStateKey)->second.src;
         }
+        /*
         cout << "Res :" << endl;
         cout << currentStateKey << endl;
         cout << predecessors.find(currentStateKey)->second.getKey() << endl;
+        */
     }
-    else {
-        cout << "Sigh !" << endl;
-    }
+    /*
     cout << "Dijkstra log : " << endl;
     for (auto d : distances) {
         cout << d.first << " " << d.second << endl;
     }
+    */
     return results;
 }
 
