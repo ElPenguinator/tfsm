@@ -282,9 +282,11 @@ deque<ProductTransition> Product_TFSM_TO::Dijkstra(string key)
                 results.clear();
                 return results;
             }
+            /*
             cout << "Res :" << endl;
             cout << currentStateKey << endl;
             cout << predecessors.find(currentStateKey)->second.getKey() << endl;
+            */
             results.push_front(predecessors.find(currentStateKey)->second);
             currentStateKey = predecessors.find(currentStateKey)->second.src;
         }

@@ -182,18 +182,18 @@ vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM_TO * S,
     Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
-    double elapsed_secs = 0;
+    //double elapsed_secs = 0;
     sequence alpha;
     do {
-        clock_t begin = clock();
+        //clock_t begin = clock();
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
         alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
-        printSequence(alpha);
+        //printSequence(alpha);
         Ecurr.clear();
         Ecurr.push_back(alpha);
-        clock_t end = clock();
-        elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-        cout << elapsed_secs << endl;
+        //clock_t end = clock();
+        //elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+        //cout << elapsed_secs << endl;
     }
     while (alpha.size() != 0);
     return E;

@@ -15,7 +15,8 @@ SOURCES += main.cpp \
     product_tfsm.cpp \
     examplesto.cpp \
     checkingalgorithms_to.cpp \
-    checkingalgorithms.cpp
+    checkingalgorithms.cpp \
+    examplestfsm.cpp
 
 HEADERS += \
     tfsm_to.h \

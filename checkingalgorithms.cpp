@@ -105,6 +105,7 @@ void computePhiMRecur(SATSolver * &solver, const vector<GuardedTransition> &xi, 
 
 void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
 {
+    //Chose one subset of guarded transitions per input per state
     for (auto s : M->states) {
         for (auto i : M->inputs) {
             vector<GuardedTransition> xi = M->getXi(s, i);
@@ -131,6 +132,7 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
             computePhiMRecur(solver, xi, begin, end, emptyClause);
         }
     }
+    //Choose one timeout per state
     for (auto s : M->states) {
         vector<Timeout> res = M->getXi(s);
         for (int k=0; k<res.size(); k++) {
@@ -147,6 +149,7 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
         }
         solver->add_clause(clause);
     }
+    //Eliminate the specification
     vector<Lit> clause;
     for (auto k : S->transitions) {
         clause.push_back(Lit(k.id, true));

@@ -15,6 +15,7 @@
 using namespace std;
 using namespace CMSat;
 
+/*
 void example1(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
 {
     set<int> S2 = {1, 2, 3, 4};
@@ -125,7 +126,7 @@ void checkingSequenceExample1()
     printSequence(CS);
 }
 
-/*
+
 void checkingExperimentBenchmarks()
 {
     set<string> I = {"a", "b"};
@@ -160,7 +161,7 @@ void checkingExperimentBenchmarks()
         }
     }
 }
-*/
+
 
 void checkingSequenceBenchmarks()
 {
@@ -221,3 +222,4 @@ void testChaosMachine()
     }
 
 }
+*/
