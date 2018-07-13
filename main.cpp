@@ -370,7 +370,7 @@ void exampleTFTP(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     set<int> S2 = {0, 1, 2, 3};
     int s0 = 0;
     set<string> I = {"RRQ", "ACK_1", "ACK_2", "ACK_3", "ERROR"};
-    set<string> O = {"DATA_1", "DATA_2", "DATA_3", "IGNORE", "Empty", "ERROR", "Not_Defined"};
+    set<string> O = {"DATA_1", "DATA_2", "DATA_3", "Ignore", "Empty", "ERROR", "Not_Defined"};
     vector<Transition> lambda = {Transition(0, "RRQ", "DATA_1", 1, 0),
                                  Transition(0, "ACK_1", "Not_Defined", 0, 1),
                                  Transition(0, "ACK_2", "Not_Defined", 0, 2),
@@ -382,13 +382,13 @@ void exampleTFTP(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
                                  Transition(1, "ACK_3", "ERROR", 0, 9),
                                  Transition(1, "ERROR", "Empty", 0, 10),
                                  Transition(2, "RRQ", "Not_Defined", 2, 12),
-                                 Transition(2, "ACK_1", "IGNORE", 2, 13),
+                                 Transition(2, "ACK_1", "Ignore", 2, 13),
                                  Transition(2, "ACK_2", "DATA_3", 3, 14),
                                  Transition(2, "ACK_3", "ERROR", 0, 15),
                                  Transition(2, "ERROR", "Empty", 0, 16),
                                  Transition(3, "RRQ", "Not_Defined", 3, 18),
-                                 Transition(3, "ACK_1", "IGNORE", 3, 19),
-                                 Transition(3, "ACK_2", "IGNORE", 3, 20),
+                                 Transition(3, "ACK_1", "Ignore", 3, 19),
+                                 Transition(3, "ACK_2", "Ignore", 3, 20),
                                  Transition(3, "ACK_3", "Empty", 0, 21),
                                  Transition(3, "ERROR", "Empty", 0, 22)
 
@@ -402,8 +402,9 @@ void exampleTFTP(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     //M = new TFSM_TO(S2, s0, I, O, lambda, delta);
 
     //M = generateRandomMutationMachineTFTP(S, 5, 100);
-    M = generateCompleteMutationMachineTFTP(S);
-    //M = generateChaosMachine(S, 5);
+    //M = generateCompleteMutationMachineTFTP(S);
+    M = generateChaosMachine(S, 5);
+    cout << "Number of mutants : " << computeNumberOfMutants(M) << endl;;
     /*
     M->addTransitions({Transition(3, "a", "1", 3, 13),
                        Transition(3, "b", "0", 3, 14),
@@ -434,6 +435,29 @@ void exampleTFTP(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     E = {};
 }
 
+void example4(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
+{
+    set<int> S2 = {1, 2};
+    int s0 = 1;
+    set<string> I = {"a"};
+    set<string> O = {"0", "1"};
+    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
+                                 Transition(2, "a", "1", 2, 2),
+                                };
+    vector<Timeout> delta = {Timeout(1, 3, 2, 1),
+                             Timeout(2, 3, 1, 3)
+                            };
+    S = new TFSM_TO(S2, s0, I, O, lambda, delta);
+    M = new TFSM_TO(S2, s0, I, O, lambda, delta);
+
+    M->addTimeouts({Timeout(1, 1, 2, 4),
+                    Timeout(1, 5, 2, 5),
+                    Timeout(2, 1, 1, 6),
+                    Timeout(2, 5, 1, 7)
+                   });
+    E = {};
+}
+
 
 
 int main()
@@ -460,10 +484,13 @@ int main()
     TFSM_TO * M;
     vector<sequence> E;
     exampleTFTP(S, M, E);
+    //example4(S, M , E);
+    //example1(S, M, E);
     S->print();
     M->print();
     Product_TFSM_TO * P = new Product_TFSM_TO(S, M);
     //P->print();
+
     vector<sequence> Einit;
     clock_t begin = clock();
     E = generateCheckingExperiment(Einit, S, M);
@@ -474,5 +501,6 @@ int main()
     for (auto s : E) {
         printSequence(s);
     }
+
     return 0;
 }

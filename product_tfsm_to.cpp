@@ -62,6 +62,27 @@ void Product_TFSM_TO::generateNext(ProductState * state)
             muta_t -= state->mutationCounter;
         if (muta_t > 0) {
             ProductState * newState;
+            if (muta_t < spec_t && spec_t != inf) {
+                newState = new ProductState(state->specificationState, mutationTimeout.tgt, state->specificationCounter + muta_t, 0);
+                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
+            }
+            else if (muta_t < spec_t && spec_t == inf) {
+                newState = new ProductState(state->specificationState, mutationTimeout.tgt, inf, 0);
+                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
+            }
+            else if (muta_t == spec_t) {
+                newState = new ProductState(related->tgt, mutationTimeout.tgt, 0, 0);
+                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
+            }
+            else if (muta_t > spec_t && muta_t != inf) {
+                newState = new ProductState(related->tgt, state->mutationState, 0, state->mutationCounter + spec_t);
+                this->insertState(state, to_string(spec_t), newState, true, mutationTimeout.id);
+            }
+            else if (muta_t > spec_t && muta_t == inf) {
+                newState = new ProductState(related->tgt, state->mutationState, 0, inf);
+                this->insertState(state, to_string(spec_t), newState, true, mutationTimeout.id);
+            }
+            /*
             if (muta_t < spec_t) {
                 newState = new ProductState(state->specificationState, mutationTimeout.tgt, min(this->specification->getMaxDelta(state->specificationState), state->specificationCounter + muta_t), 0);
                 this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
@@ -71,9 +92,10 @@ void Product_TFSM_TO::generateNext(ProductState * state)
                 this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
             }
             else if (muta_t > spec_t) {
-                newState = new ProductState(related->tgt, state->mutationState, 0, min(this->specification->getMaxDelta(state->mutationState), state->mutationCounter + spec_t));
+                newState = new ProductState(related->tgt, state->mutationState, 0, min(this->mutationMachine->getMaxDelta(state->mutationState), state->mutationCounter + spec_t));
                 this->insertState(state, to_string(spec_t), newState, true, mutationTimeout.id);
             }
+            */
         }
     }
     delete related;
