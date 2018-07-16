@@ -29,7 +29,8 @@ HEADERS += \
     tfsm.h \
     product_tfsm.h \
     checkingalgorithms_to.h \
-    checkingalgorithms.h
+    checkingalgorithms.h \
+    infint.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

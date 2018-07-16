@@ -343,7 +343,7 @@ unsigned long long int computeNumberOfMutants(TFSM * M) {
     }
     return res;
 }
-
+/*
 void checkingExperimentBenchmarks()
 {
     set<string> I = {"a", "b"};
@@ -378,3 +378,4 @@ void checkingExperimentBenchmarks()
         }
     }
 }
+*/

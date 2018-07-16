@@ -147,7 +147,6 @@ vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFS
     SATSolver * solver = new SATSolver();
 
     solver->new_vars(M->timeouts.size() + M->transitions.size());
-    solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
     Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
     vector<sequence> E;
@@ -163,10 +162,9 @@ vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFS
             Ecurr.push_back(alpha);
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-        cout << elapsed_secs << endl;
     }
-    while (Ecurr.size() != 0 && elapsed_secs < 400);
-    if (elapsed_secs > 400) {
+    while (Ecurr.size() != 0 && elapsed_secs < 3600);
+    if (elapsed_secs > 3600) {
         E.clear();
     }
     return E;
@@ -243,9 +241,8 @@ sequence generateCheckingSequenceTimeouted(TFSM_TO * S, TFSM_TO * M)
         alpha = verifyCheckingSequence(solver, CS, S, D);
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-        cout << elapsed_secs << endl;
     }
-    while (alpha.size() != 0 && elapsed_secs < 400);
+    while (alpha.size() != 0 && elapsed_secs < 3600);
     return CS;
 }
 

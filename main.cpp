@@ -13,25 +13,7 @@
 #include <math.h>
 //#include "checkingalgorithms.h"
 #include "checkingalgorithms_to.h"
-using namespace std;
-using namespace CMSat;
-
-/////
-
-#include <iostream>
-#include "tfsm_to.h"
-#include "tfsm.h"
-#include "fsm.h"
-#include "structs.h"
-#include "product_tfsm_to.h"
-#include "product_tfsm.h"
-#include "product_fsm_full.h"
-#include "cryptominisat5/cryptominisat.h"
-#include "tools.h"
-#include <ctime>
-#include <fstream>
-#include <math.h>
-#include "checkingalgorithms_to.h"
+#include "infint.h"
 using namespace std;
 using namespace CMSat;
 
@@ -84,8 +66,8 @@ void example1(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
         };
 }
 
-unsigned long long int computeNumberOfMutants(TFSM_TO * M) {
-    unsigned long long int res = 1;
+InfInt computeNumberOfMutants(TFSM_TO * M) {
+    InfInt res = 1;
     for (int s : M->states) {
         for (string i : M->inputs) {
             if (M->getXi(s).size() > 1)
@@ -145,8 +127,8 @@ void checkingSequenceExample1()
     printSequence(CS);
 }
 
-/*
-void checkingExperimentBenchmarks()
+
+void checkingExperimentBenchmarks(int nbOfBench)
 {
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
@@ -155,32 +137,28 @@ void checkingExperimentBenchmarks()
     int nbStates [5] = {4, 8, 10, 12, 15};
     int nbMutants [6] = {20, 50, 100, 200, 300, 400};
     int maxTime = 5;
-
-    for (int nbOfBench=0; nbOfBench < 5; nbOfBench++) {
-        ofstream benchFile;
-
-        for (int j=2; j<3; j++) {
-            //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
-            for (int i=0; i < 3; i++) {
-                benchFile.open("bench_CE_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
-                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
-                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
-                vector<sequence> E;
-                vector<sequence> Einit;
-                clock_t begin = clock();
-                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
-                clock_t end = clock();
-                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
-                delete randomSpec;
-                delete randomMuta;
-                benchFile.close();
-            }
-
+    ofstream benchFile;
+    for (int j=0; j<5; j++) {
+        //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
+        for (int i=0; i < 4; i++) {
+            benchFile.open("bench_CE_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+            TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
+            TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
+            vector<sequence> E;
+            vector<sequence> Einit;
+            clock_t begin = clock();
+            E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
+            clock_t end = clock();
+            double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+            benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
+            delete randomSpec;
+            delete randomMuta;
+            benchFile.close();
         }
+
     }
 }
-*/
+
 
 void checkingSequenceBenchmarks()
 {
@@ -195,8 +173,8 @@ void checkingSequenceBenchmarks()
     for (int nbOfBench=0; nbOfBench < 5; nbOfBench++) {
         ofstream benchFile;
 
-        for (int j=2; j<3; j++) {
-            for (int i=0; i < 3; i++) {
+        for (int j=0; j<3; j++) {
+            for (int i=0; i < 6; i++) {
                 benchFile.open("bench_CS_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
                 TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
                 TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
@@ -460,7 +438,7 @@ void example4(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
 
 
 
-int main()
+int main(int argc, char ** argv)
 {
     /*
     TFSM * S;
@@ -479,7 +457,7 @@ int main()
     }
     */
     //checkingExperimentBenchmarks();
-
+    /*
     TFSM_TO * S;
     TFSM_TO * M;
     vector<sequence> E;
@@ -501,6 +479,9 @@ int main()
     for (auto s : E) {
         printSequence(s);
     }
+
+    */
+    checkingExperimentBenchmarks(2);
 
     return 0;
 }
