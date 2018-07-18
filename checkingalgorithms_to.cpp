@@ -163,8 +163,8 @@ vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFS
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
     }
-    while (Ecurr.size() != 0 && elapsed_secs < 3600);
-    if (elapsed_secs > 3600) {
+    while (Ecurr.size() != 0 && elapsed_secs < 2048);
+    if (elapsed_secs > 2048) {
         E.clear();
     }
     return E;

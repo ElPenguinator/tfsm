@@ -253,7 +253,7 @@ TFSM_TO * generateRandomMutationMachine_TO(TFSM_TO * S, int maxTime, int numberO
             int randomTgt = floor(rand() % S->states.size());
             int newId = i + (S->transitions.size() + S->timeouts.size());
             if (createTimeout) {
-                int randomT = floor(rand() % maxTime);
+                int randomT = floor(rand() % (maxTime+1));
                 if (randomT == 0) {
                     randomT = inf;
                     randomTgt = randomSrc;
