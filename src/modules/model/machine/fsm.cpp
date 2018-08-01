@@ -2,15 +2,7 @@
 #include <iostream>
 using namespace std;
 
-Transition::Transition(int src, string i, string o, int tgt, int id) {
-    this->src = src;
-    this->i = i;
-    this->o = o;
-    this->tgt = tgt;
-    this->id = id;
-}
-
-FSM::FSM(set<int> S, int s0, set<string> I, set<string> O, vector<Transition> lambda)
+FSM::FSM(set<int> S, int s0, set<string> I, set<string> O, vector<IOTransition> lambda)
 {
     this->states = S;
     this->initialState = s0;
@@ -25,24 +17,24 @@ void FSM::computeMaps()
     this->transitionsPerState.clear();
     this->transitionIdMap.clear();
     for (int s : this->states) {
-        this->transitionsPerState.insert(make_pair(s, vector<Transition>()));
+        this->transitionsPerState.insert(make_pair(s, vector<IOTransition>()));
     }
 
-    for (Transition t : this->transitions) {
+    for (IOTransition t : this->transitions) {
         this->transitionIdMap.insert(make_pair(t.id, t));
         this->transitionsPerState.find(t.src)->second.push_back(t);
     }
 }
 
-void FSM::addTransitions(vector<Transition> transitions)
+void FSM::addTransitions(vector<IOTransition> transitions)
 {
     this->transitions.insert(this->transitions.end(), transitions.begin(), transitions.end());
     this->computeMaps();
 }
 
-vector<Transition> FSM::getXi(int s, string i)
+vector<IOTransition> FSM::getXi(int s, string i)
 {
-    vector<Transition> result;
+    vector<IOTransition> result;
     for (auto transition : this->lambda(s)) {
         if (transition.i == i)
             result.push_back(transition);
@@ -50,12 +42,12 @@ vector<Transition> FSM::getXi(int s, string i)
     return result;
 }
 
-vector<Transition> FSM::lambda(int s)
+vector<IOTransition> FSM::lambda(int s)
 {
     return this->transitionsPerState.find(s)->second;
 }
 
-Transition FSM::getTransitionFromId(int id)
+IOTransition FSM::getTransitionFromId(int id)
 {
     return this->transitionIdMap.find(id)->second;
 }

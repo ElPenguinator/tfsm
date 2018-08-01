@@ -1,11 +1,11 @@
 #ifndef CHECKINGALGORITHMS_H
 #define CHECKINGALGORITHMS_H
 #include <iostream>
-#include "tfsm.h"
-#include "fsm.h"
+#include "machine/tfsm.h"
+#include "machine/fsm.h"
 #include "structs.h"
-#include "product_tfsm.h"
-#include "product_fsm_full.h"
+#include "machine/product_tfsm.h"
+#include "machine/product_fsm_full.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "tools.h"
 #include <ctime>

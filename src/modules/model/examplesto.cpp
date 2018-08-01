@@ -1,11 +1,11 @@
 #include <iostream>
-#include "tfsm_to.h"
-#include "tfsm.h"
-#include "fsm.h"
+#include "machine/tfsm_to.h"
+#include "machine/tfsm.h"
+#include "machine/fsm.h"
 #include "structs.h"
-#include "product_tfsm_to.h"
-#include "product_tfsm.h"
-#include "product_fsm_full.h"
+#include "machine/product_tfsm_to.h"
+#include "machine/product_tfsm.h"
+#include "machine/product_fsm_full.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "tools.h"
 #include <ctime>
@@ -22,14 +22,14 @@ void example1(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     int s0 = 1;
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
-    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
-                                 Transition(1, "b", "0", 2, 1),
-                                 Transition(2, "b", "0", 2, 3),
-                                 Transition(2, "a", "0", 3, 4),
-                                 Transition(3, "a", "0", 3, 6),
-                                 Transition(3, "b", "0", 4, 7),
-                                 Transition(4, "b", "0", 4, 10),
-                                 Transition(4, "a", "1", 1, 9)
+    vector<IOTransition> lambda = {IOTransition(1, "a", "0", 1, 0),
+                                 IOTransition(1, "b", "0", 2, 1),
+                                 IOTransition(2, "b", "0", 2, 3),
+                                 IOTransition(2, "a", "0", 3, 4),
+                                 IOTransition(3, "a", "0", 3, 6),
+                                 IOTransition(3, "b", "0", 4, 7),
+                                 IOTransition(4, "b", "0", 4, 10),
+                                 IOTransition(4, "a", "1", 1, 9)
                                 };
     vector<Timeout> delta = {Timeout(1, 4, 4, 2),
                              Timeout(3, 5, 2, 8),
@@ -38,9 +38,9 @@ void example1(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
                             };
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     M = new TFSM_TO(S2, s0, I, O, lambda, delta);
-    M->addTransitions({Transition(3, "a", "1", 3, 13),
-                       Transition(3, "b", "0", 3, 14),
-                       Transition(4, "a", "1", 2, 12)
+    M->addTransitions({IOTransition(3, "a", "1", 3, 13),
+                       IOTransition(3, "b", "0", 3, 14),
+                       IOTransition(4, "a", "1", 2, 12)
                       });
     M->addTimeouts({Timeout(1, 3, 4, 15),
                     Timeout(3, 8, 1, 16)

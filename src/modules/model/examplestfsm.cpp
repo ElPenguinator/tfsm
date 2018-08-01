@@ -1,11 +1,11 @@
 #include <iostream>
-#include "tfsm_to.h"
-#include "tfsm.h"
-#include "fsm.h"
+#include "machine/tfsm_to.h"
+#include "machine/tfsm.h"
+#include "machine/fsm.h"
 #include "structs.h"
-#include "product_tfsm_to.h"
-#include "product_tfsm.h"
-#include "product_fsm_full.h"
+#include "machine/product_tfsm_to.h"
+#include "machine/product_tfsm.h"
+#include "machine/product_fsm_full.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "tools.h"
 #include <ctime>
@@ -31,10 +31,10 @@ void example1FULL(TFSM *& S, TFSM *& M, vector<sequence> & E)
                                  GuardedTransition(4, "b", Guard("[", 0, inf, ")"), "0", 4, 10),
                                  GuardedTransition(4, "a", Guard("[", 0, inf, ")"), "1", 1, 9)
                                 };
-    vector<Timeout> delta = {Timeout(1, 4, 4, 2),
-                             Timeout(3, 5, 2, 8),
-                             Timeout(2, inf, 2, 5),
-                             Timeout(4, inf, 4, 11)
+    vector<TimeoutTransition> delta = {TimeoutTransition(1, 4, 4, 2),
+                             TimeoutTransition(3, 5, 2, 8),
+                             TimeoutTransition(2, inf, 2, 5),
+                             TimeoutTransition(4, inf, 4, 11)
                             };
     S = new TFSM(S2, s0, I, O, lambda, delta);
     M = new TFSM(S2, s0, I, O, lambda, delta);
@@ -43,8 +43,8 @@ void example1FULL(TFSM *& S, TFSM *& M, vector<sequence> & E)
                        GuardedTransition(4, "a", Guard("[", 0, inf, ")"), "1", 2, 12)
                       });
 
-    M->addTimeouts({Timeout(1, 3, 4, 15),
-                    Timeout(3, 8, 1, 16)
+    M->addTimeouts({TimeoutTransition(1, 3, 4, 15),
+                    TimeoutTransition(3, 8, 1, 16)
                    });
 
     E = {sequence({ts("a", 0),
@@ -80,8 +80,8 @@ void example2FULL(TFSM *& S, TFSM *& M, vector<sequence> & E)
                                         GuardedTransition(2, "a", Guard("[", 8, inf, ")"), "1", 2, 6),
                                         GuardedTransition(2, "b", Guard("[", 0, inf, ")"), "0", 2, 7),
                                 };
-    vector<Timeout> delta = {Timeout(1, 4, 2, 3),
-                             Timeout(2, inf, 2, 8)
+    vector<TimeoutTransition> delta = {TimeoutTransition(1, 4, 2, 3),
+                             TimeoutTransition(2, inf, 2, 8)
                             };
     S = new TFSM(S2, s0, I, O, lambda, delta);
     M = new TFSM(S2, s0, I, O, lambda, delta);
@@ -90,7 +90,7 @@ void example2FULL(TFSM *& S, TFSM *& M, vector<sequence> & E)
                        GuardedTransition(2, "a", Guard("[", 6, inf, ")"), "1", 1, 12)
                       });
 
-    M->addTimeouts({Timeout(1, 3, 1, 9)
+    M->addTimeouts({TimeoutTransition(1, 3, 1, 9)
                    });
 
     E = {sequence({ts("a", 0),
@@ -129,10 +129,10 @@ void example3FULL(TFSM *& S, TFSM *& M, vector<sequence> & E)
                                  GuardedTransition(4, "a", Guard("[", 0, 3, ")"), "1", 1, 10),
                                  GuardedTransition(4, "a", Guard("[", 3, inf, ")"), "1", 3, 11)
                                 };
-    vector<Timeout> delta = {Timeout(1, 4, 4, 2),
-                             Timeout(3, 5, 2, 9),
-                             Timeout(2, inf, 2, 6),
-                             Timeout(4, inf, 4, 13)
+    vector<TimeoutTransition> delta = {TimeoutTransition(1, 4, 4, 2),
+                             TimeoutTransition(3, 5, 2, 9),
+                             TimeoutTransition(2, inf, 2, 6),
+                             TimeoutTransition(4, inf, 4, 13)
                             };
     S = new TFSM(S2, s0, I, O, lambda, delta);
     M = new TFSM(S2, s0, I, O, lambda, delta);
@@ -145,8 +145,8 @@ void example3FULL(TFSM *& S, TFSM *& M, vector<sequence> & E)
                        GuardedTransition(4, "a", Guard("[", 0, 3, ")"), "1", 3, 22)
                       });
 
-    M->addTimeouts({Timeout(1, 3, 4, 14),
-                    Timeout(3, 8, 1, 14)
+    M->addTimeouts({TimeoutTransition(1, 3, 4, 14),
+                    TimeoutTransition(3, 8, 1, 14)
                    });
 
     E = {sequence({ts("a", 0),

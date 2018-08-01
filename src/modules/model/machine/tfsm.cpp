@@ -1,6 +1,6 @@
 #include "tfsm.h"
 #include <iostream>
-#include "structs.h"
+#include "../structs.h"
 #include <math.h>
 using namespace std;
 
@@ -172,7 +172,7 @@ GuardedTransition::GuardedTransition(int src, string i, Guard g, string o, int t
     this->id = id;
 }
 
-TFSM::TFSM(set<int> S, int s0, set<string> I, set<string> O, vector<GuardedTransition> lambda, vector<Timeout> delta)
+TFSM::TFSM(set<int> S, int s0, set<string> I, set<string> O, vector<GuardedTransition> lambda, vector<TimeoutTransition> delta)
 {
     this->states = S;
     this->initialState = s0;
@@ -261,7 +261,7 @@ void TFSM::computeMaps()
     this->timeoutIdMap.clear();
     for (int s : this->states) {
         this->transitionsPerState.insert(make_pair(s, vector<GuardedTransition>()));
-        this->timeoutsPerState.insert(make_pair(s, vector<Timeout>()));
+        this->timeoutsPerState.insert(make_pair(s, vector<TimeoutTransition>()));
     }
 
     for (GuardedTransition t : this->transitions) {
@@ -269,7 +269,7 @@ void TFSM::computeMaps()
         this->transitionsPerState.find(t.src)->second.push_back(t);
     }
 
-    for (Timeout t : this->timeouts) {
+    for (TimeoutTransition t : this->timeouts) {
         this->timeoutIdMap.insert(make_pair(t.id, t));
         this->timeoutsPerState.find(t.src)->second.push_back(t);
     }
@@ -351,7 +351,7 @@ void TFSM::addTransitions(vector<GuardedTransition> transitions)
     this->computeMaps();
 }
 
-void TFSM::addTimeouts(vector<Timeout> timeouts)
+void TFSM::addTimeouts(vector<TimeoutTransition> timeouts)
 {
     this->timeouts.insert(this->timeouts.end(), timeouts.begin(), timeouts.end());
     this->computeMaps();
@@ -367,7 +367,7 @@ vector<GuardedTransition> TFSM::getXi(int s, string i)
     return result;
 }
 
-vector<Timeout> TFSM::getXi(int s)
+vector<TimeoutTransition> TFSM::getXi(int s)
 {
     return this->delta(s);
 }
@@ -377,7 +377,7 @@ vector<GuardedTransition> TFSM::lambda(int s)
     return this->transitionsPerState.find(s)->second;
 }
 
-vector<Timeout> TFSM::delta(int s)
+vector<TimeoutTransition> TFSM::delta(int s)
 {
     return this->timeoutsPerState.find(s)->second;
 }
@@ -391,7 +391,7 @@ GuardedTransition TFSM::getTransitionFromId(int id)
     return this->transitionIdMap.find(id)->second;
 }
 
-Timeout TFSM::getTimeoutFromId(int id)
+TimeoutTransition TFSM::getTimeoutFromId(int id)
 {
     return this->timeoutIdMap.find(id)->second;
 }

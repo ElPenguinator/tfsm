@@ -1,19 +1,19 @@
 #include <iostream>
-#include "tfsm_to.h"
-#include "tfsm.h"
-#include "fsm.h"
-#include "structs.h"
-#include "product_tfsm_to.h"
-#include "product_tfsm.h"
-#include "product_fsm_full.h"
+#include "modules/model/machine/tfsm_to.h"
+#include "modules/model/machine/tfsm.h"
+#include "modules/model/machine/fsm.h"
+#include "modules/model/structs.h"
+#include "modules/model/machine/product_tfsm_to.h"
+#include "modules/model/machine/product_tfsm.h"
+#include "modules/model/machine/product_fsm_full.h"
 #include "cryptominisat5/cryptominisat.h"
-#include "tools.h"
+#include "modules/model/tools.h"
 #include <ctime>
 #include <fstream>
 #include <math.h>
 //#include "checkingalgorithms.h"
-#include "checkingalgorithms_to.h"
-#include "infint.h"
+#include "modules/model/checkingalgorithms_to.h"
+#include "lib/infint.h"
 using namespace std;
 using namespace CMSat;
 
@@ -23,28 +23,28 @@ void example1(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     int s0 = 1;
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
-    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
-                                 Transition(1, "b", "0", 2, 1),
-                                 Transition(2, "b", "0", 2, 3),
-                                 Transition(2, "a", "0", 3, 4),
-                                 Transition(3, "a", "0", 3, 6),
-                                 Transition(3, "b", "0", 4, 7),
-                                 Transition(4, "b", "0", 4, 10),
-                                 Transition(4, "a", "1", 1, 9)
+    vector<IOTransition> lambda = {IOTransition(1, "a", "0", 1, 0),
+                                 IOTransition(1, "b", "0", 2, 1),
+                                 IOTransition(2, "b", "0", 2, 3),
+                                 IOTransition(2, "a", "0", 3, 4),
+                                 IOTransition(3, "a", "0", 3, 6),
+                                 IOTransition(3, "b", "0", 4, 7),
+                                 IOTransition(4, "b", "0", 4, 10),
+                                 IOTransition(4, "a", "1", 1, 9)
                                 };
-    vector<Timeout> delta = {Timeout(1, 4, 4, 2),
-                             Timeout(3, 5, 2, 8),
-                             Timeout(2, inf, 2, 5),
-                             Timeout(4, inf, 4, 11)
+    vector<TimeoutTransition> delta = {TimeoutTransition(1, 4, 4, 2),
+                             TimeoutTransition(3, 5, 2, 8),
+                             TimeoutTransition(2, inf, 2, 5),
+                             TimeoutTransition(4, inf, 4, 11)
                             };
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     M = new TFSM_TO(S2, s0, I, O, lambda, delta);
-    M->addTransitions({Transition(3, "a", "1", 3, 13),
-                       Transition(3, "b", "0", 3, 14),
-                       Transition(4, "a", "1", 2, 12)
+    M->addTransitions({IOTransition(3, "a", "1", 3, 13),
+                       IOTransition(3, "b", "0", 3, 14),
+                       IOTransition(4, "a", "1", 2, 12)
                       });
-    M->addTimeouts({Timeout(1, 3, 4, 15),
-                    Timeout(3, 8, 1, 16)
+    M->addTimeouts({TimeoutTransition(1, 3, 4, 15),
+                    TimeoutTransition(3, 8, 1, 16)
                    });
 
     E = {sequence({ts("a", 0),
@@ -247,13 +247,13 @@ TFSM_TO * generateRandomMutationMachineTFTP(TFSM_TO * S, int maxTime, int number
     int s0 = S->initialState;
     set<string> I(S->inputs);
     set<string> O(S->outputs);
-    vector<Transition> lambda(S->transitions);
-    vector<Timeout> delta(S->timeouts);
+    vector<IOTransition> lambda(S->transitions);
+    vector<TimeoutTransition> delta(S->timeouts);
     TFSM_TO * M = new TFSM_TO(States, s0, I, O, lambda, delta);
 
     srand (time(NULL));
-    vector<Transition> newLambda;
-    vector<Timeout> newDelta;
+    vector<IOTransition> newLambda;
+    vector<TimeoutTransition> newDelta;
     for (int i=0; i<numberOfMutations; i++) {
         bool alreadyExisting = true;
         while (alreadyExisting) {
@@ -268,7 +268,7 @@ TFSM_TO * generateRandomMutationMachineTFTP(TFSM_TO * S, int maxTime, int number
                         randomT = inf;
                         randomTgt = randomSrc;
                     }
-                    Timeout newTimeout(randomSrc,randomT, randomTgt, newId);
+                    TimeoutTransition newTimeout(randomSrc,randomT, randomTgt, newId);
                     if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
                         newDelta.push_back(newTimeout);
                         alreadyExisting = false;
@@ -278,7 +278,7 @@ TFSM_TO * generateRandomMutationMachineTFTP(TFSM_TO * S, int maxTime, int number
             else {
                 string randomI = getRandomStringFromSet(I);
                 bool isOkay = true;
-                for (Transition t : S->transitionsPerState.find(randomSrc)->second) {
+                for (IOTransition t : S->transitionsPerState.find(randomSrc)->second) {
                     if (t.i == randomI) {
                         if (t.o == "Not_Defined") {
                             isOkay = false;
@@ -287,7 +287,7 @@ TFSM_TO * generateRandomMutationMachineTFTP(TFSM_TO * S, int maxTime, int number
                 }
                 if (isOkay) {
                     string randomO = getRandomStringFromSet(O);
-                    Transition newTransition(randomSrc,randomI, randomO, randomTgt, newId);
+                    IOTransition newTransition(randomSrc,randomI, randomO, randomTgt, newId);
                     if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
                         newLambda.push_back(newTransition);
                         alreadyExisting = false;
@@ -307,13 +307,13 @@ TFSM_TO * generateCompleteMutationMachineTFTP(TFSM_TO * S)
     int s0 = S->initialState;
     set<string> I(S->inputs);
     set<string> O(S->outputs);
-    vector<Transition> lambda(S->transitions);
-    vector<Timeout> delta(S->timeouts);
+    vector<IOTransition> lambda(S->transitions);
+    vector<TimeoutTransition> delta(S->timeouts);
     TFSM_TO * M = new TFSM_TO(States, s0, I, O, lambda, delta);
 
     srand (time(NULL));
-    vector<Transition> newLambda;
-    vector<Timeout> newDelta;
+    vector<IOTransition> newLambda;
+    vector<TimeoutTransition> newDelta;
 
     int newId = (S->transitions.size() + S->timeouts.size());
 
@@ -321,7 +321,7 @@ TFSM_TO * generateCompleteMutationMachineTFTP(TFSM_TO * S)
         for (int tgt : States) {
             for (string i : I) {
                 bool isOkay = true;
-                for (Transition t : S->transitionsPerState.find(src)->second) {
+                for (IOTransition t : S->transitionsPerState.find(src)->second) {
                     if (t.i == i) {
                         if (t.o == "Not_Defined") {
                             isOkay = false;
@@ -330,7 +330,7 @@ TFSM_TO * generateCompleteMutationMachineTFTP(TFSM_TO * S)
                 }
                 if (!isOkay) {
                     for (string o : O) {
-                        Transition newTransition(src,i, o, tgt, newId);
+                        IOTransition newTransition(src,i, o, tgt, newId);
                         if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
                             newLambda.push_back(newTransition);
                             newId++;
@@ -346,7 +346,7 @@ TFSM_TO * generateCompleteMutationMachineTFTP(TFSM_TO * S)
                 if (newT == 0) {
                     newT = inf;
                 }
-                Timeout newTimeout(src,newT, 0, newId);
+                TimeoutTransition newTimeout(src,newT, 0, newId);
                 if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
                     newDelta.push_back(newTimeout);
                     newId++;
@@ -365,32 +365,32 @@ void exampleTFTP(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     int s0 = 0;
     set<string> I = {"RRQ", "ACK_1", "ACK_2", "ACK_3", "ERROR"};
     set<string> O = {"DATA_1", "DATA_2", "DATA_3", "Ignore", "Empty", "ERROR", "Not_Defined"};
-    vector<Transition> lambda = {Transition(0, "RRQ", "DATA_1", 1, 0),
-                                 Transition(0, "ACK_1", "Not_Defined", 0, 1),
-                                 Transition(0, "ACK_2", "Not_Defined", 0, 2),
-                                 Transition(0, "ACK_3", "Not_Defined", 0, 3),
-                                 Transition(0, "ERROR", "Not_Defined", 0, 4),
-                                 Transition(1, "RRQ", "Not_Defined", 1, 6),
-                                 Transition(1, "ACK_1", "DATA_2", 2, 7),
-                                 Transition(1, "ACK_2", "ERROR", 0, 8),
-                                 Transition(1, "ACK_3", "ERROR", 0, 9),
-                                 Transition(1, "ERROR", "Empty", 0, 10),
-                                 Transition(2, "RRQ", "Not_Defined", 2, 12),
-                                 Transition(2, "ACK_1", "Ignore", 2, 13),
-                                 Transition(2, "ACK_2", "DATA_3", 3, 14),
-                                 Transition(2, "ACK_3", "ERROR", 0, 15),
-                                 Transition(2, "ERROR", "Empty", 0, 16),
-                                 Transition(3, "RRQ", "Not_Defined", 3, 18),
-                                 Transition(3, "ACK_1", "Ignore", 3, 19),
-                                 Transition(3, "ACK_2", "Ignore", 3, 20),
-                                 Transition(3, "ACK_3", "Empty", 0, 21),
-                                 Transition(3, "ERROR", "Empty", 0, 22)
+    vector<IOTransition> lambda = {IOTransition(0, "RRQ", "DATA_1", 1, 0),
+                                 IOTransition(0, "ACK_1", "Not_Defined", 0, 1),
+                                 IOTransition(0, "ACK_2", "Not_Defined", 0, 2),
+                                 IOTransition(0, "ACK_3", "Not_Defined", 0, 3),
+                                 IOTransition(0, "ERROR", "Not_Defined", 0, 4),
+                                 IOTransition(1, "RRQ", "Not_Defined", 1, 6),
+                                 IOTransition(1, "ACK_1", "DATA_2", 2, 7),
+                                 IOTransition(1, "ACK_2", "ERROR", 0, 8),
+                                 IOTransition(1, "ACK_3", "ERROR", 0, 9),
+                                 IOTransition(1, "ERROR", "Empty", 0, 10),
+                                 IOTransition(2, "RRQ", "Not_Defined", 2, 12),
+                                 IOTransition(2, "ACK_1", "Ignore", 2, 13),
+                                 IOTransition(2, "ACK_2", "DATA_3", 3, 14),
+                                 IOTransition(2, "ACK_3", "ERROR", 0, 15),
+                                 IOTransition(2, "ERROR", "Empty", 0, 16),
+                                 IOTransition(3, "RRQ", "Not_Defined", 3, 18),
+                                 IOTransition(3, "ACK_1", "Ignore", 3, 19),
+                                 IOTransition(3, "ACK_2", "Ignore", 3, 20),
+                                 IOTransition(3, "ACK_3", "Empty", 0, 21),
+                                 IOTransition(3, "ERROR", "Empty", 0, 22)
 
                                 };
-    vector<Timeout> delta = {Timeout(0, inf, 0, 5),
-                             Timeout(1, 3, 0, 11),
-                             Timeout(2, 3, 0, 17),
-                             Timeout(3, 3, 0, 23)
+    vector<TimeoutTransition> delta = {TimeoutTransition(0, inf, 0, 5),
+                             TimeoutTransition(1, 3, 0, 11),
+                             TimeoutTransition(2, 3, 0, 17),
+                             TimeoutTransition(3, 3, 0, 23)
                             };
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     //M = new TFSM_TO(S2, s0, I, O, lambda, delta);
@@ -408,25 +408,25 @@ void exampleTFTPBIG(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     int s0 = 0;
     set<string> I = {"RRQ", "ACK_1", "ACK_2", "ACK_3", "ACK_4", "ACK_5", "ACK_6", "ACK_7", "ACK_8", "ACK_9", "ACK_10", "ACK_11", "ACK_12", "ACK_13", "ACK_14", "ACK_15", "ERROR"};
     set<string> O = {"DATA_1", "DATA_2", "DATA_3", "DATA_4", "DATA_5", "DATA_6", "DATA_7", "DATA_8", "DATA_9", "DATA_10", "DATA_11", "DATA_12", "DATA_13", "DATA_14", "DATA_15", "Ignore", "Empty", "ERROR", "Not_Defined"};
-    vector<Transition> lambda = {Transition(0, "RRQ", "DATA_1", 1, 0),
-                                 Transition(0, "ACK_1", "Not_Defined", 0, 1),
-                                 Transition(0, "ACK_2", "Not_Defined", 0, 2),
-                                 Transition(0, "ACK_3", "Not_Defined", 0, 3),
-                                 Transition(0, "ACK_4", "Not_Defined", 0, 4),
-                                 Transition(0, "ACK_5", "Not_Defined", 0, 5),
-                                 Transition(0, "ACK_6", "Not_Defined", 0, 6),
-                                 Transition(0, "ACK_7", "Not_Defined", 0, 7),
-                                 Transition(0, "ACK_8", "Not_Defined", 0, 8),
-                                 Transition(0, "ACK_9", "Not_Defined", 0, 9),
-                                 Transition(0, "ACK_10", "Not_Defined", 0, 10),
-                                 Transition(0, "ACK_11", "Not_Defined", 0, 11),
-                                 Transition(0, "ACK_12", "Not_Defined", 0, 12),
-                                 Transition(0, "ACK_13", "Not_Defined", 0, 13),
-                                 Transition(0, "ACK_14", "Not_Defined", 0, 14),
-                                 Transition(0, "ACK_15", "Not_Defined", 0, 15),
-                                 Transition(0, "ERROR", "Not_Defined", 0, 16)
+    vector<IOTransition> lambda = {IOTransition(0, "RRQ", "DATA_1", 1, 0),
+                                 IOTransition(0, "ACK_1", "Not_Defined", 0, 1),
+                                 IOTransition(0, "ACK_2", "Not_Defined", 0, 2),
+                                 IOTransition(0, "ACK_3", "Not_Defined", 0, 3),
+                                 IOTransition(0, "ACK_4", "Not_Defined", 0, 4),
+                                 IOTransition(0, "ACK_5", "Not_Defined", 0, 5),
+                                 IOTransition(0, "ACK_6", "Not_Defined", 0, 6),
+                                 IOTransition(0, "ACK_7", "Not_Defined", 0, 7),
+                                 IOTransition(0, "ACK_8", "Not_Defined", 0, 8),
+                                 IOTransition(0, "ACK_9", "Not_Defined", 0, 9),
+                                 IOTransition(0, "ACK_10", "Not_Defined", 0, 10),
+                                 IOTransition(0, "ACK_11", "Not_Defined", 0, 11),
+                                 IOTransition(0, "ACK_12", "Not_Defined", 0, 12),
+                                 IOTransition(0, "ACK_13", "Not_Defined", 0, 13),
+                                 IOTransition(0, "ACK_14", "Not_Defined", 0, 14),
+                                 IOTransition(0, "ACK_15", "Not_Defined", 0, 15),
+                                 IOTransition(0, "ERROR", "Not_Defined", 0, 16)
                                 };
-    vector<Timeout> delta = {Timeout(0, inf, 0, 17)};
+    vector<TimeoutTransition> delta = {TimeoutTransition(0, inf, 0, 17)};
     int id = 18;
     string Ibis[15] = {"ACK_1", "ACK_2", "ACK_3", "ACK_4", "ACK_5", "ACK_6", "ACK_7", "ACK_8", "ACK_9", "ACK_10", "ACK_11", "ACK_12", "ACK_13", "ACK_14", "ACK_15"};
     string Obis[15] = {"DATA_2", "DATA_3", "DATA_4", "DATA_5", "DATA_6", "DATA_7", "DATA_8", "DATA_9", "DATA_10", "DATA_11", "DATA_12", "DATA_13", "DATA_14", "DATA_15", "Empty"};
@@ -435,21 +435,24 @@ void exampleTFTPBIG(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
         int tgt = i+2;
         if (i == 14)
             tgt = 0;
-        lambda.push_back(Transition(src, "RRQ", "Not_Defined", src, id++));
+        lambda.push_back(IOTransition(src, "RRQ", "Not_Defined", src, id++));
         for (int j=0; j<i; j++) {
-            lambda.push_back(Transition(src, Ibis[j], "Ignore", src, id++));
+            lambda.push_back(IOTransition(src, Ibis[j], "Ignore", src, id++));
         }
-        lambda.push_back(Transition(src, Ibis[i], Obis[i], tgt, id++));
+        lambda.push_back(IOTransition(src, Ibis[i], Obis[i], tgt, id++));
         for (int j=i+1; j<15; j++) {
-            lambda.push_back(Transition(src, Ibis[j], "ERROR", 0, id++));
+            lambda.push_back(IOTransition(src, Ibis[j], "ERROR", 0, id++));
         }
-        lambda.push_back(Transition(src, "ERROR", "Empty", 0, id++));
-        delta.push_back(Timeout(src, 3, 0, id++));
+        if (src == 81) {
+            cout << "!!" << endl;
+        }
+        lambda.push_back(IOTransition(src, "ERROR", "Empty", 0, id++));
+        delta.push_back(TimeoutTransition(src, 3, 0, id++));
     }
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     //M = new TFSM_TO(S2, s0, I, O, lambda, delta);
 
-    M = generateRandomMutationMachineTFTP(S, 5, 100);
+    //M = generateRandomMutationMachineTFTP(S, 5, 100);
     //M = generateCompleteMutationMachineTFTP(S);
     //M = generateChaosMachine(S, 5);
     cout << "Number of mutants : " << computeNumberOfMutants(M) << endl;;
@@ -462,19 +465,19 @@ void example4(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     int s0 = 1;
     set<string> I = {"a"};
     set<string> O = {"0", "1"};
-    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
-                                 Transition(2, "a", "1", 2, 2),
+    vector<IOTransition> lambda = {IOTransition(1, "a", "0", 1, 0),
+                                 IOTransition(2, "a", "1", 2, 2),
                                 };
-    vector<Timeout> delta = {Timeout(1, 3, 2, 1),
-                             Timeout(2, 3, 1, 3)
+    vector<TimeoutTransition> delta = {TimeoutTransition(1, 3, 2, 1),
+                             TimeoutTransition(2, 3, 1, 3)
                             };
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     M = new TFSM_TO(S2, s0, I, O, lambda, delta);
 
-    M->addTimeouts({Timeout(1, 1, 2, 4),
-                    Timeout(1, 5, 2, 5),
-                    Timeout(2, 1, 1, 6),
-                    Timeout(2, 5, 1, 7)
+    M->addTimeouts({TimeoutTransition(1, 1, 2, 4),
+                    TimeoutTransition(1, 5, 2, 5),
+                    TimeoutTransition(2, 1, 1, 6),
+                    TimeoutTransition(2, 5, 1, 7)
                    });
     E = {};
 }
@@ -504,11 +507,12 @@ int main(int argc, char ** argv)
     TFSM_TO * S;
     TFSM_TO * M;
     vector<sequence> E;
-    exampleTFTPBIG(S, M, E);
+    exampleTFTP(S, M, E);
+    //exampleTFTPBIG(S, M, E);
     //example4(S, M , E);
     //example1(S, M, E);
-    //S->print();
-    //M->print();
+    S->print();
+    M->print();
     //Product_TFSM_TO * P = new Product_TFSM_TO(S, M);
     //P->print();
 

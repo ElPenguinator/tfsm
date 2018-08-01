@@ -4,7 +4,7 @@
 #include <map>
 #include <deque>
 #include "productstate.h"
-#include "structs.h"
+#include "../structs.h"
 class Product_TFSM_TO
 {
 private:

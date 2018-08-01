@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <queue>
-#include "tools.h"
+#include "../tools.h"
 using namespace std;
 
 Product_TFSM_TO::Product_TFSM_TO(TFSM_TO * S, TFSM_TO * M)
@@ -31,9 +31,9 @@ void Product_TFSM_TO::insertState(ProductState * state, string i, ProductState *
 void Product_TFSM_TO::generateNext(ProductState * state)
 {
     for (auto mutationTransition : this->mutationMachine->lambda(state->mutationState)) {
-        Transition * related = NULL;
+        IOTransition * related = NULL;
         for (auto specificationTransition : this->specification->getXi(state->specificationState, mutationTransition.i)) {
-            related = new Transition(specificationTransition.src, specificationTransition.i, specificationTransition.o, specificationTransition.tgt, specificationTransition.id);
+            related = new IOTransition(specificationTransition.src, specificationTransition.i, specificationTransition.o, specificationTransition.tgt, specificationTransition.id);
         }
         if (related != NULL) {
             ProductState * newState;
@@ -48,9 +48,9 @@ void Product_TFSM_TO::generateNext(ProductState * state)
         delete related;
     }
 
-    Timeout * related = NULL;
+    TimeoutTransition * related = NULL;
     for (auto specificationTimeout : this->specification->delta(state->specificationState)) {
-        related = new Timeout(specificationTimeout.src, specificationTimeout.t, specificationTimeout.tgt, specificationTimeout.id);//&specificationTimeout;
+        related = new TimeoutTransition(specificationTimeout.src, specificationTimeout.t, specificationTimeout.tgt, specificationTimeout.id);//&specificationTimeout;
     }
     int spec_t = related->t;
     if (spec_t != inf)
@@ -131,14 +131,14 @@ bool Product_TFSM_TO::isPathDeterministic(const path p)
 {
     for (int id : p) {
         if (this->mutationMachine->isIdTimeout(id)) {
-            vector<Timeout> xiTimeouts = this->mutationMachine->getXi(this->mutationMachine->getTimeoutFromId(id).src);
+            vector<TimeoutTransition> xiTimeouts = this->mutationMachine->getXi(this->mutationMachine->getTimeoutFromId(id).src);
             for (auto otherTimeout : xiTimeouts) {
                 if (find(p.begin(), p.end(), otherTimeout.id) != p.end() && otherTimeout.id != id)
                     return false;
             }
         }
         else {
-            vector<Transition> xiTransitions = this->mutationMachine->getXi(this->mutationMachine->getTransitionFromId(id).src, this->mutationMachine->getTransitionFromId(id).i);
+            vector<IOTransition> xiTransitions = this->mutationMachine->getXi(this->mutationMachine->getTransitionFromId(id).src, this->mutationMachine->getTransitionFromId(id).i);
             for (auto otherTransition : xiTransitions) {
                 if (find(p.begin(), p.end(), otherTransition.id) != p.end() && otherTransition.id != id)
                     return false;

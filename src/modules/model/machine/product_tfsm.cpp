@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <queue>
-#include "tools.h"
+#include "../tools.h"
 using namespace std;
 
 Product_TFSM::Product_TFSM(TFSM * S, TFSM * M)
@@ -47,9 +47,9 @@ void Product_TFSM::generateNext(ProductState * state)
 
     }
 
-    Timeout * related = NULL;
+    TimeoutTransition * related = NULL;
     for (auto specificationTimeout : this->specification->delta(state->specificationState)) {
-        related = new Timeout(specificationTimeout.src, specificationTimeout.t, specificationTimeout.tgt, specificationTimeout.id);//&specificationTimeout;
+        related = new TimeoutTransition(specificationTimeout.src, specificationTimeout.t, specificationTimeout.tgt, specificationTimeout.id);//&specificationTimeout;
     }
     int spec_t = related->t;
     if (spec_t != inf)
@@ -94,7 +94,7 @@ bool Product_TFSM::isPathDeterministic(const path p)
 {
     for (int id : p) {
         if (this->mutationMachine->isIdTimeout(id)) {
-            vector<Timeout> xiTimeouts = this->mutationMachine->getXi(this->mutationMachine->getTimeoutFromId(id).src);
+            vector<TimeoutTransition> xiTimeouts = this->mutationMachine->getXi(this->mutationMachine->getTimeoutFromId(id).src);
             for (auto otherTimeout : xiTimeouts) {
                 if (find(p.begin(), p.end(), otherTimeout.id) != p.end() && otherTimeout.id != id)
                     return false;

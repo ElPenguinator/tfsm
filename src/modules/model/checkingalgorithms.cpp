@@ -11,13 +11,13 @@ TFSM * generateSubmachine(SATSolver * &solver, TFSM * M)
         set<string> I(M->inputs);
         set<string> O(M->inputs);
         vector<GuardedTransition> lambda;
-        vector<Timeout> delta;
+        vector<TimeoutTransition> delta;
         for (int i=0; i<M->transitions.size() + M->timeouts.size(); i++) {
             if (solver->get_model()[i] == l_True) {
                 int id = i;
                 if (M->isIdTimeout(id)) {
-                    Timeout corr = M->getTimeoutFromId(id);
-                    delta.push_back(Timeout(corr.src, corr.t, corr.tgt, corr.id));
+                    TimeoutTransition corr = M->getTimeoutFromId(id);
+                    delta.push_back(TimeoutTransition(corr.src, corr.t, corr.tgt, corr.id));
                 }
                 else {
                     GuardedTransition corr = M->getTransitionFromId(id);
@@ -58,8 +58,8 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
             vector<Lit> clause;
             for (auto id : path) {
                 if (D->mutationMachine->isIdTimeout(id)) {
-                    Timeout corresponding = D->mutationMachine->getTimeoutFromId(id);
-                    vector<Timeout> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src);
+                    TimeoutTransition corresponding = D->mutationMachine->getTimeoutFromId(id);
+                    vector<TimeoutTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src);
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
@@ -134,7 +134,7 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
     }
     //Choose one timeout per state
     for (auto s : M->states) {
-        vector<Timeout> res = M->getXi(s);
+        vector<TimeoutTransition> res = M->getXi(s);
         for (int k=0; k<res.size(); k++) {
             for (int l=k+1; l<res.size(); l++) {
                 vector<Lit> clause;

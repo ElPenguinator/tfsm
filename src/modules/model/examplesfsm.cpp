@@ -1,10 +1,10 @@
 #include <iostream>
-#include "tfsm_to.h"
-#include "tfsm.h"
-#include "fsm.h"
+#include "machine/tfsm_to.h"
+#include "machine/tfsm.h"
+#include "machine/fsm.h"
 #include "structs.h"
-#include "product_tfsm_to.h"
-#include "product_fsm_full.h"
+#include "machine/product_tfsm_to.h"
+#include "machine/product_fsm_full.h"
 #include "cryptominisat5/cryptominisat.h"
 #include "tools.h"
 #include <ctime>
@@ -20,25 +20,25 @@ void example2FSM(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     int s0 = 1;
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
-    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
-                                 Transition(1, "b", "0", 2, 1),
-                                 Transition(2, "a", "0", 3, 2),
-                                 Transition(2, "b", "0", 2, 3),
-                                 Transition(3, "a", "0", 3, 4),
-                                 Transition(3, "b", "0", 4, 5),
-                                 Transition(4, "a", "1", 1, 6),
-                                 Transition(4, "b", "0", 4, 7)
+    vector<IOTransition> lambda = {IOTransition(1, "a", "0", 1, 0),
+                                 IOTransition(1, "b", "0", 2, 1),
+                                 IOTransition(2, "a", "0", 3, 2),
+                                 IOTransition(2, "b", "0", 2, 3),
+                                 IOTransition(3, "a", "0", 3, 4),
+                                 IOTransition(3, "b", "0", 4, 5),
+                                 IOTransition(4, "a", "1", 1, 6),
+                                 IOTransition(4, "b", "0", 4, 7)
                                 };
-    vector<Timeout> delta = {Timeout(1, inf, 1, 8),
-                             Timeout(2, inf, 2, 9),
-                             Timeout(3, inf, 3, 10),
-                             Timeout(4, inf, 4, 11)
+    vector<TimeoutTransition> delta = {TimeoutTransition(1, inf, 1, 8),
+                             TimeoutTransition(2, inf, 2, 9),
+                             TimeoutTransition(3, inf, 3, 10),
+                             TimeoutTransition(4, inf, 4, 11)
                             };
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     M = new TFSM_TO(S2, s0, I, O, lambda, delta);
-    M->addTransitions({Transition(3, "a", "1", 3, 12),
-                       Transition(3, "b", "0", 3, 13),
-                       Transition(4, "a", "1", 2, 14)
+    M->addTransitions({IOTransition(3, "a", "1", 3, 12),
+                       IOTransition(3, "b", "0", 3, 13),
+                       IOTransition(4, "a", "1", 2, 14)
                       });
 
     E = {sequence({ts("b", 0),
@@ -57,23 +57,23 @@ void example1FSM(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     int s0 = 1;
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
-    vector<Transition> lambda = {Transition(1, "a", "0", 1, 0),
-                                 Transition(1, "b", "0", 2, 1),
-                                 Transition(2, "a", "1", 1, 2),
-                                 Transition(2, "b", "1", 1, 3)
+    vector<IOTransition> lambda = {IOTransition(1, "a", "0", 1, 0),
+                                 IOTransition(1, "b", "0", 2, 1),
+                                 IOTransition(2, "a", "1", 1, 2),
+                                 IOTransition(2, "b", "1", 1, 3)
                                 };
-    vector<Timeout> delta = {Timeout(1, inf, 1, 4),
-                             Timeout(2, inf, 2, 5)
+    vector<TimeoutTransition> delta = {TimeoutTransition(1, inf, 1, 4),
+                             TimeoutTransition(2, inf, 2, 5)
                             };
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     M = new TFSM_TO(S2, s0, I, O, lambda, delta);
-    M->addTransitions({Transition(2, "a", "1", 2, 6),
-                       Transition(2, "b", "1", 2, 7)
+    M->addTransitions({IOTransition(2, "a", "1", 2, 6),
+                       IOTransition(2, "b", "1", 2, 7)
                       });
 
     /*
-    M->addTransitions({Transition(1, "a", "0", 2, 8),
-                       Transition(1, "b", "0", 1, 9)
+    M->addTransitions({IOTransition(1, "a", "0", 2, 8),
+                       IOTransition(1, "b", "0", 1, 9)
                       });
     */
 
@@ -185,6 +185,7 @@ void checkEverythingExampleFSM()
         */
 }
 
+/*
 void minimalCheckingSequenceExampleFSM()
 {
     TFSM_TO * S;
@@ -196,7 +197,7 @@ void minimalCheckingSequenceExampleFSM()
     Product_FSM_Full * P = new Product_FSM_Full(S, M);
     P->print();
     P->minimalCheckingSequence();
-    /*
+
     for (int exp=0; exp<10; exp++) {
         cout << "Exp : " << exp << " " << ( pow(2, exp)) << endl;
         bool found = false;
@@ -226,5 +227,6 @@ void minimalCheckingSequenceExampleFSM()
         if (found)
             return;
     }
-    */
+
 }
+*/

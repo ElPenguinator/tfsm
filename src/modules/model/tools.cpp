@@ -106,16 +106,16 @@ bool guardedTransitionAlreadyExist(GuardedTransition newTransition, vector<Guard
     return false;
 }
 
-bool transitionAlreadyExist(Transition newTransition, vector<Transition> lambda, vector<Transition> newLambda)
+bool transitionAlreadyExist(IOTransition newTransition, vector<IOTransition> lambda, vector<IOTransition> newLambda)
 {
-    for (Transition transition : lambda) {
+    for (IOTransition transition : lambda) {
         if (transition.src == newTransition.src
                 && transition.i == newTransition.i
                 && transition.o == newTransition.o
                 && transition.tgt == newTransition.tgt)
             return true;
     }
-    for (Transition transition : newLambda) {
+    for (IOTransition transition : newLambda) {
         if (transition.src == newTransition.src
                 && transition.i == newTransition.i
                 && transition.o == newTransition.o
@@ -125,15 +125,15 @@ bool transitionAlreadyExist(Transition newTransition, vector<Transition> lambda,
     return false;
 }
 
-bool timeoutAlreadyExist(Timeout newTimeout, vector<Timeout> delta, vector<Timeout> newDelta)
+bool timeoutAlreadyExist(TimeoutTransition newTimeout, vector<TimeoutTransition> delta, vector<TimeoutTransition> newDelta)
 {
-    for (Timeout timeout : delta) {
+    for (TimeoutTransition timeout : delta) {
         if (timeout.src == newTimeout.src
                 && timeout.t == newTimeout.t
                 && timeout.tgt == newTimeout.tgt)
             return true;
     }
-    for (Timeout timeout : newDelta) {
+    for (TimeoutTransition timeout : newDelta) {
         if (timeout.src == newTimeout.src
                 && timeout.t == newTimeout.t
                 && timeout.tgt == newTimeout.tgt)
@@ -157,12 +157,12 @@ TFSM * generateRandomMutationMachine(TFSM * S, int maxTime, int numberOfMutation
     set<string> I(S->inputs);
     set<string> O(S->outputs);
     vector<GuardedTransition> lambda(S->transitions);
-    vector<Timeout> delta(S->timeouts);
+    vector<TimeoutTransition> delta(S->timeouts);
     TFSM * M = new TFSM(States, s0, I, O, lambda, delta);
 
     srand (time(NULL));
     vector<GuardedTransition> newLambda;
-    vector<Timeout> newDelta;
+    vector<TimeoutTransition> newDelta;
     int i = 0 + (S->transitions.size() + S->timeouts.size());
     S->print();
     cout << "Size : " <<  i << " " << S->transitions.size() << " " << S->timeouts.size() << endl;
@@ -177,7 +177,7 @@ TFSM * generateRandomMutationMachine(TFSM * S, int maxTime, int numberOfMutation
                 randomT = inf;
                 randomTgt = randomSrc;
             }
-            Timeout newTimeout(randomSrc,randomT, randomTgt, i);
+            TimeoutTransition newTimeout(randomSrc,randomT, randomTgt, i);
             if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
                 newDelta.push_back(newTimeout);
                 i++;
@@ -238,13 +238,13 @@ TFSM_TO * generateRandomMutationMachine_TO(TFSM_TO * S, int maxTime, int numberO
     int s0 = S->initialState;
     set<string> I(S->inputs);
     set<string> O(S->outputs);
-    vector<Transition> lambda(S->transitions);
-    vector<Timeout> delta(S->timeouts);
+    vector<IOTransition> lambda(S->transitions);
+    vector<TimeoutTransition> delta(S->timeouts);
     TFSM_TO * M = new TFSM_TO(States, s0, I, O, lambda, delta);
 
     srand (time(NULL));
-    vector<Transition> newLambda;
-    vector<Timeout> newDelta;
+    vector<IOTransition> newLambda;
+    vector<TimeoutTransition> newDelta;
     for (int i=0; i<numberOfMutations; i++) {
         bool alreadyExisting = true;
         while (alreadyExisting) {
@@ -258,7 +258,7 @@ TFSM_TO * generateRandomMutationMachine_TO(TFSM_TO * S, int maxTime, int numberO
                     randomT = inf;
                     randomTgt = randomSrc;
                 }
-                Timeout newTimeout(randomSrc,randomT, randomTgt, newId);
+                TimeoutTransition newTimeout(randomSrc,randomT, randomTgt, newId);
                 if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
                     newDelta.push_back(newTimeout);
                     alreadyExisting = false;
@@ -267,7 +267,7 @@ TFSM_TO * generateRandomMutationMachine_TO(TFSM_TO * S, int maxTime, int numberO
             else {
                 string randomI = getRandomStringFromSet(I);
                 string randomO = getRandomStringFromSet(O);
-                Transition newTransition(randomSrc,randomI, randomO, randomTgt, newId);
+                IOTransition newTransition(randomSrc,randomI, randomO, randomTgt, newId);
                 if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
                     newLambda.push_back(newTransition);
                     alreadyExisting = false;
@@ -286,7 +286,7 @@ TFSM * generateRandomSpecification(int nbOfStates, int maxTime, set<string> I, s
     set<int> S;
     int s0 = 0;
     vector<GuardedTransition> lambda;
-    vector<Timeout> delta;
+    vector<TimeoutTransition> delta;
     int transitionId;
     srand (time(NULL));
     bool isConnected = false;
@@ -307,7 +307,7 @@ TFSM * generateRandomSpecification(int nbOfStates, int maxTime, set<string> I, s
                 randomT = inf;
                 randomTgt = s;
             }
-            delta.push_back(Timeout(s, randomT, randomTgt, transitionId));
+            delta.push_back(TimeoutTransition(s, randomT, randomTgt, transitionId));
             transitionId++;
             if (randomT == inf)
                 randomT = maxTime;
@@ -349,8 +349,8 @@ TFSM_TO * generateRandomSpecification_TO(int nbOfStates, int maxTime, set<string
 {
     set<int> S;
     int s0 = 0;
-    vector<Transition> lambda;
-    vector<Timeout> delta;
+    vector<IOTransition> lambda;
+    vector<TimeoutTransition> delta;
     int transitionId;
     srand (time(NULL));
     bool isConnected = false;
@@ -368,7 +368,7 @@ TFSM_TO * generateRandomSpecification_TO(int nbOfStates, int maxTime, set<string
                 string randomO = getRandomStringFromSet(O);
                 int randomTgt = floor(rand() % nbOfStates);
 
-                lambda.push_back(Transition(s, i, randomO, randomTgt, transitionId));
+                lambda.push_back(IOTransition(s, i, randomO, randomTgt, transitionId));
                 transitionId++;
             }
 
@@ -378,7 +378,7 @@ TFSM_TO * generateRandomSpecification_TO(int nbOfStates, int maxTime, set<string
                 randomT = inf;
                 randomTgt = s;
             }
-            delta.push_back(Timeout(s, randomT, randomTgt, transitionId));
+            delta.push_back(TimeoutTransition(s, randomT, randomTgt, transitionId));
             transitionId++;
         }
         res = new TFSM_TO(S, s0, I, O, lambda, delta);
@@ -395,13 +395,13 @@ TFSM_TO * generateChaosMachine(TFSM_TO * S, int maxTime)
     int s0 = S->initialState;
     set<string> I(S->inputs);
     set<string> O(S->outputs);
-    vector<Transition> lambda(S->transitions);
-    vector<Timeout> delta(S->timeouts);
+    vector<IOTransition> lambda(S->transitions);
+    vector<TimeoutTransition> delta(S->timeouts);
     TFSM_TO * M = new TFSM_TO(States, s0, I, O, lambda, delta);
 
     srand (time(NULL));
-    vector<Transition> newLambda;
-    vector<Timeout> newDelta;
+    vector<IOTransition> newLambda;
+    vector<TimeoutTransition> newDelta;
 
     int newId = (S->transitions.size() + S->timeouts.size());
 
@@ -409,7 +409,7 @@ TFSM_TO * generateChaosMachine(TFSM_TO * S, int maxTime)
         for (int tgt : States) {
             for (string i : I) {
                 for (string o : O) {
-                    Transition newTransition(src,i, o, tgt, newId);
+                    IOTransition newTransition(src,i, o, tgt, newId);
                     if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
                         newLambda.push_back(newTransition);
                         newId++;
@@ -421,7 +421,7 @@ TFSM_TO * generateChaosMachine(TFSM_TO * S, int maxTime)
                 if (newT == 0) {
                     newT = inf;
                 }
-                Timeout newTimeout(src,newT, tgt, newId);
+                TimeoutTransition newTimeout(src,newT, tgt, newId);
                 if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
                     newDelta.push_back(newTimeout);
                     newId++;

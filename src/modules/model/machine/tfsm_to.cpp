@@ -1,18 +1,11 @@
 #include "tfsm_to.h"
 #include <algorithm>
 #include <iostream>
-#include "structs.h"
+#include "../structs.h"
 
 using namespace std;
 
-Timeout::Timeout(int src, int t, int tgt, int id) {
-    this->src = src;
-    this->t = t;
-    this->tgt = tgt;
-    this->id = id;
-}
-
-TFSM_TO::TFSM_TO(set<int> S, int s0, set<string> I, set<string> O, vector<Transition> lambda, vector<Timeout> delta)
+TFSM_TO::TFSM_TO(set<int> S, int s0, set<string> I, set<string> O, vector<IOTransition> lambda, vector<TimeoutTransition> delta)
 {
     this->states = S;
     this->initialState = s0;
@@ -23,21 +16,21 @@ TFSM_TO::TFSM_TO(set<int> S, int s0, set<string> I, set<string> O, vector<Transi
     this->computeMaps();
 }
 
-void TFSM_TO::addTransitions(vector<Transition> transitions)
+void TFSM_TO::addTransitions(vector<IOTransition> transitions)
 {
     this->transitions.insert(this->transitions.end(), transitions.begin(), transitions.end());
     this->computeMaps();
 }
 
-void TFSM_TO::addTimeouts(vector<Timeout> timeouts)
+void TFSM_TO::addTimeouts(vector<TimeoutTransition> timeouts)
 {
     this->timeouts.insert(this->timeouts.end(), timeouts.begin(), timeouts.end());
     this->computeMaps();
 }
 
-vector<Transition> TFSM_TO::getXi(int s, string i)
+vector<IOTransition> TFSM_TO::getXi(int s, string i)
 {
-    vector<Transition> result;
+    vector<IOTransition> result;
     for (auto transition : this->lambda(s)) {
         if (transition.i == i)
             result.push_back(transition);
@@ -45,17 +38,17 @@ vector<Transition> TFSM_TO::getXi(int s, string i)
     return result;
 }
 
-vector<Timeout> TFSM_TO::getXi(int s)
+vector<TimeoutTransition> TFSM_TO::getXi(int s)
 {
     return this->delta(s);
 }
 
-vector<Transition> TFSM_TO::lambda(int s)
+std::vector<IOTransition> TFSM_TO::lambda(int s)
 {
     return this->transitionsPerState.find(s)->second;
 }
 
-vector<Timeout> TFSM_TO::delta(int s)
+vector<TimeoutTransition> TFSM_TO::delta(int s)
 {
     return this->timeoutsPerState.find(s)->second;
 }
@@ -64,12 +57,12 @@ bool TFSM_TO::isIdTimeout(int id) {
     return this->timeoutIdMap.find(id) != this->timeoutIdMap.end();
 }
 
-Transition TFSM_TO::getTransitionFromId(int id)
+IOTransition TFSM_TO::getTransitionFromId(int id)
 {
     return this->transitionIdMap.find(id)->second;
 }
 
-Timeout TFSM_TO::getTimeoutFromId(int id)
+TimeoutTransition TFSM_TO::getTimeoutFromId(int id)
 {
     return this->timeoutIdMap.find(id)->second;
 }
@@ -93,16 +86,16 @@ void TFSM_TO::computeMaps()
     this->transitionIdMap.clear();
     this->timeoutIdMap.clear();
     for (int s : this->states) {
-        this->transitionsPerState.insert(make_pair(s, vector<Transition>()));
-        this->timeoutsPerState.insert(make_pair(s, vector<Timeout>()));
+        this->transitionsPerState.insert(make_pair(s, vector<IOTransition>()));
+        this->timeoutsPerState.insert(make_pair(s, vector<TimeoutTransition>()));
     }
 
-    for (Transition t : this->transitions) {
+    for (IOTransition t : this->transitions) {
         this->transitionIdMap.insert(make_pair(t.id, t));
         this->transitionsPerState.find(t.src)->second.push_back(t);
     }
 
-    for (Timeout t : this->timeouts) {
+    for (TimeoutTransition t : this->timeouts) {
         this->timeoutIdMap.insert(make_pair(t.id, t));
         this->timeoutsPerState.find(t.src)->second.push_back(t);
     }

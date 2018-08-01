@@ -11,8 +11,8 @@ TFSM * generateRandomSpecification(int nbOfStates, int maxTime, std::set<std::st
 TFSM * generateRandomMutationMachine(TFSM * S, int maxTime, int numberOfMutations);
 
 
-bool transitionAlreadyExist(Transition newTransition, std::vector<Transition> lambda, std::vector<Transition> newLambda);
-bool timeoutAlreadyExist(Timeout newTimeout, std::vector<Timeout> delta, std::vector<Timeout> newDelta);
+bool transitionAlreadyExist(IOTransition newTransition, std::vector<IOTransition> lambda, std::vector<IOTransition> newLambda);
+bool timeoutAlreadyExist(TimeoutTransition newTimeout, std::vector<TimeoutTransition> delta, std::vector<TimeoutTransition> newDelta);
 std::string getRandomStringFromSet(std::set<std::string> samples);
 TFSM_TO * generateRandomSpecification_TO(int nbOfStates, int maxTime, std::set<std::string> I, std::set<std::string> O);
 TFSM_TO * generateRandomMutationMachine_TO(TFSM_TO * S, int maxTime, int numberOfMutations);
