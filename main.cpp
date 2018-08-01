@@ -134,19 +134,24 @@ void checkingExperimentBenchmarks(int nbOfBench)
     set<string> O = {"0", "1"};
 
 
-    int nbStates [5] = {4, 8, 10, 12, 15};
-    int nbMutants [6] = {16, 32, 64, 128, 256, 512};
+    //int nbStates [5] = {4, 8, 10, 12, 15};
+    //int nbMutants [6] = {16, 32, 64, 128, 256, 512};
+
+    int nbStates [1] = {15};
+    int nbMutants [1] = {96};
     int maxTimeSpec = 3;
     int maxTimeMuta = 5;
     ofstream benchFile;
     cout << "Num of Bench : " << nbOfBench << endl;
-    for (int j=0; j<5; j++) {
+    //for (int j=4; j<5; j++) {
+    for (int j=0; j<1; j++) {
         cout << nbStates[j] << " states" << endl;
         int maximumTransitions = nbStates[j] * I.size() * O.size() * nbStates[j] + nbStates[j] * (maxTimeMuta+1) * nbStates[j];
         int transitionsInSpec = nbStates[j] * I.size() + nbStates[j];
         cout << "Maximum : " << maximumTransitions << " In Spec : " << transitionsInSpec << " available : " << maximumTransitions - transitionsInSpec << endl;
         //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
-        for (int i=0; i < 6; i++) {
+        //for (int i=0; i < 6; i++) {
+        for (int i=0; i < 1; i++) {
             cout << nbMutants[i] << " mutated transitions/timeouts" << endl;
             if (nbMutants[i] < maximumTransitions - transitionsInSpec) {
                 benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
@@ -391,36 +396,63 @@ void exampleTFTP(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     //M = new TFSM_TO(S2, s0, I, O, lambda, delta);
 
     //M = generateRandomMutationMachineTFTP(S, 5, 100);
-    //M = generateCompleteMutationMachineTFTP(S);
-    M = generateChaosMachine(S, 5);
+    M = generateCompleteMutationMachineTFTP(S);
+    //M = generateChaosMachine(S, 5);
     cout << "Number of mutants : " << computeNumberOfMutants(M) << endl;;
-    /*
-    M->addTransitions({Transition(3, "a", "1", 3, 13),
-                       Transition(3, "b", "0", 3, 14),
-                       Transition(4, "a", "1", 2, 12)
-                      });
-    M->addTimeouts({Timeout(1, 3, 4, 15),
-                    Timeout(3, 8, 1, 16)
-                   });
+    E = {};
+}
 
-    E = {sequence({ts("a", 0),
-                   ts("a", 2),
-                   ts("a", 5),
-                   ts("a", 14),
-                   ts("a", 19),
-                   ts("b", 19),
-                   ts("a", 19),
-                   ts("a", 19),
-                   ts("b", 19),
-                   ts("a", 19),
-                   ts("b", 19),
-                   ts("a", 19),
-                   ts("b", 24),
-                   ts("a", 24)
-         }
-         )
-        };
-        */
+void exampleTFTPBIG(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
+{
+    set<int> S2 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    int s0 = 0;
+    set<string> I = {"RRQ", "ACK_1", "ACK_2", "ACK_3", "ACK_4", "ACK_5", "ACK_6", "ACK_7", "ACK_8", "ACK_9", "ACK_10", "ACK_11", "ACK_12", "ACK_13", "ACK_14", "ACK_15", "ERROR"};
+    set<string> O = {"DATA_1", "DATA_2", "DATA_3", "DATA_4", "DATA_5", "DATA_6", "DATA_7", "DATA_8", "DATA_9", "DATA_10", "DATA_11", "DATA_12", "DATA_13", "DATA_14", "DATA_15", "Ignore", "Empty", "ERROR", "Not_Defined"};
+    vector<Transition> lambda = {Transition(0, "RRQ", "DATA_1", 1, 0),
+                                 Transition(0, "ACK_1", "Not_Defined", 0, 1),
+                                 Transition(0, "ACK_2", "Not_Defined", 0, 2),
+                                 Transition(0, "ACK_3", "Not_Defined", 0, 3),
+                                 Transition(0, "ACK_4", "Not_Defined", 0, 4),
+                                 Transition(0, "ACK_5", "Not_Defined", 0, 5),
+                                 Transition(0, "ACK_6", "Not_Defined", 0, 6),
+                                 Transition(0, "ACK_7", "Not_Defined", 0, 7),
+                                 Transition(0, "ACK_8", "Not_Defined", 0, 8),
+                                 Transition(0, "ACK_9", "Not_Defined", 0, 9),
+                                 Transition(0, "ACK_10", "Not_Defined", 0, 10),
+                                 Transition(0, "ACK_11", "Not_Defined", 0, 11),
+                                 Transition(0, "ACK_12", "Not_Defined", 0, 12),
+                                 Transition(0, "ACK_13", "Not_Defined", 0, 13),
+                                 Transition(0, "ACK_14", "Not_Defined", 0, 14),
+                                 Transition(0, "ACK_15", "Not_Defined", 0, 15),
+                                 Transition(0, "ERROR", "Not_Defined", 0, 16)
+                                };
+    vector<Timeout> delta = {Timeout(0, inf, 0, 17)};
+    int id = 18;
+    string Ibis[15] = {"ACK_1", "ACK_2", "ACK_3", "ACK_4", "ACK_5", "ACK_6", "ACK_7", "ACK_8", "ACK_9", "ACK_10", "ACK_11", "ACK_12", "ACK_13", "ACK_14", "ACK_15"};
+    string Obis[15] = {"DATA_2", "DATA_3", "DATA_4", "DATA_5", "DATA_6", "DATA_7", "DATA_8", "DATA_9", "DATA_10", "DATA_11", "DATA_12", "DATA_13", "DATA_14", "DATA_15", "Empty"};
+    for (int i=0; i<15; i++) {
+        int src = i+1;
+        int tgt = i+2;
+        if (i == 14)
+            tgt = 0;
+        lambda.push_back(Transition(src, "RRQ", "Not_Defined", src, id++));
+        for (int j=0; j<i; j++) {
+            lambda.push_back(Transition(src, Ibis[j], "Ignore", src, id++));
+        }
+        lambda.push_back(Transition(src, Ibis[i], Obis[i], tgt, id++));
+        for (int j=i+1; j<15; j++) {
+            lambda.push_back(Transition(src, Ibis[j], "ERROR", 0, id++));
+        }
+        lambda.push_back(Transition(src, "ERROR", "Empty", 0, id++));
+        delta.push_back(Timeout(src, 3, 0, id++));
+    }
+    S = new TFSM_TO(S2, s0, I, O, lambda, delta);
+    //M = new TFSM_TO(S2, s0, I, O, lambda, delta);
+
+    M = generateRandomMutationMachineTFTP(S, 5, 100);
+    //M = generateCompleteMutationMachineTFTP(S);
+    //M = generateChaosMachine(S, 5);
+    cout << "Number of mutants : " << computeNumberOfMutants(M) << endl;;
     E = {};
 }
 
@@ -468,17 +500,18 @@ int main(int argc, char ** argv)
     }
     */
     //checkingExperimentBenchmarks();
-    /*
+
     TFSM_TO * S;
     TFSM_TO * M;
     vector<sequence> E;
-    exampleTFTP(S, M, E);
+    exampleTFTPBIG(S, M, E);
     //example4(S, M , E);
     //example1(S, M, E);
-    S->print();
-    M->print();
-    Product_TFSM_TO * P = new Product_TFSM_TO(S, M);
+    //S->print();
+    //M->print();
+    //Product_TFSM_TO * P = new Product_TFSM_TO(S, M);
     //P->print();
+
 
     vector<sequence> Einit;
     clock_t begin = clock();
@@ -486,13 +519,12 @@ int main(int argc, char ** argv)
     clock_t end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
     cout << elapsed_secs << endl;
-    cout << "Boum" << endl;
     for (auto s : E) {
         printSequence(s);
     }
 
-    */
-    checkingExperimentBenchmarks(2);
+
+    //checkingExperimentBenchmarks(2);
 
     return 0;
 }
