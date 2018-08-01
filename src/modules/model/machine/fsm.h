@@ -9,7 +9,7 @@
 
 class FSM
 {
-private:
+protected:
     void computeMaps();
 public:
     std::set<int> states;

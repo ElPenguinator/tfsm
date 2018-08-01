@@ -8,20 +8,13 @@
 
 
 
-class TFSM_TO
+class TFSM_TO : public FSM
 {
 private:
     void computeMaps();
 public:
-    std::set<int> states;
-    int initialState;
-    std::set<std::string> inputs;
-    std::set<std::string> outputs;
-    std::vector<IOTransition> transitions;
     std::vector<TimeoutTransition> timeouts;
-    std::map<int, std::vector<IOTransition> > transitionsPerState;
     std::map<int, std::vector<TimeoutTransition> > timeoutsPerState;
-    std::map<int, IOTransition> transitionIdMap;
     std::map<int, TimeoutTransition> timeoutIdMap;
     TFSM_TO(std::set<int> S, int s0, std::set<std::string> I, std::set<std::string> O, std::vector<IOTransition> lambda, std::vector<TimeoutTransition> delta);
     void addTransitions(std::vector<IOTransition> transitions);

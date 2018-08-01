@@ -6,20 +6,15 @@
 using namespace std;
 
 TFSM_TO::TFSM_TO(set<int> S, int s0, set<string> I, set<string> O, vector<IOTransition> lambda, vector<TimeoutTransition> delta)
+    : FSM(S, s0, I, O, lambda)
 {
-    this->states = S;
-    this->initialState = s0;
-    this->inputs = I;
-    this->outputs = O;
-    this->transitions = lambda;
     this->timeouts = delta;
     this->computeMaps();
 }
 
 void TFSM_TO::addTransitions(vector<IOTransition> transitions)
 {
-    this->transitions.insert(this->transitions.end(), transitions.begin(), transitions.end());
-    this->computeMaps();
+    FSM::addTransitions(transitions);
 }
 
 void TFSM_TO::addTimeouts(vector<TimeoutTransition> timeouts)
@@ -30,12 +25,7 @@ void TFSM_TO::addTimeouts(vector<TimeoutTransition> timeouts)
 
 vector<IOTransition> TFSM_TO::getXi(int s, string i)
 {
-    vector<IOTransition> result;
-    for (auto transition : this->lambda(s)) {
-        if (transition.i == i)
-            result.push_back(transition);
-    }
-    return result;
+    return FSM::getXi(s, i);
 }
 
 vector<TimeoutTransition> TFSM_TO::getXi(int s)
@@ -45,7 +35,7 @@ vector<TimeoutTransition> TFSM_TO::getXi(int s)
 
 std::vector<IOTransition> TFSM_TO::lambda(int s)
 {
-    return this->transitionsPerState.find(s)->second;
+    return FSM::lambda(s);
 }
 
 vector<TimeoutTransition> TFSM_TO::delta(int s)
@@ -59,7 +49,7 @@ bool TFSM_TO::isIdTimeout(int id) {
 
 IOTransition TFSM_TO::getTransitionFromId(int id)
 {
-    return this->transitionIdMap.find(id)->second;
+    return FSM::getTransitionFromId(id);
 }
 
 TimeoutTransition TFSM_TO::getTimeoutFromId(int id)
