@@ -32,70 +32,56 @@ void Product_TFSM_TO::generateNext(ProductState * state)
 {
     for (auto mutationTransition : this->mutationMachine->lambda(state->mutationState)) {
         IOTransition * related = NULL;
-        for (auto specificationTransition : this->specification->getXi(state->specificationState, mutationTransition.i)) {
-            related = new IOTransition(specificationTransition.src, specificationTransition.i, specificationTransition.o, specificationTransition.tgt, specificationTransition.id);
+        for (auto specificationTransition : this->specification->getXi(state->specificationState, mutationTransition->i)) {
+            related = new IOTransition(specificationTransition->src, specificationTransition->i, specificationTransition->o, specificationTransition->tgt, specificationTransition->id);
         }
         if (related != NULL) {
             ProductState * newState;
-            if (related->o == mutationTransition.o)
-                newState = new ProductState(related->tgt, mutationTransition.tgt, 0, 0);
+            if (related->o == mutationTransition->o)
+                newState = new ProductState(related->tgt, mutationTransition->tgt, 0, 0);
             else {
                 newState = new ProductSinkState();
                 this->hasNoSinkState = false;
             }
-            this->insertState(state, related->i, newState, false, mutationTransition.id);
+            this->insertState(state, related->i, newState, false, mutationTransition->id);
         }
         delete related;
     }
 
     TimeoutTransition * related = NULL;
     for (auto specificationTimeout : this->specification->delta(state->specificationState)) {
-        related = new TimeoutTransition(specificationTimeout.src, specificationTimeout.t, specificationTimeout.tgt, specificationTimeout.id);//&specificationTimeout;
+        related = new TimeoutTransition(specificationTimeout->src, specificationTimeout->t, specificationTimeout->tgt, specificationTimeout->id);//&specificationTimeout;
     }
     int spec_t = related->t;
     if (spec_t != inf)
         spec_t -= state->specificationCounter;
 
     for (auto mutationTimeout : this->mutationMachine->delta(state->mutationState)) {
-        int muta_t = mutationTimeout.t;
+        int muta_t = mutationTimeout->t;
         if (muta_t != inf)
             muta_t -= state->mutationCounter;
         if (muta_t > 0) {
             ProductState * newState;
             if (muta_t < spec_t && spec_t != inf) {
-                newState = new ProductState(state->specificationState, mutationTimeout.tgt, state->specificationCounter + muta_t, 0);
-                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
+                newState = new ProductState(state->specificationState, mutationTimeout->tgt, state->specificationCounter + muta_t, 0);
+                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout->id);
             }
             else if (muta_t < spec_t && spec_t == inf) {
-                newState = new ProductState(state->specificationState, mutationTimeout.tgt, inf, 0);
-                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
+                newState = new ProductState(state->specificationState, mutationTimeout->tgt, inf, 0);
+                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout->id);
             }
             else if (muta_t == spec_t) {
-                newState = new ProductState(related->tgt, mutationTimeout.tgt, 0, 0);
-                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
+                newState = new ProductState(related->tgt, mutationTimeout->tgt, 0, 0);
+                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout->id);
             }
             else if (muta_t > spec_t && muta_t != inf) {
                 newState = new ProductState(related->tgt, state->mutationState, 0, state->mutationCounter + spec_t);
-                this->insertState(state, to_string(spec_t), newState, true, mutationTimeout.id);
+                this->insertState(state, to_string(spec_t), newState, true, mutationTimeout->id);
             }
             else if (muta_t > spec_t && muta_t == inf) {
                 newState = new ProductState(related->tgt, state->mutationState, 0, inf);
-                this->insertState(state, to_string(spec_t), newState, true, mutationTimeout.id);
+                this->insertState(state, to_string(spec_t), newState, true, mutationTimeout->id);
             }
-            /*
-            if (muta_t < spec_t) {
-                newState = new ProductState(state->specificationState, mutationTimeout.tgt, min(this->specification->getMaxDelta(state->specificationState), state->specificationCounter + muta_t), 0);
-                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
-            }
-            else if (muta_t == spec_t) {
-                newState = new ProductState(related->tgt, mutationTimeout.tgt, 0, 0);
-                this->insertState(state, to_string(muta_t), newState, true, mutationTimeout.id);
-            }
-            else if (muta_t > spec_t) {
-                newState = new ProductState(related->tgt, state->mutationState, 0, min(this->mutationMachine->getMaxDelta(state->mutationState), state->mutationCounter + spec_t));
-                this->insertState(state, to_string(spec_t), newState, true, mutationTimeout.id);
-            }
-            */
         }
     }
     delete related;
@@ -119,28 +105,20 @@ std::vector<path> Product_TFSM_TO::revealingPaths(sequence alpha)
     return results;
 }
 
-std::vector<path> Product_TFSM_TO::revealingPathsPrefixed(string beginningStateKey, sequence alpha)
-{
-    vector<path> results;
-    path currentPath;
-    revealingPathsRecursive(this->states.find(beginningStateKey)->second, currentPath, results, alpha, 0, 0);
-    return results;
-}
-
 bool Product_TFSM_TO::isPathDeterministic(const path p)
 {
     for (int id : p) {
         if (this->mutationMachine->isIdTimeout(id)) {
-            vector<TimeoutTransition> xiTimeouts = this->mutationMachine->getXi(this->mutationMachine->getTimeoutFromId(id).src);
+            vector<TimeoutTransition *> xiTimeouts = this->mutationMachine->getXi(this->mutationMachine->getTimeoutFromId(id)->src);
             for (auto otherTimeout : xiTimeouts) {
-                if (find(p.begin(), p.end(), otherTimeout.id) != p.end() && otherTimeout.id != id)
+                if (find(p.begin(), p.end(), otherTimeout->id) != p.end() && otherTimeout->id != id)
                     return false;
             }
         }
         else {
-            vector<IOTransition> xiTransitions = this->mutationMachine->getXi(this->mutationMachine->getTransitionFromId(id).src, this->mutationMachine->getTransitionFromId(id).i);
+            vector<IOTransition *> xiTransitions = this->mutationMachine->getXi(this->mutationMachine->getTransitionFromId(id)->src, this->mutationMachine->getTransitionFromId(id)->i);
             for (auto otherTransition : xiTransitions) {
-                if (find(p.begin(), p.end(), otherTransition.id) != p.end() && otherTransition.id != id)
+                if (find(p.begin(), p.end(), otherTransition->id) != p.end() && otherTransition->id != id)
                     return false;
             }
         }
@@ -177,7 +155,7 @@ void Product_TFSM_TO::revealingPathsRecursive(ProductState * state, path current
                     }
                     else {
                         for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
-                            if (timeout < mutaTimeout.t) {
+                            if (timeout < mutaTimeout->t) {
                                 path newPath(currentPath);
                                 newPath.push_back(transition.id);
                                 if (this->isPathDeterministic(newPath)) {
@@ -343,7 +321,7 @@ void Product_TFSM_TO::reachableStates(ProductState * state, path currentPath, se
                         }
                         else {
                             for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
-                                if (timeout <= mutaTimeout.t) {
+                                if (timeout <= mutaTimeout->t) {
                                     path newPath(currentPath);
                                     newPath.push_back(transition.id);
                                     if (this->isPathDeterministic(newPath)) {

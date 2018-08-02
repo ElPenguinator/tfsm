@@ -14,7 +14,6 @@ ProductState::ProductState(int s, int m, int xs, int xm)
     this->isGenerated = false;
     this->inputDistance = 0;
     this->timeDistance = 0;
-    this->isAlreadyDistinguishabled = false;
 }
 
 std::string ProductState::getKey()

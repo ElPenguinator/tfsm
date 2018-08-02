@@ -29,7 +29,6 @@ public:
     std::string DijkstraFindMin(std::map<std::string, int> distances, std::set<std::string> Q);
     void DijkstraUpdateDistancesMin(std::map<std::string, int> & distances, std::map<std::string, GuardedProductTransition> & predecessors, std::string s1, std::string s2, GuardedProductTransition transition);
     std::deque<GuardedProductTransition> Dijkstra(std::string key);
-    std::vector<path> revealingPathsPrefixed(std::string beginningStateKey, sequence alpha);
 };
 
 #endif // PRODUCT_TFSM_H

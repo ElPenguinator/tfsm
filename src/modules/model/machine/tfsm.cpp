@@ -4,175 +4,7 @@
 #include <math.h>
 using namespace std;
 
-Guard::Guard() {
-
-}
-
-Guard::Guard(std::string left, int tmin, int tmax, std::string right) {
-    if (left == "[")
-        this->left = Bracket::Square;
-    else if (left == "(")
-        this->left = Bracket::Curly;
-    this->tmin = tmin;
-    this->tmax = tmax;
-    if (right == "]")
-        this->right = Bracket::Square;
-    else if (right == ")")
-        this->right = Bracket::Curly;
-}
-
-Guard::Guard(Bracket left, int tmin, int tmax, Bracket right) {
-    this->left = left;
-    this->tmin = tmin;
-    this->tmax = tmax;
-    this->right = right;
-}
-
-bool Guard::isIntersectionEmpty(Guard other) {
-    Bracket left;
-    int tmin;
-    int tmax;
-    Bracket right;
-
-    if (this->tmin > other.tmin) {
-        tmin = this->tmin;
-        left = this->left;
-    }
-    if (this->tmin < other.tmin) {
-        tmin = other.tmin;
-        left = other.left;
-    }
-    else {
-        tmin = this->tmin;
-        if (this->left == Bracket::Square && other.left == Bracket::Square) {
-            left = Bracket::Square;
-        }
-        else {
-            left = Bracket::Curly;
-        }
-    }
-
-    if (this->tmax < other.tmax) {
-        tmax = this->tmax;
-        right = this->right;
-    }
-    if (this->tmax > other.tmax) {
-        tmax = other.tmax;
-        right = other.right;
-    }
-    else {
-        tmax = this->tmax;
-        if (this->right == Bracket::Square && other.right == Bracket::Square) {
-            right = Bracket::Square;
-        }
-        else {
-            right = Bracket::Curly;
-        }
-    }
-
-    if (tmin == tmax && left != right) {
-        return true;
-    }
-    return tmin > tmax;
-}
-
-Guard Guard::intersect(Guard other) {
-    Bracket left;
-    int tmin;
-    int tmax;
-    Bracket right;
-
-    if (this->tmin > other.tmin) {
-        tmin = this->tmin;
-        left = this->left;
-    }
-    if (this->tmin < other.tmin) {
-        tmin = other.tmin;
-        left = other.left;
-    }
-    else {
-        tmin = this->tmin;
-        if (this->left == Bracket::Square && other.left == Bracket::Square) {
-            left = Bracket::Square;
-        }
-        else {
-            left = Bracket::Curly;
-        }
-    }
-
-    if (this->tmax < other.tmax) {
-        tmax = this->tmax;
-        right = this->right;
-    }
-    if (this->tmax > other.tmax) {
-        tmax = other.tmax;
-        right = other.right;
-    }
-    else {
-        tmax = this->tmax;
-        if (this->right == Bracket::Square && other.right == Bracket::Square) {
-            right = Bracket::Square;
-        }
-        else {
-            right = Bracket::Curly;
-        }
-    }
-    return Guard(left, tmin, tmax, right);
-}
-
-bool Guard::equals(Guard other) {
-    return (this->left == other.left
-            && this->tmin == other.tmin
-            && this->tmax == other.tmax
-            && this->right == other.right);
-}
-
-bool Guard::contains(int x) {
-    bool guard1;
-    if (this->left == Bracket::Square) {
-        guard1 = x >= this->tmin;
-    }
-    else {
-        guard1 = x > this->tmin;
-    }
-    bool guard2;
-    if (this->right == Bracket::Square) {
-        guard2 = x <= this->tmax;
-    }
-    else {
-        guard2 = x < this->tmax;
-    }
-    return guard1 && guard2;
-}
-
-std::string Guard::toString() {
-    string guardString;
-    if (this->left == Bracket::Square)
-        guardString+="[";
-    else
-        guardString+="(";
-    guardString += to_string(this->tmin) + ",";
-    if (this->tmax != inf)
-        guardString += to_string(this->tmax);
-    else
-        guardString += "INF";
-    if (this->right == Bracket::Square)
-        guardString+="]";
-    else
-        guardString+=")";
-    return guardString;
-}
-
-GuardedTransition::GuardedTransition(int src, string i, Guard g, string o, int tgt, int id) {
-    this->src = src;
-    this->i = i;
-    this->g = g;
-    this->o = o;
-    this->tgt = tgt;
-    this->id = id;
-}
-
-TFSM::TFSM(set<int> S, int s0, set<string> I, set<string> O, vector<GuardedTransition> lambda, vector<TimeoutTransition> delta)
+TFSM::TFSM(set<int> S, int s0, set<string> I, set<string> O, vector<IOTransition *> lambda, vector<TimeoutTransition *> delta) : TFSM_TO(S, s0, I, O, lambda, delta)
 {
     this->states = S;
     this->initialState = s0;
@@ -183,11 +15,11 @@ TFSM::TFSM(set<int> S, int s0, set<string> I, set<string> O, vector<GuardedTrans
     this->computeMaps();
 }
 
-bool isIntersectionEmpty(vector<GuardedTransition> toCheck) {
-    for (GuardedTransition g1 : toCheck) {
-        for (GuardedTransition g2 : toCheck) {
-            if (g1.id != g2.id) {
-                if (!g1.g.isIntersectionEmpty(g2.g)) {
+bool isIntersectionEmpty(vector<IOTransition *> toCheck) {
+    for (IOTransition * g1 : toCheck) {
+        for (IOTransition * g2 : toCheck) {
+            if (g1->id != g2->id) {
+                if (!g1->getGuard().isIntersectionEmpty(g2->getGuard())) {
                     return false;
                 }
             }
@@ -196,23 +28,23 @@ bool isIntersectionEmpty(vector<GuardedTransition> toCheck) {
     return true;
 }
 
-bool isUnionEverything(vector<GuardedTransition> toCheck) {
+bool isUnionEverything(vector<IOTransition *> toCheck) {
     vector<Guard> orderedGuards;
     int lastMax = 0;
     int size = toCheck.size();
     for (int i=0; i<size; i++) {
         int tmin = -1;
-        vector<GuardedTransition>::iterator minGuard = toCheck.end();
+        vector<IOTransition *>::iterator minGuard = toCheck.end();
         for (auto it = toCheck.begin(); it != toCheck.end(); it++) {
-            if (tmin == -1 || (*it).g.tmin < tmin) {
-                tmin = (*it).g.tmin;
+            if (tmin == -1 || (*it)->getGuard().tmin < tmin) {
+                tmin = (*it)->getGuard().tmin;
                 minGuard = it;
             }
         }
         if (minGuard != toCheck.end()) {
-            if ((*minGuard).g.tmax >= lastMax) {
-                orderedGuards.push_back((*minGuard).g);
-                lastMax = (*minGuard).g.tmax;
+            if ((*minGuard)->getGuard().tmax >= lastMax) {
+                orderedGuards.push_back((*minGuard)->getGuard());
+                lastMax = (*minGuard)->getGuard().tmax;
             }
             toCheck.erase(minGuard);
         }
@@ -260,18 +92,18 @@ void TFSM::computeMaps()
     this->transitionIdMap.clear();
     this->timeoutIdMap.clear();
     for (int s : this->states) {
-        this->transitionsPerState.insert(make_pair(s, vector<GuardedTransition>()));
-        this->timeoutsPerState.insert(make_pair(s, vector<TimeoutTransition>()));
+        this->transitionsPerState.insert(make_pair(s, vector<IOTransition *>()));
+        this->timeoutsPerState.insert(make_pair(s, vector<TimeoutTransition *>()));
     }
 
-    for (GuardedTransition t : this->transitions) {
-        this->transitionIdMap.insert(make_pair(t.id, t));
-        this->transitionsPerState.find(t.src)->second.push_back(t);
+    for (IOTransition * t : this->transitions) {
+        this->transitionIdMap.insert(make_pair(t->id, t));
+        this->transitionsPerState.find(t->src)->second.push_back(t);
     }
 
-    for (TimeoutTransition t : this->timeouts) {
-        this->timeoutIdMap.insert(make_pair(t.id, t));
-        this->timeoutsPerState.find(t.src)->second.push_back(t);
+    for (TimeoutTransition * t : this->timeouts) {
+        this->timeoutIdMap.insert(make_pair(t->id, t));
+        this->timeoutsPerState.find(t->src)->second.push_back(t);
     }
 
     this->combinationsMaps.clear();
@@ -282,42 +114,20 @@ void TFSM::computeMaps()
 
 
             set<set<int>> combinations;
-            vector<GuardedTransition> xi = this->getXi(s, i);
+            vector<IOTransition *> xi = this->getXi(s, i);
             for (int word=0; word<pow(2, xi.size()); word++) {
                 set<int> combination;
-                vector<GuardedTransition> toCheck;
+                vector<IOTransition *> toCheck;
                 int j=0;
-                for (GuardedTransition transition : xi) {
+                for (IOTransition * transition : xi) {
 
                     bool value = (word >> j) & 1;
                     if (value) {
-                        combination.insert(transition.id);
+                        combination.insert(transition->id);
                         toCheck.push_back(transition);
                     }
                     j++;
                 }
-                /*
-                cout << "Combination : {";
-                for (auto d : combination) {
-                    cout << d << ",";
-                }
-                cout << "}" << endl;
-                cout << "guards : ";
-                for (Guard g : guards) {
-                    cout << g.toString() << " ";
-                }
-                cout << endl;
-                */
-                /*
-                if (isUnionEverything(guards)) {
-                    cout << "Union ok" << endl;
-                }
-                */
-                /*
-                if (isIntersectionEmpty(guards)) {
-                    cout << "Intersection ok" << endl;
-                }
-                */
                 if (isUnionEverything(toCheck) && isIntersectionEmpty(toCheck)) {
                     combinations.insert(combination);
                 }
@@ -335,7 +145,7 @@ void TFSM::computeMaps()
                 cout << "Res : {";
                 for (auto d : c) {
                     cout << d << " ";
-                    cout << this->getTransitionFromId(d).g.toString() << ", ";
+                    cout << this->getTransitionFromId(d).getGuard().toString() << ", ";
                 }
                 cout << "}" << endl;
             }
@@ -345,55 +155,53 @@ void TFSM::computeMaps()
 
 }
 
-void TFSM::addTransitions(vector<GuardedTransition> transitions)
+void TFSM::addTransitions(vector<IOTransition *> transitions)
 {
-    this->transitions.insert(this->transitions.end(), transitions.begin(), transitions.end());
-    this->computeMaps();
+    TFSM_TO::addTransitions(transitions);
 }
 
-void TFSM::addTimeouts(vector<TimeoutTransition> timeouts)
+void TFSM::addTimeouts(vector<TimeoutTransition *> timeouts)
 {
-    this->timeouts.insert(this->timeouts.end(), timeouts.begin(), timeouts.end());
-    this->computeMaps();
+    TFSM_TO::addTimeouts(timeouts);
 }
 
-vector<GuardedTransition> TFSM::getXi(int s, string i)
+vector<IOTransition *> TFSM::getXi(int s, string i)
 {
-    vector<GuardedTransition> result;
-    for (auto transition : this->lambda(s)) {
-        if (transition.i == i)
-            result.push_back(transition);
-    }
-    return result;
+    return TFSM_TO::getXi(s, i);
 }
 
-vector<TimeoutTransition> TFSM::getXi(int s)
+vector<TimeoutTransition *> TFSM::getXi(int s)
 {
-    return this->delta(s);
+    return TFSM_TO::getXi(s);
 }
 
-vector<GuardedTransition> TFSM::lambda(int s)
+std::vector<IOTransition *> TFSM::lambda(int s)
 {
-    return this->transitionsPerState.find(s)->second;
+    return TFSM_TO::lambda(s);
 }
 
-vector<TimeoutTransition> TFSM::delta(int s)
+vector<TimeoutTransition *> TFSM::delta(int s)
 {
-    return this->timeoutsPerState.find(s)->second;
+    return TFSM_TO::delta(s);
 }
 
 bool TFSM::isIdTimeout(int id) {
-    return this->timeoutIdMap.find(id) != this->timeoutIdMap.end();
+    return TFSM_TO::isIdTimeout(id);
 }
 
-GuardedTransition TFSM::getTransitionFromId(int id)
+IOTransition * TFSM::getTransitionFromId(int id)
 {
-    return this->transitionIdMap.find(id)->second;
+    return TFSM_TO::getTransitionFromId(id);
 }
 
-TimeoutTransition TFSM::getTimeoutFromId(int id)
+TimeoutTransition * TFSM::getTimeoutFromId(int id)
 {
-    return this->timeoutIdMap.find(id)->second;
+    return TFSM_TO::getTimeoutFromId(id);
+}
+
+int TFSM::getMaxDelta(int s)
+{
+    return TFSM_TO::getMaxDelta(s);
 }
 
 set<set<int>> TFSM::getEta(int s, string i)
@@ -407,18 +215,6 @@ set<set<int>> TFSM::getEta(int s, string i)
     }
 }
 
-int TFSM::getMaxDelta(int s)
-{
-    int res = 0;
-    for (auto t : this->delta(s)) {
-        if (t.t != inf) {
-            if (t.t > res)
-                res = t.t;
-        }
-    }
-    return res;
-}
-
 void TFSM::print()
 {
     cout << "States : {";
@@ -427,17 +223,17 @@ void TFSM::print()
     }
     cout << "}" << endl;
     cout << "Transitions : {";
-    for (GuardedTransition t : this->transitions) {
-        cout << "(" << t.src << "," << t.i << "," << t.g.toString() <<"," << t.o << "," << t.tgt << ") : " << t.id << "," << endl;
+    for (IOTransition * t : this->transitions) {
+        cout << "(" << t->src << "," << t->i << "," << t->getGuard().toString() <<"," << t->o << "," << t->tgt << ") : " << t->id << "," << endl;
     }
     cout << "}" << endl;
     cout << "Timeouts : {";
     for (auto t : this->timeouts) {
-        if (t.t != inf) {
-            cout << "(" << t.src << "," << t.t << "," << t.tgt << ") : " << t.id << "," << endl;
+        if (t->t != inf) {
+            cout << "(" << t->src << "," << t->t << "," << t->tgt << ") : " << t->id << "," << endl;
         }
         else {
-            cout << "(" << t.src << "," << "INF" << "," << t.tgt << ") : " << t.id << "," << endl;
+            cout << "(" << t->src << "," << "INF" << "," << t->tgt << ") : " << t->id << "," << endl;
         }
     }
     cout << "}" << endl;

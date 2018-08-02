@@ -26,6 +26,11 @@ public:
     {
         return this->src + "|" + this->i +"|" + this->g.toString() +"|" + this->tgt;
     }
+
+    Guard getGuard()
+    {
+        return this->g;
+    }
 };
 
 class ProductTransition {
@@ -60,7 +65,6 @@ public:
     int inputDistance;
     int timeDistance;
     bool isGenerated;
-    bool isAlreadyDistinguishabled;
     ProductState();
     ProductState(int s, int m, int xs, int xm);
     virtual std::string getKey();

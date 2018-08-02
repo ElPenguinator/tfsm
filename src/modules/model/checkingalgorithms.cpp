@@ -10,18 +10,18 @@ TFSM * generateSubmachine(SATSolver * &solver, TFSM * M)
         int s0 = M->initialState;
         set<string> I(M->inputs);
         set<string> O(M->inputs);
-        vector<GuardedTransition> lambda;
-        vector<TimeoutTransition> delta;
+        vector<IOTransition *> lambda;
+        vector<TimeoutTransition *> delta;
         for (int i=0; i<M->transitions.size() + M->timeouts.size(); i++) {
             if (solver->get_model()[i] == l_True) {
                 int id = i;
                 if (M->isIdTimeout(id)) {
-                    TimeoutTransition corr = M->getTimeoutFromId(id);
-                    delta.push_back(TimeoutTransition(corr.src, corr.t, corr.tgt, corr.id));
+                    TimeoutTransition * corr = M->getTimeoutFromId(id);
+                    delta.push_back(new TimeoutTransition(corr->src, corr->t, corr->tgt, corr->id));
                 }
                 else {
-                    GuardedTransition corr = M->getTransitionFromId(id);
-                    lambda.push_back(GuardedTransition(corr.src, corr.i, corr.g, corr.o, corr.tgt, corr.id));
+                    IOTransition * corr = M->getTransitionFromId(id);
+                    lambda.push_back(new GuardedTransition(corr->src, corr->i, corr->getGuard(), corr->o, corr->tgt, corr->id));
                 }
             }
         }
@@ -37,10 +37,10 @@ void computePhiP(SATSolver * &solver, TFSM * P)
 {
     vector<Lit> clause;
     for (auto transition : P->transitions) {
-        clause.push_back(Lit(transition.id, true));
+        clause.push_back(Lit(transition->id, true));
     }
     for (auto timeout : P->timeouts) {
-        clause.push_back(Lit(timeout.id, true));
+        clause.push_back(Lit(timeout->id, true));
     }
     solver->add_clause(clause);
 }
@@ -58,15 +58,15 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
             vector<Lit> clause;
             for (auto id : path) {
                 if (D->mutationMachine->isIdTimeout(id)) {
-                    TimeoutTransition corresponding = D->mutationMachine->getTimeoutFromId(id);
-                    vector<TimeoutTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src);
+                    TimeoutTransition * corresponding = D->mutationMachine->getTimeoutFromId(id);
+                    vector<TimeoutTransition *> correspondingSuspicious = D->mutationMachine->getXi(corresponding->src);
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
                 }
                 else {
-                    GuardedTransition corresponding = D->mutationMachine->getTransitionFromId(id);
-                    vector<GuardedTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src, corresponding.i);
+                    IOTransition * corresponding = D->mutationMachine->getTransitionFromId(id);
+                    vector<IOTransition *> correspondingSuspicious = D->mutationMachine->getXi(corresponding->src, corresponding->i);
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
@@ -77,7 +77,7 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM * D)
     }
 }
 
-void computePhiMRecur(SATSolver * &solver, const vector<GuardedTransition> &xi, const set<set<int>>::iterator &current, const set<set<int>>::iterator &end, vector<int> currentClause) {
+void computePhiMRecur(SATSolver * &solver, const vector<IOTransition *> &xi, const set<set<int>>::iterator &current, const set<set<int>>::iterator &end, vector<int> currentClause) {
     set<int> combi = (*current);
     for (int elt : combi) {
         set<set<int>>::iterator copyCurrent(current);
@@ -108,7 +108,7 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
     //Chose one subset of guarded transitions per input per state
     for (auto s : M->states) {
         for (auto i : M->inputs) {
-            vector<GuardedTransition> xi = M->getXi(s, i);
+            vector<IOTransition *> xi = M->getXi(s, i);
             set<set<int>> eta = M->getEta(s, i);
             vector<int> emptyClause;
             set<set<int>> newEta;
@@ -118,9 +118,9 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
                 for (int elt : combi) {
                     newSet.insert(elt);
                 }
-                for (GuardedTransition elt : xi) {
-                    if (combi.find(elt.id) == combi.end()) {
-                        newSet.insert(-elt.id);
+                for (IOTransition * elt : xi) {
+                    if (combi.find(elt->id) == combi.end()) {
+                        newSet.insert(-elt->id);
                     }
                 }
                 newEta.insert(newSet);
@@ -134,28 +134,28 @@ void computePhiM(SATSolver * &solver, TFSM * S, TFSM * M)
     }
     //Choose one timeout per state
     for (auto s : M->states) {
-        vector<TimeoutTransition> res = M->getXi(s);
+        vector<TimeoutTransition *> res = M->getXi(s);
         for (int k=0; k<res.size(); k++) {
             for (int l=k+1; l<res.size(); l++) {
                 vector<Lit> clause;
-                clause.push_back(Lit(res[k].id, true));
-                clause.push_back(Lit(res[l].id, true));
+                clause.push_back(Lit(res[k]->id, true));
+                clause.push_back(Lit(res[l]->id, true));
                 solver->add_clause(clause);
             }
         }
         vector<Lit> clause;
         for (int k=0; k<res.size(); k++) {
-            clause.push_back(Lit(res[k].id, false));
+            clause.push_back(Lit(res[k]->id, false));
         }
         solver->add_clause(clause);
     }
     //Eliminate the specification
     vector<Lit> clause;
     for (auto k : S->transitions) {
-        clause.push_back(Lit(k.id, true));
+        clause.push_back(Lit(k->id, true));
     }
     for (auto k : S->timeouts) {
-        clause.push_back(Lit(k.id, true));
+        clause.push_back(Lit(k->id, true));
     }
     solver->add_clause(clause);
 }

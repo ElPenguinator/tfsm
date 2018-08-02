@@ -2,6 +2,8 @@
 #define TOOL_H
 #include "structs.h"
 #include "cryptominisat5/cryptominisat.h"
+#include "machine/tfsm_to.h"
+#include "machine/tfsm.h"
 
 void printPath(path p);
 void printSequence(sequence s);

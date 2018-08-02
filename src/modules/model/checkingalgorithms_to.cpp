@@ -10,18 +10,18 @@ TFSM_TO * generateSubmachine(SATSolver * &solver, TFSM_TO * M)
         int s0 = M->initialState;
         set<string> I(M->inputs);
         set<string> O(M->inputs);
-        vector<IOTransition> lambda;
-        vector<TimeoutTransition> delta;
+        vector<IOTransition *> lambda;
+        vector<TimeoutTransition *> delta;
         for (int i=0; i<M->transitions.size() + M->timeouts.size(); i++) {
             if (solver->get_model()[i] == l_True) {
                 int id = i;
                 if (M->isIdTimeout(id)) {
-                    TimeoutTransition corr = M->getTimeoutFromId(id);
-                    delta.push_back(TimeoutTransition(corr.src, corr.t, corr.tgt, corr.id));
+                    TimeoutTransition * corr = M->getTimeoutFromId(id);
+                    delta.push_back(new TimeoutTransition(corr->src, corr->t, corr->tgt, corr->id));
                 }
                 else {
-                    IOTransition corr = M->getTransitionFromId(id);
-                    lambda.push_back(IOTransition(corr.src, corr.i, corr.o, corr.tgt, corr.id));
+                    IOTransition * corr = M->getTransitionFromId(id);
+                    lambda.push_back(new IOTransition(corr->src, corr->i, corr->o, corr->tgt, corr->id));
                 }
             }
         }
@@ -37,10 +37,10 @@ void computePhiP(SATSolver * &solver, TFSM_TO * P)
 {
     vector<Lit> clause;
     for (auto transition : P->transitions) {
-        clause.push_back(Lit(transition.id, true));
+        clause.push_back(Lit(transition->id, true));
     }
     for (auto timeout : P->timeouts) {
-        clause.push_back(Lit(timeout.id, true));
+        clause.push_back(Lit(timeout->id, true));
     }
     solver->add_clause(clause);
 }
@@ -53,15 +53,15 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM_TO * D)
             vector<Lit> clause;
             for (auto id : path) {
                 if (D->mutationMachine->isIdTimeout(id)) {
-                    TimeoutTransition corresponding = D->mutationMachine->getTimeoutFromId(id);
-                    vector<TimeoutTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src);
+                    TimeoutTransition * corresponding = D->mutationMachine->getTimeoutFromId(id);
+                    vector<TimeoutTransition *> correspondingSuspicious = D->mutationMachine->getXi(corresponding->src);
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
                 }
                 else {
-                    IOTransition corresponding = D->mutationMachine->getTransitionFromId(id);
-                    vector<IOTransition> correspondingSuspicious = D->mutationMachine->getXi(corresponding.src, corresponding.i);
+                    IOTransition * corresponding = D->mutationMachine->getTransitionFromId(id);
+                    vector<IOTransition *> correspondingSuspicious = D->mutationMachine->getXi(corresponding->src, corresponding->i);
                     if (correspondingSuspicious.size() > 1) {
                         clause.push_back(Lit(id, true));
                     }
@@ -76,44 +76,44 @@ void computePhiM(SATSolver * &solver, TFSM_TO * S, TFSM_TO * M)
 {
     for (auto s : M->states) {
         for (auto i : M->inputs) {
-            vector<IOTransition> res = M->getXi(s, i);
+            vector<IOTransition *> res = M->getXi(s, i);
             for (int k=0; k<res.size(); k++) {
                 for (int l=k+1; l<res.size(); l++) {
                     vector<Lit> clause;
-                    clause.push_back(Lit(res[k].id, true));
-                    clause.push_back(Lit(res[l].id, true));
+                    clause.push_back(Lit(res[k]->id, true));
+                    clause.push_back(Lit(res[l]->id, true));
                     solver->add_clause(clause);
                 }
             }
             vector<Lit> clause;
             for (int k=0; k<res.size(); k++) {
-                clause.push_back(Lit(res[k].id, false));
+                clause.push_back(Lit(res[k]->id, false));
             }
             solver->add_clause(clause);
         }
     }
     for (auto s : M->states) {
-        vector<TimeoutTransition> res = M->getXi(s);
+        vector<TimeoutTransition *> res = M->getXi(s);
         for (int k=0; k<res.size(); k++) {
             for (int l=k+1; l<res.size(); l++) {
                 vector<Lit> clause;
-                clause.push_back(Lit(res[k].id, true));
-                clause.push_back(Lit(res[l].id, true));
+                clause.push_back(Lit(res[k]->id, true));
+                clause.push_back(Lit(res[l]->id, true));
                 solver->add_clause(clause);
             }
         }
         vector<Lit> clause;
         for (int k=0; k<res.size(); k++) {
-            clause.push_back(Lit(res[k].id, false));
+            clause.push_back(Lit(res[k]->id, false));
         }
         solver->add_clause(clause);
     }
     vector<Lit> clause;
     for (auto k : S->transitions) {
-        clause.push_back(Lit(k.id, true));
+        clause.push_back(Lit(k->id, true));
     }
     for (auto k : S->timeouts) {
-        clause.push_back(Lit(k.id, true));
+        clause.push_back(Lit(k->id, true));
     }
     solver->add_clause(clause);
 }

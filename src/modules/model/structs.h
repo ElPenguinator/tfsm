@@ -3,8 +3,8 @@
 #include <vector>
 #include <utility>
 #include <limits>
-#include "machine/tfsm_to.h"
-#include "machine/tfsm.h"
+#include <string>
+
 typedef std::pair<std::string, int> ts;
 typedef std::vector<ts> sequence;
 typedef std::vector<int> path;
