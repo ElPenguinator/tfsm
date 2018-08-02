@@ -52,7 +52,7 @@ void HomepageWidget::buildInterface()
 
 void HomepageWidget::fillInterface()
 {
-    _FAQ_text_browser->setSource(QUrl("doc/homepage.html"));
+    //_FAQ_text_browser->setSource(QUrl("doc/homepage.html"));
 }
 
 void HomepageWidget::relaySignals()

@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 #include "fsm.h"
-
+#include "timeouttransition.h"
 
 
 class TFSM_TO : public FSM
@@ -27,7 +27,7 @@ public:
     int getMaxDelta(int s);
     std::vector<IOTransition *> lambda(int s);
     std::vector<TimeoutTransition *> delta(int s);
-    void print();
+    virtual void print() override;
 };
 
 #endif // TFSM_TO_H

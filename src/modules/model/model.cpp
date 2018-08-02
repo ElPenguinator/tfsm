@@ -163,6 +163,10 @@ void checkFSM() {
     exampleFSM(S, M, E);
     S->print();
     M->print();
+
+    DistinguishingAutomaton_FSM * P = new DistinguishingAutomaton_FSM(S, M);
+    P->initialize();
+    P->print();
 }
 
 void checkTFSM_TO() {
@@ -172,6 +176,10 @@ void checkTFSM_TO() {
     exampleTFSM_TO(S, M, E);
     S->print();
     M->print();
+
+    DistinguishingAutomaton_TFSM_TO * P = new DistinguishingAutomaton_TFSM_TO(S, M);
+    P->initialize();
+    P->print();
 }
 
 void checkTFSM() {
@@ -181,6 +189,10 @@ void checkTFSM() {
     exampleTFSM(S, M, E);
     S->print();
     M->print();
+
+    DistinguishingAutomaton_TFSM * P = new DistinguishingAutomaton_TFSM(S, M);
+    P->initialize();
+    P->print();
 }
 
 void Model::modelCheck()

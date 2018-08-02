@@ -8,13 +8,11 @@ TEMPLATE = app
 
 SOURCES += src/main.cpp \
     src/modules/model/machine/tfsm_to.cpp \
-    src/modules/model/machine/product_tfsm_to.cpp \
     src/modules/model/machine/productstate.cpp \
     src/modules/model/tools.cpp \
     src/modules/model/machine/fsm.cpp \
     src/modules/model/machine/tfsm.cpp \
     src/modules/model/examplesfsm.cpp \
-    src/modules/model/machine/product_tfsm.cpp \
     src/modules/model/examplesto.cpp \
     src/modules/model/checkingalgorithms_to.cpp \
     src/modules/model/checkingalgorithms.cpp \
@@ -31,17 +29,17 @@ SOURCES += src/main.cpp \
     src/modules/model/model.cpp \
     src/tmp.cpp \
     src/modules/view/tab/homepagewidget.cpp \
-    src/modules/model/machine/distinguishingautomaton.cpp
+    src/modules/model/machine/distinguishingautomaton_fsm.cpp \
+    src/modules/model/machine/distinguishingautomaton_tfsm_to.cpp \
+    src/modules/model/machine/distinguishingautomaton_tfsm.cpp
 
 HEADERS += \
     src/modules/model/machine/tfsm_to.h \
     src/modules/model/structs.h \
-    src/modules/model/machine/product_tfsm_to.h \
     src/modules/model/machine/productstate.h \
     src/modules/model/tools.h \
     src/modules/model/machine/fsm.h \
     src/modules/model/machine/tfsm.h \
-    src/modules/model/machine/product_tfsm.h \
     src/modules/model/checkingalgorithms_to.h \
     src/modules/model/checkingalgorithms.h \
     src/lib/infint.h \
@@ -56,7 +54,9 @@ HEADERS += \
     src/modules/controller/controller.h \
     src/modules/model/model.h \
     src/modules/view/tab/homepagewidget.h \
-    src/modules/model/machine/distinguishingautomaton.h
+    src/modules/model/machine/distinguishingautomaton_fsm.h \
+    src/modules/model/machine/distinguishingautomaton_tfsm_to.h \
+    src/modules/model/machine/distinguishingautomaton_tfsm.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

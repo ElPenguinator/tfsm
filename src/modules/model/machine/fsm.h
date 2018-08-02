@@ -6,7 +6,6 @@
 #include <map>
 #include "iotransition.h"
 #include "timeouttransition.h"
-
 class FSM
 {
 protected:
@@ -20,11 +19,16 @@ public:
     std::map<int, std::vector<IOTransition *> > transitionsPerState;
     std::map<int, IOTransition *> transitionIdMap;
     FSM(std::set<int> S, int s0, std::set<std::string> I, std::set<std::string> O, std::vector<IOTransition *> lambda);
-    void addTransitions(std::vector<IOTransition *> transitions);
+    virtual void addTransitions(std::vector<IOTransition *> transitions);
     std::vector<IOTransition *> getXi(int s, std::string i);
+    virtual std::vector<TimeoutTransition *> getXi(int s);
     IOTransition * getTransitionFromId(int id);
-    std::vector<IOTransition *> lambda(int s);
-    void print();
+    virtual TimeoutTransition * getTimeoutFromId(int id);
+    virtual bool isIdTimeout(int id);
+    virtual int getMaxDelta(int s);
+    virtual std::vector<IOTransition *> lambda(int s);
+    virtual std::vector<TimeoutTransition *> delta(int s);
+    virtual void print();
 };
 
 #endif // FSM_H

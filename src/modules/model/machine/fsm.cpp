@@ -42,14 +42,38 @@ vector<IOTransition *> FSM::getXi(int s, string i)
     return result;
 }
 
+vector<TimeoutTransition *> FSM::getXi(int s)
+{
+    return this->delta(s);
+}
+
+int FSM::getMaxDelta(int s)
+{
+    return 0;
+}
+
 vector<IOTransition *> FSM::lambda(int s)
 {
     return this->transitionsPerState.find(s)->second;
 }
 
+vector<TimeoutTransition *> FSM::delta(int s)
+{
+    return vector<TimeoutTransition *>();
+}
+
 IOTransition * FSM::getTransitionFromId(int id)
 {
     return this->transitionIdMap.find(id)->second;
+}
+
+TimeoutTransition * FSM::getTimeoutFromId(int id)
+{
+    return NULL;
+}
+
+bool FSM::isIdTimeout(int id) {
+    return false;
 }
 
 void FSM::print()

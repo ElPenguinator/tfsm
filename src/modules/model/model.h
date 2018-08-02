@@ -2,7 +2,7 @@
 #define MODEL_H
 #include <QObject>
 #include "machine/tfsm.h"
-
+#include "machine/distinguishingautomaton_tfsm.h"
 
 class Model : public QObject
 {

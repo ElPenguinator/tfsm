@@ -1,23 +1,13 @@
-#ifndef PRODUCT_TFSM_H
-#define PRODUCT_TFSM_H
-#include "tfsm.h"
-#include <map>
-#include <deque>
-#include "productstate.h"
-#include "../structs.h"
-class Product_TFSM
+#ifndef DISTINGUISHINGAUTOMATON_TFSM_H
+#define DISTINGUISHINGAUTOMATON_TFSM_H
+#include "distinguishingautomaton_tfsm_to.h"
+
+class DistinguishingAutomaton_TFSM : public DistinguishingAutomaton_TFSM_TO
 {
 private:
     bool isProductConnected();
 public:
-    TFSM * specification;
-    TFSM * mutationMachine;
-    std::map<std::string, ProductState*> states;
-    ProductState * initialState;
-    std::vector<GuardedProductTransition> transitions;
-    Product_TFSM(TFSM * S, TFSM * M);
-    bool hasNoSinkState;
-    bool isConnected;
+    DistinguishingAutomaton_TFSM(TFSM * S, TFSM * M);
     void generateNext(ProductState * state);
     void insertState(ProductState * state, std::string i, Guard g, ProductState * newState, bool isTimeout, int id);
     std::vector<path> revealingPaths(sequence alpha);
@@ -27,8 +17,9 @@ public:
     sequence inputSequenceFromAcceptedLanguage(std::set<std::string> beginningStates, sequence prefix);
     void reachableStates(ProductState * state, path currentPath, std::set<std::string> &results, sequence alpha, int sequenceIndex, int timeBuffer);
     std::string DijkstraFindMin(std::map<std::string, int> distances, std::set<std::string> Q);
-    void DijkstraUpdateDistancesMin(std::map<std::string, int> & distances, std::map<std::string, GuardedProductTransition> & predecessors, std::string s1, std::string s2, GuardedProductTransition transition);
-    std::deque<GuardedProductTransition> Dijkstra(std::string key);
+    void DijkstraUpdateDistancesMin(std::map<std::string, int> & distances, std::map<std::string, ProductTransition *> & predecessors, std::string s1, std::string s2, ProductTransition * transition);
+    std::deque<ProductTransition *> Dijkstra(std::string key);
+    virtual void initialize();
 };
 
-#endif // PRODUCT_TFSM_H
+#endif // DISTINGUISHINGAUTOMATON_TFSM_H
