@@ -6,12 +6,13 @@
 #include "../tools.h"
 using namespace std;
 
-DistinguishingAutomaton_TFSM_TO::DistinguishingAutomaton_TFSM_TO(TFSM_TO * S, TFSM_TO * M) : DistinguishingAutomaton_FSM(S, M)
+DistinguishingAutomaton_TFSM_TO::DistinguishingAutomaton_TFSM_TO(FSM *S, FSM *M) : DistinguishingAutomaton_FSM(S, M)
 {
     this->specification = S;
     this->mutationMachine = M;
 
     ProductState * initialState = new TimedProductState(S->initialState, M->initialState, 0, 0);
+    this->states.clear();
     this->states.insert(make_pair(initialState->getKey(), initialState));
     this->initialState = initialState;
     this->hasNoSinkState = true;
@@ -156,7 +157,7 @@ void DistinguishingAutomaton_TFSM_TO::revealingPathsRecursive(ProductState * sta
                     }
                     else {
                         for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
-                            if (timeout < mutaTimeout->t) {
+                            if (t < mutaTimeout->t) {
                                 path newPath(currentPath);
                                 newPath.push_back(transition->id);
                                 if (this->isPathDeterministic(newPath)) {

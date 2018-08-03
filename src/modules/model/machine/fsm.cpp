@@ -89,3 +89,28 @@ void FSM::print()
     }
     cout << "}" << endl;
 }
+
+int FSM::getTransitionSize()
+{
+    return this->transitions.size();
+}
+
+vector<IOTransition *> FSM::getTransitions()
+{
+    return this->transitions;
+}
+
+vector<TimeoutTransition *> FSM::getTimeouts()
+{
+    return vector<TimeoutTransition *>();
+}
+
+int FSM::getInitialState()
+{
+    return this->initialState;
+}
+
+set<set<int>> FSM::getEta(int s, string i)
+{
+    return set<set<int>>();
+}

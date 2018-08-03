@@ -137,6 +137,7 @@ void TFSM::computeMaps()
         this->combinationsMaps.insert(make_pair(s, elt));
     }
     /*
+    cout << "Combinations : " << endl;
     for (auto a : this->combinationsMaps) {
         cout << "State : " << a.first << endl;
         for (auto b : a.second) {
@@ -145,7 +146,7 @@ void TFSM::computeMaps()
                 cout << "Res : {";
                 for (auto d : c) {
                     cout << d << " ";
-                    cout << this->getTransitionFromId(d).getGuard().toString() << ", ";
+                    cout << this->getTransitionFromId(d)->getGuard().toString() << ", ";
                 }
                 cout << "}" << endl;
             }
@@ -153,16 +154,19 @@ void TFSM::computeMaps()
     }
     */
 
+
 }
 
 void TFSM::addTransitions(vector<IOTransition *> transitions)
 {
     TFSM_TO::addTransitions(transitions);
+    this->computeMaps();
 }
 
 void TFSM::addTimeouts(vector<TimeoutTransition *> timeouts)
 {
     TFSM_TO::addTimeouts(timeouts);
+    this->computeMaps();
 }
 
 vector<IOTransition *> TFSM::getXi(int s, string i)
@@ -237,4 +241,24 @@ void TFSM::print()
         }
     }
     cout << "}" << endl;
+}
+
+int TFSM::getTransitionSize()
+{
+    return this->transitions.size() + this->timeouts.size();
+}
+
+vector<IOTransition *> TFSM::getTransitions()
+{
+    return TFSM_TO::getTransitions();
+}
+
+vector<TimeoutTransition *> TFSM::getTimeouts()
+{
+    return TFSM_TO::getTimeouts();
+}
+
+int TFSM::getInitialState()
+{
+    return TFSM_TO::getInitialState();
 }

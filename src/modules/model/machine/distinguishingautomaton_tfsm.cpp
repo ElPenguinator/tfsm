@@ -6,12 +6,13 @@
 #include "../tools.h"
 using namespace std;
 
-DistinguishingAutomaton_TFSM::DistinguishingAutomaton_TFSM(TFSM * S, TFSM * M) : DistinguishingAutomaton_TFSM_TO(S, M)
+DistinguishingAutomaton_TFSM::DistinguishingAutomaton_TFSM(FSM *S, FSM *M) : DistinguishingAutomaton_TFSM_TO(S, M)
 {
     this->specification = S;
     this->mutationMachine = M;
 
     ProductState * initialState = new TimedProductState(S->initialState, M->initialState, 0, 0);
+    this->states.clear();
     this->states.insert(make_pair(initialState->getKey(), initialState));
     this->initialState = initialState;
     this->hasNoSinkState = true;
@@ -118,10 +119,15 @@ bool DistinguishingAutomaton_TFSM::isPathDeterministic(const path p)
             }
         }
         else {
-            vector<IOTransition *> xiTransitions = this->mutationMachine->getXi(this->mutationMachine->getTransitionFromId(id)->src, this->mutationMachine->getTransitionFromId(id)->i);
-            for (auto otherTransition : xiTransitions) {
-                if (find(p.begin(), p.end(), otherTransition->id) != p.end() && otherTransition->id != id)
-                    return false;
+            set<set<int>> eta = this->mutationMachine->getEta(this->mutationMachine->getTransitionFromId(id)->src, this->mutationMachine->getTransitionFromId(id)->i);
+            for (set<int> combi : eta) {
+                if (find(combi.begin(), combi.end(), id) == combi.end()) {
+                    for (int elt : combi) {
+                        if (find(p.begin(), p.end(), elt) != p.end() && elt != id) {
+                            return false;
+                        }
+                    }
+                }
             }
         }
     }
@@ -137,11 +143,14 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
         ts timed_symbol = alpha[sequenceIndex];
         string symbol = timed_symbol.first;
         int symbol_time = timed_symbol.second;
+        cout << "State : " << state->getKey() << endl;
+        cout << "TimeState : (" << symbol << ", " << symbol_time << ")" << endl;
         int t = symbol_time - timeBuffer;
         if (sequenceIndex > 0) {
             t -= alpha[sequenceIndex -1].second;
             symbol_time -= alpha[sequenceIndex -1].second;
         }
+        cout << "Time left : " << t << endl;
         //Time to spend, so take only timeouts
         if (t > 0) {
             for (auto transition : this->transitions) {
@@ -149,18 +158,23 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
                     int timeout = atoi(transition->i.c_str());
                     ProductState * tgtNode = this->states.find(transition->tgt)->second;
                     if (timeout <= t) {
+                        cout << state->getKey() << " Timeout takeable " << transition->id << " -> " << timeout << " <= " << t << endl;
                         path newPath(currentPath);
                         newPath.push_back(transition->id);
                         if (this->isPathDeterministic(newPath)) {
+                            cout << state->getKey() << " Timeout took " << transition->id << endl;
                             this->revealingPathsRecursive(tgtNode, newPath, results, alpha, sequenceIndex, timeBuffer + timeout, 0);
                         }
                     }
                     else {
                         for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
-                            if (timeout < mutaTimeout->t) {
+                            cout << state->getKey() << " Timeout waitable " << transition->id << " -> " << t << " <= " << mutaTimeout->t << endl;
+                            if (t < mutaTimeout->t) {
+                                cout << state->getKey() << " Timeout waitable " << transition->id << endl;
                                 path newPath(currentPath);
                                 newPath.push_back(transition->id);
                                 if (this->isPathDeterministic(newPath)) {
+                                    cout << state->getKey() << " Timeout waited " << transition->id << endl;
                                     this->revealingPathsRecursive(state, newPath, results, alpha, sequenceIndex, symbol_time, t);
                                 }
                             }
@@ -170,6 +184,7 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
             }
         }
         else {
+            cout << state->getKey() << " Take transition" << endl;
             for (auto transition : this->transitions) {
                 if (transition->src == state->getKey() && !transition->isTimeout) {
                     if (transition->i == symbol && transition->getGuard().contains(timeLeftOver)) {

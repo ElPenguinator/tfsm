@@ -11,7 +11,7 @@ DistinguishingAutomaton_FSM::DistinguishingAutomaton_FSM(FSM * S, FSM * M)
     this->specification = S;
     this->mutationMachine = M;
 
-    ProductState * initialState = new ProductState(S->initialState, M->initialState);
+    ProductState * initialState = new ProductState(S->getInitialState(), M->getInitialState());
     this->states.insert(make_pair(initialState->getKey(), initialState));
     this->initialState = initialState;
     this->hasNoSinkState = true;
@@ -43,6 +43,7 @@ void DistinguishingAutomaton_FSM::generateNext(ProductState * state)
                 newState = new ProductSinkState();
                 this->hasNoSinkState = false;
             }
+
             this->insertState(state, related->i, newState, false, mutationTransition->id);
         }
         delete related;
@@ -201,11 +202,7 @@ std::deque<ProductTransition *> DistinguishingAutomaton_FSM::Dijkstra(string key
                 results.clear();
                 return results;
             }
-            /*
-            cout << "Res :" << endl;
-            cout << currentStateKey << endl;
-            cout << predecessors.find(currentStateKey)->second.getKey() << endl;
-            */
+
             results.push_front(predecessors.find(currentStateKey)->second);
             currentStateKey = predecessors.find(currentStateKey)->second->src;
         }

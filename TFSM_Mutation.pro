@@ -12,11 +12,7 @@ SOURCES += src/main.cpp \
     src/modules/model/tools.cpp \
     src/modules/model/machine/fsm.cpp \
     src/modules/model/machine/tfsm.cpp \
-    src/modules/model/examplesfsm.cpp \
-    src/modules/model/examplesto.cpp \
-    src/modules/model/checkingalgorithms_to.cpp \
     src/modules/model/checkingalgorithms.cpp \
-    src/modules/model/examplestfsm.cpp \
     src/modules/module.cpp \
     src/modules/model/machine/transition.cpp \
     src/modules/model/machine/iotransition.cpp \
@@ -31,7 +27,11 @@ SOURCES += src/main.cpp \
     src/modules/view/tab/homepagewidget.cpp \
     src/modules/model/machine/distinguishingautomaton_fsm.cpp \
     src/modules/model/machine/distinguishingautomaton_tfsm_to.cpp \
-    src/modules/model/machine/distinguishingautomaton_tfsm.cpp
+    src/modules/model/machine/distinguishingautomaton_tfsm.cpp \
+    src/modules/model/algorithm/algorithms.cpp \
+    src/modules/model/algorithm/algorithms_fsm.cpp \
+    src/modules/model/algorithm/algorithms_tfsm_to.cpp \
+    src/modules/model/algorithm/algorithms_tfsm.cpp
 
 HEADERS += \
     src/modules/model/machine/tfsm_to.h \
@@ -56,7 +56,11 @@ HEADERS += \
     src/modules/view/tab/homepagewidget.h \
     src/modules/model/machine/distinguishingautomaton_fsm.h \
     src/modules/model/machine/distinguishingautomaton_tfsm_to.h \
-    src/modules/model/machine/distinguishingautomaton_tfsm.h
+    src/modules/model/machine/distinguishingautomaton_tfsm.h \
+    src/modules/model/algorithm/algorithms.h \
+    src/modules/model/algorithm/algorithms_fsm.h \
+    src/modules/model/algorithm/algorithms_tfsm_to.h \
+    src/modules/model/algorithm/algorithms_tfsm.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

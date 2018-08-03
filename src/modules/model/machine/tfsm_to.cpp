@@ -15,6 +15,7 @@ TFSM_TO::TFSM_TO(set<int> S, int s0, set<string> I, set<string> O, vector<IOTran
 void TFSM_TO::addTransitions(vector<IOTransition *> transitions)
 {
     FSM::addTransitions(transitions);
+    this->computeMaps();
 }
 
 void TFSM_TO::addTimeouts(vector<TimeoutTransition *> timeouts)
@@ -113,4 +114,29 @@ void TFSM_TO::print()
         }
     }
     cout << "}" << endl;
+}
+
+int TFSM_TO::getTransitionSize()
+{
+    return this->transitions.size() + this->timeouts.size();
+}
+
+vector<IOTransition *> TFSM_TO::getTransitions()
+{
+    return FSM::getTransitions();
+}
+
+vector<TimeoutTransition *> TFSM_TO::getTimeouts()
+{
+    return this->timeouts;
+}
+
+int TFSM_TO::getInitialState()
+{
+    return FSM::getInitialState();
+}
+
+set<set<int>> TFSM_TO::getEta(int s, string i)
+{
+    return set<set<int>>();
 }

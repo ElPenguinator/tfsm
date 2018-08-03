@@ -25,7 +25,11 @@ public:
     std::vector<IOTransition *> lambda(int s);
     std::vector<TimeoutTransition *> delta(int s);
     void print();
+    int getTransitionSize();
     std::set<std::set<int>> getEta(int s, std::string i);
+    std::vector<IOTransition *> getTransitions();
+    std::vector<TimeoutTransition *> getTimeouts();
+    int getInitialState();
 };
 
 #endif // TFSM_H

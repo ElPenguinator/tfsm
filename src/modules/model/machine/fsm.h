@@ -22,6 +22,7 @@ public:
     virtual void addTransitions(std::vector<IOTransition *> transitions);
     std::vector<IOTransition *> getXi(int s, std::string i);
     virtual std::vector<TimeoutTransition *> getXi(int s);
+
     IOTransition * getTransitionFromId(int id);
     virtual TimeoutTransition * getTimeoutFromId(int id);
     virtual bool isIdTimeout(int id);
@@ -29,6 +30,11 @@ public:
     virtual std::vector<IOTransition *> lambda(int s);
     virtual std::vector<TimeoutTransition *> delta(int s);
     virtual void print();
+    virtual int getTransitionSize();
+    virtual std::vector<IOTransition *> getTransitions();
+    virtual std::vector<TimeoutTransition *> getTimeouts();
+    virtual std::set<std::set<int>> getEta(int s, std::string i);
+    virtual int getInitialState();
 };
 
 #endif // FSM_H

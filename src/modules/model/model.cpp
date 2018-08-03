@@ -1,6 +1,8 @@
 #include "model.h"
 using namespace std;
-
+#include "algorithm/algorithms_fsm.h"
+#include "algorithm/algorithms_tfsm_to.h"
+#include "algorithm/algorithms_tfsm.h"
 
 Model::Model() : QObject()
 {
@@ -26,14 +28,14 @@ void exampleFSM(FSM *& S, FSM *& M, vector<sequence> & E)
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
     vector<IOTransition *> lambda = {new IOTransition(1, "a", "0", 1, 0),
-                                   new IOTransition(1, "b", "0", 2, 1),
-                                   new IOTransition(2, "a", "0", 3, 2),
-                                   new IOTransition(2, "b", "0", 2, 3),
-                                   new IOTransition(3, "a", "0", 3, 4),
-                                   new IOTransition(3, "b", "0", 4, 5),
-                                   new IOTransition(4, "a", "1", 1, 6),
-                                   new IOTransition(4, "b", "0", 4, 7)
-                                  };
+                                     new IOTransition(1, "b", "0", 2, 1),
+                                     new IOTransition(2, "a", "0", 3, 2),
+                                     new IOTransition(2, "b", "0", 2, 3),
+                                     new IOTransition(3, "a", "0", 3, 4),
+                                     new IOTransition(3, "b", "0", 4, 5),
+                                     new IOTransition(4, "a", "1", 1, 6),
+                                     new IOTransition(4, "b", "0", 4, 7)
+                                    };
     S = new FSM(S2, s0, I, O, lambda);
     M = new FSM(S2, s0, I, O, lambda);
     M->addTransitions({new IOTransition(3, "a", "1", 3, 8),
@@ -58,19 +60,19 @@ void exampleTFSM_TO(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
     vector<IOTransition *> lambda = {new IOTransition(1, "a", "0", 1, 0),
-                                   new IOTransition(1, "b", "0", 2, 1),
-                                   new IOTransition(2, "b", "0", 2, 3),
-                                   new IOTransition(2, "a", "0", 3, 4),
-                                   new IOTransition(3, "a", "0", 3, 6),
-                                   new IOTransition(3, "b", "0", 4, 7),
-                                   new IOTransition(4, "b", "0", 4, 10),
-                                   new IOTransition(4, "a", "1", 1, 9)
-                                  };
+                                     new IOTransition(1, "b", "0", 2, 1),
+                                     new IOTransition(2, "b", "0", 2, 3),
+                                     new IOTransition(2, "a", "0", 3, 4),
+                                     new IOTransition(3, "a", "0", 3, 6),
+                                     new IOTransition(3, "b", "0", 4, 7),
+                                     new IOTransition(4, "b", "0", 4, 10),
+                                     new IOTransition(4, "a", "1", 1, 9)
+                                    };
     vector<TimeoutTransition *> delta = {new TimeoutTransition(1, 4, 4, 2),
-                                       new TimeoutTransition(3, 5, 2, 8),
-                                       new TimeoutTransition(2, inf, 2, 5),
-                                       new TimeoutTransition(4, inf, 4, 11)
-                                      };
+                                         new TimeoutTransition(3, 5, 2, 8),
+                                         new TimeoutTransition(2, inf, 2, 5),
+                                         new TimeoutTransition(4, inf, 4, 11)
+                                        };
     S = new TFSM_TO(S2, s0, I, O, lambda, delta);
     M = new TFSM_TO(S2, s0, I, O, lambda, delta);
     M->addTransitions({new IOTransition(3, "a", "1", 3, 13),
@@ -107,21 +109,21 @@ void exampleTFSM(TFSM*& S, TFSM *& M, vector<sequence> & E)
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
     vector<IOTransition *> lambda = {new GuardedTransition(1, "a", Guard("[", 0, inf, ")"), "0", 1, 0),
-                                   new GuardedTransition(1, "b", Guard("[", 0, inf, ")"), "0", 2, 1),
-                                   new GuardedTransition(2, "b", Guard("[", 0, inf, ")"), "0", 2, 3),
-                                   new GuardedTransition(2, "a", Guard("[", 0, 2, ")"), "0", 3, 4),
-                                   new GuardedTransition(2, "a", Guard("[", 2, inf, ")"), "0", 4, 5),
-                                   new GuardedTransition(3, "a", Guard("[", 0, inf, ")"), "0", 3, 7),
-                                   new GuardedTransition(3, "b", Guard("[", 0, inf, ")"), "0", 4, 8),
-                                   new GuardedTransition(4, "b", Guard("[", 0, inf, ")"), "0", 4, 12),
-                                   new GuardedTransition(4, "a", Guard("[", 0, 3, ")"), "1", 1, 10),
-                                   new GuardedTransition(4, "a", Guard("[", 3, inf, ")"), "1", 3, 11)
-                                  };
+                                     new GuardedTransition(1, "b", Guard("[", 0, inf, ")"), "0", 2, 1),
+                                     new GuardedTransition(2, "b", Guard("[", 0, inf, ")"), "0", 2, 3),
+                                     new GuardedTransition(2, "a", Guard("[", 0, 2, ")"), "0", 3, 4),
+                                     new GuardedTransition(2, "a", Guard("[", 2, inf, ")"), "0", 4, 5),
+                                     new GuardedTransition(3, "a", Guard("[", 0, inf, ")"), "0", 3, 7),
+                                     new GuardedTransition(3, "b", Guard("[", 0, inf, ")"), "0", 4, 8),
+                                     new GuardedTransition(4, "b", Guard("[", 0, inf, ")"), "0", 4, 12),
+                                     new GuardedTransition(4, "a", Guard("[", 0, 3, ")"), "1", 1, 10),
+                                     new GuardedTransition(4, "a", Guard("[", 3, inf, ")"), "1", 3, 11)
+                                    };
     vector<TimeoutTransition *> delta = {new TimeoutTransition(1, 4, 4, 2),
-                                       new TimeoutTransition(3, 5, 2, 9),
-                                       new TimeoutTransition(2, inf, 2, 6),
-                                       new TimeoutTransition(4, inf, 4, 13)
-                                      };
+                                         new TimeoutTransition(3, 5, 2, 9),
+                                         new TimeoutTransition(2, inf, 2, 6),
+                                         new TimeoutTransition(4, inf, 4, 13)
+                                        };
     S = new TFSM(S2, s0, I, O, lambda, delta);
     M = new TFSM(S2, s0, I, O, lambda, delta);
     M->addTransitions({new GuardedTransition(2, "a", Guard("[", 0, 5, ")"), "0", 3, 15),
@@ -134,7 +136,7 @@ void exampleTFSM(TFSM*& S, TFSM *& M, vector<sequence> & E)
                       });
 
     M->addTimeouts({new TimeoutTransition(1, 3, 4, 14),
-                    new TimeoutTransition(3, 8, 1, 14)
+                    new TimeoutTransition(3, 8, 1, 19)
                    });
 
     E = {sequence({ts("a", 0),
@@ -167,6 +169,14 @@ void checkFSM() {
     DistinguishingAutomaton_FSM * P = new DistinguishingAutomaton_FSM(S, M);
     P->initialize();
     P->print();
+
+    Algorithms * algo = new Algorithms_FSM();
+    vector<sequence> Einit;
+    E = algo->generateCheckingExperiment(Einit, S, M);
+    cout << "E : " << endl;
+    for (auto s : E) {
+        printSequence(s);
+    }
 }
 
 void checkTFSM_TO() {
@@ -180,6 +190,14 @@ void checkTFSM_TO() {
     DistinguishingAutomaton_TFSM_TO * P = new DistinguishingAutomaton_TFSM_TO(S, M);
     P->initialize();
     P->print();
+
+    Algorithms * algo = new Algorithms_TFSM_TO();
+    vector<sequence> Einit;
+    E = algo->generateCheckingExperiment(Einit, S, M);
+    cout << "E : " << endl;
+    for (auto s : E) {
+        printSequence(s);
+    }
 }
 
 void checkTFSM() {
@@ -189,15 +207,43 @@ void checkTFSM() {
     exampleTFSM(S, M, E);
     S->print();
     M->print();
-
+    /*
     DistinguishingAutomaton_TFSM * P = new DistinguishingAutomaton_TFSM(S, M);
     P->initialize();
     P->print();
+    */
+    Algorithms * algo = new Algorithms_TFSM();
+
+    /*
+    vector<sequence> Einit = {sequence({ts("a", 7),
+                                        ts("a", 14),
+                                        ts("a", 14)
+                              }
+                              )
+                             };
+    vector<path> test = P->revealingPaths(sequence({ts("a", 7),
+                                                    ts("a", 14),
+                                                    ts("a", 14)
+                                                   }
+                                                   ));
+    cout << "Paths : " << endl;
+    for (auto path : test) {
+        printPath(path);
+    }
+    */
+
+    vector<sequence> Einit;
+    E = algo->generateCheckingExperiment(Einit, S, M);
+    cout << "E : " << endl;
+    for (auto s : E) {
+        printSequence(s);
+    }
+
 }
 
 void Model::modelCheck()
 {
-    checkFSM();
-    checkTFSM_TO();
+    //checkFSM();
+    //checkTFSM_TO();
     checkTFSM();
 }

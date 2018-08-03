@@ -7,7 +7,7 @@ class DistinguishingAutomaton_TFSM : public DistinguishingAutomaton_TFSM_TO
 private:
     bool isProductConnected();
 public:
-    DistinguishingAutomaton_TFSM(TFSM * S, TFSM * M);
+    DistinguishingAutomaton_TFSM(FSM * S, FSM * M);
     void generateNext(ProductState * state);
     void insertState(ProductState * state, std::string i, Guard g, ProductState * newState, bool isTimeout, int id);
     std::vector<path> revealingPaths(sequence alpha);

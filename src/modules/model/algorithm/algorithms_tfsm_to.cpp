@@ -1,8 +1,14 @@
-#include "checkingalgorithms_to.h"
+#include "algorithms_tfsm_to.h"
+#include "../machine/distinguishingautomaton_tfsm_to.h"
 using namespace std;
 using namespace CMSat;
 
-TFSM_TO * generateSubmachine(SATSolver * &solver, TFSM_TO * M)
+Algorithms_TFSM_TO::Algorithms_TFSM_TO()
+{
+
+}
+
+FSM * Algorithms_TFSM_TO::generateSubmachine(SATSolver * &solver, FSM * M)
 {
     lbool ret = solver->solve();
     if (ret == l_True) {
@@ -12,7 +18,7 @@ TFSM_TO * generateSubmachine(SATSolver * &solver, TFSM_TO * M)
         set<string> O(M->inputs);
         vector<IOTransition *> lambda;
         vector<TimeoutTransition *> delta;
-        for (int i=0; i<M->transitions.size() + M->timeouts.size(); i++) {
+        for (int i=0; i<M->getTransitions().size() + M->getTimeouts().size(); i++) {
             if (solver->get_model()[i] == l_True) {
                 int id = i;
                 if (M->isIdTimeout(id)) {
@@ -33,19 +39,19 @@ TFSM_TO * generateSubmachine(SATSolver * &solver, TFSM_TO * M)
     }
 }
 
-void computePhiP(SATSolver * &solver, TFSM_TO * P)
+void Algorithms_TFSM_TO::computePhiP(SATSolver * &solver, FSM * P)
 {
     vector<Lit> clause;
-    for (auto transition : P->transitions) {
+    for (auto transition : P->getTransitions()) {
         clause.push_back(Lit(transition->id, true));
     }
-    for (auto timeout : P->timeouts) {
+    for (auto timeout : P->getTimeouts()) {
         clause.push_back(Lit(timeout->id, true));
     }
     solver->add_clause(clause);
 }
 
-void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM_TO * D)
+void Algorithms_TFSM_TO::computePhiE(SATSolver * &solver, vector<sequence> E, DistinguishingAutomaton_FSM * D)
 {
     for (auto alpha : E) {
         vector<path> rev = D->revealingPaths(alpha);
@@ -72,8 +78,9 @@ void computePhiE(SATSolver * &solver, vector<sequence> E, Product_TFSM_TO * D)
     }
 }
 
-void computePhiM(SATSolver * &solver, TFSM_TO * S, TFSM_TO * M)
+void Algorithms_TFSM_TO::computePhiM(SATSolver * &solver, FSM * S, FSM * M)
 {
+
     for (auto s : M->states) {
         for (auto i : M->inputs) {
             vector<IOTransition *> res = M->getXi(s, i);
@@ -109,24 +116,26 @@ void computePhiM(SATSolver * &solver, TFSM_TO * S, TFSM_TO * M)
         solver->add_clause(clause);
     }
     vector<Lit> clause;
-    for (auto k : S->transitions) {
+    for (auto k : S->getTransitions()) {
         clause.push_back(Lit(k->id, true));
     }
-    for (auto k : S->timeouts) {
+    for (auto k : S->getTimeouts()) {
         clause.push_back(Lit(k->id, true));
     }
     solver->add_clause(clause);
 }
 
-sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM_TO * S, Product_TFSM_TO * D)
+sequence Algorithms_TFSM_TO::verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, FSM * S, DistinguishingAutomaton_FSM * D)
 {
+
     computePhiE(solver, E, D);
     sequence alpha;
-    TFSM_TO * P = D->mutationMachine;
+    FSM * P = D->mutationMachine;
     while (alpha.size() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
-            Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
+            DistinguishingAutomaton_TFSM_TO * DP = new DistinguishingAutomaton_TFSM_TO(S, P);
+            DP->initialize();
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
@@ -142,13 +151,14 @@ sequence verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, TFSM_T
     return alpha;
 }
 
-vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M)
+vector<sequence> Algorithms_TFSM_TO::generateCheckingExperimentTimeouted(vector<sequence> Einit, FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
 
-    solver->new_vars(M->timeouts.size() + M->transitions.size());
+    solver->new_vars(M->getTransitionSize());
     computePhiM(solver, S, M);
-    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
+    DistinguishingAutomaton_TFSM_TO * D = new DistinguishingAutomaton_TFSM_TO(S, M);
+    D->initialize();
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
 
@@ -170,45 +180,41 @@ vector<sequence> generateCheckingExperimentTimeouted(vector<sequence> Einit, TFS
     return E;
 }
 
-vector<sequence> generateCheckingExperiment(vector<sequence> Einit, TFSM_TO * S, TFSM_TO * M)
+vector<sequence> Algorithms_TFSM_TO::generateCheckingExperiment(vector<sequence> Einit, FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
-
-    solver->new_vars(M->timeouts.size() + M->transitions.size());
-    solver->log_to_file("/tmp/test.txt");
+solver->log_to_file("/tmp/test.txt");
+    solver->new_vars(M->getTransitionSize());
     computePhiM(solver, S, M);
-    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
+    DistinguishingAutomaton_TFSM_TO * D = new DistinguishingAutomaton_TFSM_TO(S, M);
+    D->initialize();
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
-    //double elapsed_secs = 0;
-    sequence alpha;
+
     do {
-        //clock_t begin = clock();
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
-        alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
-        //printSequence(alpha);
+        sequence alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
         Ecurr.clear();
-        Ecurr.push_back(alpha);
-        //clock_t end = clock();
-        //elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-        //cout << elapsed_secs << endl;
+        if (alpha.size() > 0)
+            Ecurr.push_back(alpha);
     }
-    while (alpha.size() != 0);
+    while (Ecurr.size() != 0);
     return E;
 }
 
-sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM_TO * S, Product_TFSM_TO * D)
+sequence Algorithms_TFSM_TO::verifyCheckingSequence(SATSolver * &solver,sequence CS, FSM * S, DistinguishingAutomaton_FSM * D)
 {
     vector<sequence> E;
     E.push_back(CS);
     set<string> beginningStates;
     computePhiE(solver, E, D);
     sequence alpha;
-    TFSM_TO * P = D->mutationMachine;
+    FSM * P = D->mutationMachine;
     while (alpha.size() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
-            Product_TFSM_TO * DP = new Product_TFSM_TO(S, P);
+            DistinguishingAutomaton_TFSM_TO * DP = new DistinguishingAutomaton_TFSM_TO(S, P);
+            DP->initialize();
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
@@ -224,14 +230,15 @@ sequence verifyCheckingSequence(SATSolver * &solver,sequence CS, TFSM_TO * S, Pr
     return alpha;
 }
 
-sequence generateCheckingSequenceTimeouted(TFSM_TO * S, TFSM_TO * M)
+sequence Algorithms_TFSM_TO::generateCheckingSequenceTimeouted(FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
 
-    solver->new_vars(M->timeouts.size() + M->transitions.size());
+    solver->new_vars(M->getTransitionSize());
     //solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
-    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
+    DistinguishingAutomaton_TFSM_TO * D = new DistinguishingAutomaton_TFSM_TO(S, M);
+    D->initialize();
     sequence CS;
     sequence alpha;
     double elapsed_secs = 0;
@@ -246,14 +253,14 @@ sequence generateCheckingSequenceTimeouted(TFSM_TO * S, TFSM_TO * M)
     return CS;
 }
 
-sequence generateCheckingSequence(TFSM_TO * S, TFSM_TO * M)
+sequence Algorithms_TFSM_TO::generateCheckingSequence(FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
 
-    solver->new_vars(M->timeouts.size() + M->transitions.size());
-    //solver->log_to_file("/tmp/test.txt");
+    solver->new_vars(M->getTransitionSize());
     computePhiM(solver, S, M);
-    Product_TFSM_TO * D = new Product_TFSM_TO(S, M);
+    DistinguishingAutomaton_TFSM_TO * D = new DistinguishingAutomaton_TFSM_TO(S, M);
+    D->initialize();
     sequence CS;
     sequence alpha;
     do {
@@ -262,4 +269,86 @@ sequence generateCheckingSequence(TFSM_TO * S, TFSM_TO * M)
     }
     while (alpha.size() != 0);
     return CS;
+}
+
+void Algorithms_TFSM_TO::checkingExperimentBenchmarks()
+{
+//    set<string> I = {"a", "b"};
+//    set<string> O = {"0", "1"};
+
+
+//    //int nbStates [5] = {4, 8, 10, 12, 15};
+//    //int nbMutants [6] = {16, 32, 64, 128, 256, 512};
+
+//    int nbStates [1] = {15};
+//    int nbMutants [1] = {96};
+//    int maxTimeSpec = 3;
+//    int maxTimeMuta = 5;
+//    ofstream benchFile;
+//    ->getTimeouts() << "Num of Bench : " << nbOfBench << endl;
+//    //for (int j=4; j<5; j++) {
+//    for (int j=0; j<1; j++) {
+//        ->getTimeouts() << nbStates[j] << " states" << endl;
+//        int maximumTransitions = nbStates[j] * I.size() * O.size() * nbStates[j] + nbStates[j] * (maxTimeMuta+1) * nbStates[j];
+//        int transitionsInSpec = nbStates[j] * I.size() + nbStates[j];
+//        ->getTimeouts() << "Maximum : " << maximumTransitions << " In Spec : " << transitionsInSpec << " available : " << maximumTransitions - transitionsInSpec << endl;
+//        //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
+//        //for (int i=0; i < 6; i++) {
+//        for (int i=0; i < 1; i++) {
+//            ->getTimeouts() << nbMutants[i] << " mutated transitions/timeouts" << endl;
+//            if (nbMutants[i] < maximumTransitions - transitionsInSpec) {
+//                benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+//                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTimeSpec, I, O);
+//                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTimeMuta, nbMutants[i]);
+//                vector<sequence> E;
+//                vector<sequence> Einit;
+//                ->getTimeouts() << "Begin" << endl;
+//                clock_t begin = clock();
+//                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
+//                clock_t end = clock();
+//                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+//                ->getTimeouts() << "End" << endl;
+//                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTimeSpec << " " << maxTimeMuta << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
+//                delete randomSpec;
+//                delete randomMuta;
+//                benchFile.close();
+//            }
+//        }
+
+//    }
+}
+
+
+void Algorithms_TFSM_TO::checkingSequenceBenchmarks()
+{
+//    set<string> I = {"a", "b"};
+//    set<string> O = {"0", "1"};
+
+
+//    int nbStates [5] = {4, 8, 10, 12, 15};
+//    int nbMutants [6] = {16, 32, 64, 128, 300, 400};
+//    int maxTime = 5;
+
+//    for (int nbOfBench=0; nbOfBench < 5; nbOfBench++) {
+//        ofstream benchFile;
+
+//        for (int j=0; j<3; j++) {
+//            for (int i=0; i < 6; i++) {
+//                benchFile.open("bench_CS_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+//                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
+//                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
+//                sequence CS;
+//                clock_t begin = clock();
+//                CS = generateCheckingSequenceTimeouted(randomSpec, randomMuta);
+//                clock_t end = clock();
+//                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+//                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << CS.size() << "\n";
+//                delete randomSpec;
+//                delete randomMuta;
+//                benchFile.close();
+//            }
+//        }
+
+//    }
+
 }
