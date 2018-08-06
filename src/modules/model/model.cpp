@@ -247,3 +247,42 @@ void Model::modelCheck()
     //checkTFSM_TO();
     checkTFSM();
 }
+
+void Model::importFile(QString fileName)
+{
+    cout << "Import : " << fileName.toStdString() << endl;
+}
+
+void Model::exportFile(QString fileName)
+{
+    cout << "Export : " << fileName.toStdString() << endl;
+}
+
+void Model::checkingExperiment()
+{
+    FSM * S;
+    FSM * M;
+    vector<sequence> E;
+    exampleFSM(S, M, E);
+
+    Algorithms * algo = new Algorithms_FSM();
+    vector<sequence> Einit;
+    E = algo->generateCheckingExperiment(Einit, S, M);
+
+    emit checkingExperimentResults(E);
+}
+
+void Model::checkingSequence()
+{
+    FSM * S;
+    FSM * M;
+    vector<sequence> E;
+    exampleFSM(S, M, E);
+
+    Algorithms * algo = new Algorithms_FSM();
+    sequence seq;
+    seq = algo->generateCheckingSequence(S, M);
+
+    emit checkingSequenceResults(seq);
+
+}

@@ -11,6 +11,8 @@
 #include <QAction>
 
 #include "tab/homepagewidget.h"
+#include "tab/mutationwidget.h"
+#include "tab/benchmarkwidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -31,13 +33,18 @@ private:
 
 
     HomepageWidget *_homepage_widget;
+    MutationWidget *_mutation_widget;
+    BenchmarkWidget *_benchmark_widget;
     /*
     InsertionWidget *_insertion_widget;
     GenerationWidget *_generation_widget;
     ManagementWidget *_management_widget;
     ConfigFileWidget *_config_file_widget;
     */
-    int _homepageWdgetPos;/*Un 4,
+    int _homepageWidgetPos;
+    int _mutationWidgetPos;
+    int _benchmarkWidgetPos;
+    /*Un 4,
         _insertionWidgetPos,
         _generationWidgetPos,
         _managementWidgetPos,
@@ -54,6 +61,7 @@ private:
 
 public:
     MainWindow(QWidget *parent = 0);
+    MutationWidget * getMutationWidget();
 };
 
 #endif // MAINWINDOW_H

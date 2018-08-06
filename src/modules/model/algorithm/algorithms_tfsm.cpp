@@ -217,7 +217,7 @@ vector<sequence> Algorithms_TFSM::generateCheckingExperimentTimeouted(vector<seq
     if (elapsed_secs > 3600) {
         E.clear();
     }
-    return E;
+    return removePrefixes(E);
 }
 
 vector<sequence> Algorithms_TFSM::generateCheckingExperiment(vector<sequence> Einit, FSM * S, FSM * M)
@@ -242,7 +242,7 @@ solver->log_to_file("/tmp/test.txt");
             Ecurr.push_back(alpha);
     }
     while (Ecurr.size() != 0);
-    return E;
+    return removePrefixes(E);
 }
 
 sequence Algorithms_TFSM::verifyCheckingSequence(SATSolver * &solver,sequence CS, FSM * S, DistinguishingAutomaton_FSM * D)
@@ -396,3 +396,42 @@ void Algorithms_TFSM::checkingSequenceBenchmarks()
 
 }
 
+//Will be factorized later with a class
+vector<sequence> Algorithms_TFSM::removePrefixes(vector<sequence> E)
+{
+    vector<sequence> newE;
+    for (sequence s1 : E) {
+        bool found = false;
+        cout << "S1 : ";
+        printSequence(s1);
+
+        vector<sequence> copyNewE(newE);
+        int j = 0;
+        for (sequence s2 : copyNewE) {
+            cout << "S2 : ";
+            printSequence(s2);
+            int i=0;
+            while (i < min(s1.size(), s2.size()) && s1[i].first == s2[i].first && s1[i].second == s2[i].second) {
+                i++;
+            }
+            if (i == min(s1.size(), s2.size())) {
+                if (s1.size() <= s2.size()) {
+                    printSequence(s1);
+                    cout << "Is prefix of" << endl;
+                    printSequence(s2);
+                    found = true;
+                }
+                else {
+                    printSequence(s2);
+                    cout << "Is prefix of" << endl;
+                    printSequence(s1);
+                    newE.erase(newE.begin() + j);
+                }
+            }
+            j++;
+        }
+        if (!found)
+            newE.push_back(s1);
+    }
+    return newE;
+}

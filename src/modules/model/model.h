@@ -13,6 +13,16 @@ public:
     explicit Model();
     ~Model();
     void modelCheck();
+
+public slots:
+    void importFile(QString fileName);
+    void exportFile(QString fileName);
+    void checkingExperiment();
+    void checkingSequence();
+
+signals:
+    void checkingExperimentResults(std::vector<sequence>);
+    void checkingSequenceResults(sequence);
 };
 
 #endif // MODEL_H

@@ -19,6 +19,13 @@ void Controller::bindEvents(View &view, Model &model)
     address of VuewGUI and ViewSH.
     SOLVE THIS HUGE PROBLEM !!! */
 
+    connect(_view, &View::importedFile, _model, &Model::importFile);
+    connect(_view, &View::exportedFile, _model, &Model::exportFile);
+    connect(_view, &View::checkingExperiment, _model, &Model::checkingExperiment);
+    connect(_view, &View::checkingSequence, _model, &Model::checkingSequence);
+
+    connect(_model, &Model::checkingExperimentResults, _view, &View::checkingExperimentResults);
+    connect(_model, &Model::checkingSequenceResults, _view, &View::checkingSequenceResults);
 
 //    /* bind events between model and view */
 

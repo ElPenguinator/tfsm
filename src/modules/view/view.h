@@ -9,11 +9,21 @@ class View : public QObject
 {
     Q_OBJECT
 private:
-    MainWindow * mainWindow;
+    MainWindow * _main_window;
 public:
     View();
     void bindEvents();
     void show();
+private slots:
+    void importFile();
+    void exportFile();
+signals:
+    void importedFile(QString);
+    void exportedFile(QString);
+    void checkingExperiment();
+    void checkingSequence();
+    void checkingExperimentResults(std::vector<sequence>);
+    void checkingSequenceResults(sequence);
 };
 
 #endif // VIEW_H

@@ -2,6 +2,9 @@ QT += core gui sql xml
 
 #greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QT += widgets
+QT += svg
+qtHaveModule(opengl): QT += opengl
+
 
 TARGET = PDP
 TEMPLATE = app
@@ -12,7 +15,6 @@ SOURCES += src/main.cpp \
     src/modules/model/tools.cpp \
     src/modules/model/machine/fsm.cpp \
     src/modules/model/machine/tfsm.cpp \
-    src/modules/model/checkingalgorithms.cpp \
     src/modules/module.cpp \
     src/modules/model/machine/transition.cpp \
     src/modules/model/machine/iotransition.cpp \
@@ -31,7 +33,10 @@ SOURCES += src/main.cpp \
     src/modules/model/algorithm/algorithms.cpp \
     src/modules/model/algorithm/algorithms_fsm.cpp \
     src/modules/model/algorithm/algorithms_tfsm_to.cpp \
-    src/modules/model/algorithm/algorithms_tfsm.cpp
+    src/modules/model/algorithm/algorithms_tfsm.cpp \
+    src/modules/view/tab/mutationwidget.cpp \
+    src/modules/view/tab/svgview.cpp \
+    src/modules/view/tab/benchmarkwidget.cpp
 
 HEADERS += \
     src/modules/model/machine/tfsm_to.h \
@@ -40,8 +45,6 @@ HEADERS += \
     src/modules/model/tools.h \
     src/modules/model/machine/fsm.h \
     src/modules/model/machine/tfsm.h \
-    src/modules/model/checkingalgorithms_to.h \
-    src/modules/model/checkingalgorithms.h \
     src/lib/infint.h \
     src/modules/module.h \
     src/modules/model/machine/transition.h \
@@ -60,7 +63,10 @@ HEADERS += \
     src/modules/model/algorithm/algorithms.h \
     src/modules/model/algorithm/algorithms_fsm.h \
     src/modules/model/algorithm/algorithms_tfsm_to.h \
-    src/modules/model/algorithm/algorithms_tfsm.h
+    src/modules/model/algorithm/algorithms_tfsm.h \
+    src/modules/view/tab/mutationwidget.h \
+    src/modules/view/tab/svgview.h \
+    src/modules/view/tab/benchmarkwidget.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

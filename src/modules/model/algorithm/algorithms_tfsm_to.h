@@ -30,6 +30,8 @@ public:
     void checkingExperimentBenchmarks();
 
     void checkingSequenceBenchmarks();
+
+    std::vector<sequence> removePrefixes(std::vector<sequence> E);
 };
 
 #endif // ALGORITHMS_TFSM_TO_H

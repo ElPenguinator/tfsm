@@ -1,18 +1,18 @@
-#include "homepagewidget.h"
+#include "benchmarkwidget.h"
 
 #include <QLabel>
 
-HomepageWidget::HomepageWidget(QWidget *parent) : QWidget(parent)
+BenchmarkWidget::BenchmarkWidget(QWidget *parent) : QWidget(parent)
 {
     buildInterface();
     relaySignals();
     fillInterface();
 }
 
-HomepageWidget::~HomepageWidget()
+BenchmarkWidget::~BenchmarkWidget()
 {}
 
-void HomepageWidget::setButtonStyle(QPushButton *button)
+void BenchmarkWidget::setButtonStyle(QPushButton *button)
 {
     QFont font = button->font();
     font.setPointSize(16);
@@ -20,7 +20,7 @@ void HomepageWidget::setButtonStyle(QPushButton *button)
     button->setFont(font);
 }
 
-void HomepageWidget::buildInterface()
+void BenchmarkWidget::buildInterface()
 {
     // -- main layout
     _main_layout = new QGridLayout(this);
@@ -51,17 +51,17 @@ void HomepageWidget::buildInterface()
     */
 }
 
-void HomepageWidget::fillInterface()
+void BenchmarkWidget::fillInterface()
 {
     //_FAQ_text_browser->setSource(QUrl("doc/homepage.html"));
 }
 
-void HomepageWidget::relaySignals()
+void BenchmarkWidget::relaySignals()
 {
-    connect(_import_button, &QPushButton::released, this, &HomepageWidget::switchToImport);
+    //connect(_import_button, &QPushButton::released, this, &BenchmarkWidget::switchToImport);
     /*
-    connect(_graph_button, &QPushButton::released, this, &HomepageWidget::switchToGraph);
-    connect(_gestion_button, &QPushButton::released, this, &HomepageWidget::switchToGestion);
-    connect(_config_file_button, &QPushButton::released, this, &HomepageWidget::switchToConfigFile);
+    connect(_graph_button, &QPushButton::released, this, &BenchmarkWidget::switchToGraph);
+    connect(_gestion_button, &QPushButton::released, this, &BenchmarkWidget::switchToGestion);
+    connect(_config_file_button, &QPushButton::released, this, &BenchmarkWidget::switchToConfigFile);
     */
 }

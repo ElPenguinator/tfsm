@@ -38,6 +38,8 @@ public:
     virtual void checkingExperimentBenchmarks() = 0;
 
     virtual void checkingSequenceBenchmarks() = 0;
+
+    virtual std::vector<sequence> removePrefixes(std::vector<sequence> E) = 0;
 };
 
 #endif // ALGORITHMS_H
