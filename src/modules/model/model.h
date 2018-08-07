@@ -14,6 +14,9 @@ public:
     ~Model();
     void modelCheck();
 
+    FSM * SpecificationMachine;
+    FSM * MutationMachine;
+
 public slots:
     void importFile(QString fileName);
     void exportFile(QString fileName);

@@ -36,11 +36,19 @@ private:
     QTableWidget *_input_tab;
     QTableWidget *_output_tab;
     SvgView *_renderer;
+
     void buildInterface();
     void fillInterface();
     void relaySignals();
     void updateTab();
     void setButtonStyle(QPushButton *);
+
+    bool validateMachineCell(QTableWidget * table, int row, int column, QString content, QString columnHeader);
+    bool validateMachine(QTableWidget * table);
+    bool stateValidator(QTableWidget * ref, int row, int column, QString content);
+    bool alphabetValidator(QTableWidget * ref, QTableWidget * table, int row, int column, QString content);
+    bool updateMachineStates(QTableWidget * table, QString header);
+    void updateMachineAlphabet(QTableWidget * table, QString header, QTableWidget * tableAlphabet);
 signals:
     void importFile();
     void exportFile();
@@ -49,6 +57,11 @@ signals:
 public slots:
     void checkingExperimentResults(std::vector<sequence> E);
     void checkingSequenceResults(sequence s);
+    void updateSpecification(int row, int column);
+    void updateMutation(int row, int column);
+    void updateInputs(int row, int column);
+    void updateOutputs(int row, int column);
+    void updateNbOfStates();
 };
 
 #endif // MUTATIONWIDGET_H

@@ -36,7 +36,8 @@ SOURCES += src/main.cpp \
     src/modules/model/algorithm/algorithms_tfsm.cpp \
     src/modules/view/tab/mutationwidget.cpp \
     src/modules/view/tab/svgview.cpp \
-    src/modules/view/tab/benchmarkwidget.cpp
+    src/modules/view/tab/benchmarkwidget.cpp \
+    src/modules/model/validator/validator.cpp
 
 HEADERS += \
     src/modules/model/machine/tfsm_to.h \
@@ -66,7 +67,8 @@ HEADERS += \
     src/modules/model/algorithm/algorithms_tfsm.h \
     src/modules/view/tab/mutationwidget.h \
     src/modules/view/tab/svgview.h \
-    src/modules/view/tab/benchmarkwidget.h
+    src/modules/view/tab/benchmarkwidget.h \
+    src/modules/model/validator/validator.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     /// variables declaration
     int returnCode;
     Model model;
-    model.modelCheck();
+    //model.modelCheck();
     Controller controller;
     //QThread modelThread;
 
