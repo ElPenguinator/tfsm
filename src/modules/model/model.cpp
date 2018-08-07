@@ -3,6 +3,7 @@ using namespace std;
 #include "algorithm/algorithms_fsm.h"
 #include "algorithm/algorithms_tfsm_to.h"
 #include "algorithm/algorithms_tfsm.h"
+//#include <graphviz/gvc.h>
 
 Model::Model() : QObject()
 {
@@ -166,6 +167,8 @@ void checkFSM() {
     S->print();
     M->print();
 
+    cout << S->generateDot();
+    /*
     DistinguishingAutomaton_FSM * P = new DistinguishingAutomaton_FSM(S, M);
     P->initialize();
     P->print();
@@ -177,6 +180,7 @@ void checkFSM() {
     for (auto s : E) {
         printSequence(s);
     }
+    */
 }
 
 void checkTFSM_TO() {
@@ -187,17 +191,19 @@ void checkTFSM_TO() {
     S->print();
     M->print();
 
-    DistinguishingAutomaton_TFSM_TO * P = new DistinguishingAutomaton_TFSM_TO(S, M);
-    P->initialize();
-    P->print();
+    cout << S->generateDot();
 
-    Algorithms * algo = new Algorithms_TFSM_TO();
-    vector<sequence> Einit;
-    E = algo->generateCheckingExperiment(Einit, S, M);
-    cout << "E : " << endl;
-    for (auto s : E) {
-        printSequence(s);
-    }
+//    DistinguishingAutomaton_TFSM_TO * P = new DistinguishingAutomaton_TFSM_TO(S, M);
+//    P->initialize();
+//    P->print();
+
+//    Algorithms * algo = new Algorithms_TFSM_TO();
+//    vector<sequence> Einit;
+//    E = algo->generateCheckingExperiment(Einit, S, M);
+//    cout << "E : " << endl;
+//    for (auto s : E) {
+//        printSequence(s);
+//    }
 }
 
 void checkTFSM() {
@@ -207,12 +213,14 @@ void checkTFSM() {
     exampleTFSM(S, M, E);
     S->print();
     M->print();
+
+    cout << S->generateDot();
     /*
     DistinguishingAutomaton_TFSM * P = new DistinguishingAutomaton_TFSM(S, M);
     P->initialize();
     P->print();
     */
-    Algorithms * algo = new Algorithms_TFSM();
+//    Algorithms * algo = new Algorithms_TFSM();
 
     /*
     vector<sequence> Einit = {sequence({ts("a", 7),
@@ -232,19 +240,19 @@ void checkTFSM() {
     }
     */
 
-    vector<sequence> Einit;
-    E = algo->generateCheckingExperiment(Einit, S, M);
-    cout << "E : " << endl;
-    for (auto s : E) {
-        printSequence(s);
-    }
+//    vector<sequence> Einit;
+//    E = algo->generateCheckingExperiment(Einit, S, M);
+//    cout << "E : " << endl;
+//    for (auto s : E) {
+//        printSequence(s);
+//    }
 
 }
 
 void Model::modelCheck()
 {
-    //checkFSM();
-    //checkTFSM_TO();
+    checkFSM();
+    checkTFSM_TO();
     checkTFSM();
 }
 
@@ -285,4 +293,52 @@ void Model::checkingSequence()
 
     emit checkingSequenceResults(seq);
 
+}
+
+void Model::generateSpecification(QTableWidget * tableTransitions, int nbOfStates, QTableWidget * tableInputs, QTableWidget * tableOutputs)
+{
+    cout << "SPEC !" << endl;
+
+    set<int> S;
+    for (int i=1; i<nbOfStates+1; i++) {
+        S.insert(i);
+    }
+    int s0 = 1;
+
+    set<string> I;
+    for (int row=0; row<tableInputs->rowCount()-1; row++) {
+        I.insert(tableInputs->item(row, 0)->text().toStdString());
+    }
+    set<string> O;
+    for (int row=0; row<tableOutputs->rowCount()-1; row++) {
+        O.insert(tableOutputs->item(row, 0)->text().toStdString());
+    }
+    vector<IOTransition *> lambda;
+
+    for (int row=0; row<tableTransitions->rowCount()-1; row++) {
+        int src = -1;
+        string i = "";
+        string o = "";
+        int tgt = -1;
+        for (int column=0; column<tableTransitions->columnCount(); column++) {
+            QTableWidgetItem * item = tableTransitions->item(row, column);
+            QString header = tableTransitions->horizontalHeaderItem(column)->text();
+            if (header == "src") {
+                src = item->text().toInt();
+            }
+            else if (header == "i") {
+                i = item->text().toStdString();
+            }
+            else if (header == "o") {
+                o = item->text().toStdString();
+            }
+            else if (header == "tgt") {
+                tgt = item->text().toInt();
+            }
+        }
+        lambda.push_back(new IOTransition(src, i, o, tgt, row));
+    }
+
+    SpecificationMachine = new FSM(S, s0, I, O, lambda);
+    SpecificationMachine->print();
 }

@@ -23,6 +23,7 @@ void Controller::bindEvents(View &view, Model &model)
     connect(_view, &View::exportedFile, _model, &Model::exportFile);
     connect(_view, &View::checkingExperiment, _model, &Model::checkingExperiment);
     connect(_view, &View::checkingSequence, _model, &Model::checkingSequence);
+    connect(_view, &View::generateSpecification, _model, &Model::generateSpecification);
 
     connect(_model, &Model::checkingExperimentResults, _view, &View::checkingExperimentResults);
     connect(_model, &Model::checkingSequenceResults, _view, &View::checkingSequenceResults);

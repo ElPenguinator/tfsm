@@ -33,6 +33,8 @@ public:
     std::vector<IOTransition *> getTransitions();
     std::vector<TimeoutTransition *> getTimeouts();
     int getInitialState();
+
+    virtual std::string generateDot();
 };
 
 #endif // TFSM_TO_H

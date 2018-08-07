@@ -1,5 +1,6 @@
 #include "fsm.h"
 #include <iostream>
+#include <sstream>
 using namespace std;
 
 FSM::FSM(set<int> S, int s0, set<string> I, set<string> O, vector<IOTransition *> lambda)
@@ -113,4 +114,15 @@ int FSM::getInitialState()
 set<set<int>> FSM::getEta(int s, string i)
 {
     return set<set<int>>();
+}
+
+string FSM::generateDot()
+{
+    ostringstream res;
+    res << "digraph S {" << endl;
+    for (IOTransition * t : this->transitions) {
+        res << t->src << " -> " << t->tgt << " [label=\"" << t->i << " / " << t->o << "\"];" << endl;
+    }
+    res << "}" << endl;
+    return res.str();
 }

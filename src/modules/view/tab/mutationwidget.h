@@ -54,6 +54,7 @@ signals:
     void exportFile();
     void checkingExperiment();
     void checkingSequence();
+    void generateSpecification(QTableWidget *, int, QTableWidget *, QTableWidget *);
 public slots:
     void checkingExperimentResults(std::vector<sequence> E);
     void checkingSequenceResults(sequence s);

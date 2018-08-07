@@ -211,13 +211,17 @@ bool emptyUpdate(QTableWidget * table, int row)
 bool MutationWidget::validateMachine(QTableWidget * table)
 {
     bool isValid = true;
-    for (int row=0; row<table->rowCount(); row++) {
+    for (int row=0; row<table->rowCount()-1; row++) {
         for (int column=0; column<table->columnCount(); column++) {
             QTableWidgetItem * item = table->item(row, column);
             if (item && !item->text().isEmpty()) {
                 QString content = item->text();
                 QString columnHeader =  table->horizontalHeaderItem(column)->text();
-                isValid = isValid && validateMachineCell(table, row, column, content, columnHeader);
+                bool res = validateMachineCell(table, row, column, content, columnHeader);
+                isValid = isValid && res;
+            }
+            else {
+                isValid = false;
             }
         }
     }
@@ -264,7 +268,7 @@ void MutationWidget::updateSpecification(int row, int column)
         //Complete Check
 
         if (isValid) {
-            cout << "Update Spec" << endl;
+            emit generateSpecification(_specification_machine_tab, this->_nbStates_input->text().toInt(), this->_input_tab, this->_output_tab);
         }
     }
 }
@@ -324,7 +328,8 @@ bool MutationWidget::updateMachineStates(QTableWidget * table, QString header)
             for (int i=0; i<table->rowCount(); i++) {
                 QTableWidgetItem * item = table->item(i, j);
                 if (item && !item->text().isEmpty()) {
-                    isValid = isValid && this->stateValidator(table, i, j, table->item(i, j)->text());
+                    bool res = this->stateValidator(table, i, j, table->item(i, j)->text());
+                    isValid = isValid && res;
                 }
             }
         }

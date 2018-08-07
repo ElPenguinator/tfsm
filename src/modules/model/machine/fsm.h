@@ -35,6 +35,8 @@ public:
     virtual std::vector<TimeoutTransition *> getTimeouts();
     virtual std::set<std::set<int>> getEta(int s, std::string i);
     virtual int getInitialState();
+
+    virtual std::string generateDot();
 };
 
 #endif // FSM_H

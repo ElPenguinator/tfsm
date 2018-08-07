@@ -34,6 +34,7 @@ void View::bindEvents()
     connect(mutationWidget, &MutationWidget::exportFile, this, &View::exportFile);
     connect(mutationWidget, &MutationWidget::checkingExperiment, this, &View::checkingExperiment);
     connect(mutationWidget, &MutationWidget::checkingSequence, this, &View::checkingSequence);
+    connect(mutationWidget, &MutationWidget::generateSpecification, this, &View::generateSpecification);
     connect(this, &View::checkingExperimentResults, mutationWidget, &MutationWidget::checkingExperimentResults);
     connect(this, &View::checkingSequenceResults, mutationWidget, &MutationWidget::checkingSequenceResults);
 }

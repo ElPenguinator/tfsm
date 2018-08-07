@@ -3,6 +3,7 @@
 #include <QObject>
 #include "machine/tfsm.h"
 #include "machine/distinguishingautomaton_tfsm.h"
+#include <QTableWidgetItem>
 
 class Model : public QObject
 {
@@ -22,6 +23,7 @@ public slots:
     void exportFile(QString fileName);
     void checkingExperiment();
     void checkingSequence();
+    void generateSpecification(QTableWidget * tableTransitions, int nbOfStates, QTableWidget *tableInputs, QTableWidget *tableOutputs);
 
 signals:
     void checkingExperimentResults(std::vector<sequence>);

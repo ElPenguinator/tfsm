@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include "../structs.h"
-
+#include <sstream>
 using namespace std;
 
 TFSM_TO::TFSM_TO(set<int> S, int s0, set<string> I, set<string> O, vector<IOTransition *> lambda, vector<TimeoutTransition *> delta)
@@ -139,4 +139,18 @@ int TFSM_TO::getInitialState()
 set<set<int>> TFSM_TO::getEta(int s, string i)
 {
     return set<set<int>>();
+}
+
+string TFSM_TO::generateDot()
+{
+    ostringstream res;
+    res << "digraph S {" << endl;
+    for (IOTransition * t : this->transitions) {
+        res << t->src << " -> " << t->tgt << " [label=\"" << t->i << " / " << t->o << "\"];" << endl;
+    }
+    for (TimeoutTransition * t : this->timeouts) {
+        res << t->src << " -> " << t->tgt << " [label=\"" << t->t << "\"];" << endl;
+    }
+    res << "}" << endl;
+    return res.str();
 }
