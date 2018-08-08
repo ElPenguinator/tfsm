@@ -10,6 +10,9 @@ FSM::FSM(set<int> S, int s0, set<string> I, set<string> O, vector<IOTransition *
     this->inputs = I;
     this->outputs = O;
     this->transitions = lambda;
+    for (IOTransition * t : this->transitions) {
+        this->mutatedTransitions.insert(make_pair(t->id, false));
+    }
     this->computeMaps();
 }
 
@@ -27,10 +30,13 @@ void FSM::computeMaps()
     }
 }
 
-void FSM::addTransitions(vector<IOTransition *> transitions)
+void FSM::addTransitions(vector<IOTransition *> transitions, bool isMutated)
 {
     this->transitions.insert(this->transitions.end(), transitions.begin(), transitions.end());
     this->computeMaps();
+    for (IOTransition * t : transitions) {
+        this->mutatedTransitions.insert(make_pair(t->id, isMutated));
+    }
 }
 
 vector<IOTransition *> FSM::getXi(int s, string i)
@@ -118,10 +124,23 @@ set<set<int>> FSM::getEta(int s, string i)
 
 string FSM::generateDot()
 {
+    cout << "TEST" << endl;
+    for (auto tmp : this->mutatedTransitions) {
+        cout << "B: " << tmp.first << " " << tmp.second << endl;
+    }
+
     ostringstream res;
     res << "digraph S {" << endl;
     for (IOTransition * t : this->transitions) {
-        res << t->src << " -> " << t->tgt << " [label=\"" << t->i << " / " << t->o << "\"];" << endl;
+        res << t->src << " -> " << t->tgt;
+        cout << "?: " << this->mutatedTransitions.find(t->id)->second << endl;
+        if (this->mutatedTransitions.find(t->id)->second) {
+            res << " [style=\"dashed\" label=\"" << t->i << " / " << t->o << "\"];";
+        }
+        else {
+            res << " [label=\"" << t->i << " / " << t->o << "\"];";
+        }
+        res << endl;
     }
     res << "}" << endl;
     return res.str();

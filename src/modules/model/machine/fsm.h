@@ -19,9 +19,11 @@ public:
     std::map<int, std::vector<IOTransition *> > transitionsPerState;
     std::map<int, IOTransition *> transitionIdMap;
     FSM(std::set<int> S, int s0, std::set<std::string> I, std::set<std::string> O, std::vector<IOTransition *> lambda);
-    virtual void addTransitions(std::vector<IOTransition *> transitions);
+    virtual void addTransitions(std::vector<IOTransition *> transitions, bool isMutated);
     std::vector<IOTransition *> getXi(int s, std::string i);
     virtual std::vector<TimeoutTransition *> getXi(int s);
+
+    std::map<int, bool> mutatedTransitions;
 
     IOTransition * getTransitionFromId(int id);
     virtual TimeoutTransition * getTimeoutFromId(int id);

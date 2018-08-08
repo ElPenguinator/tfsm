@@ -158,16 +158,19 @@ void TFSM::computeMaps()
 
 }
 
-void TFSM::addTransitions(vector<IOTransition *> transitions)
+void TFSM::addTransitions(vector<IOTransition *> transitions, bool isMutated)
 {
-    TFSM_TO::addTransitions(transitions);
+    TFSM_TO::addTransitions(transitions, isMutated);
     this->computeMaps();
 }
 
-void TFSM::addTimeouts(vector<TimeoutTransition *> timeouts)
+void TFSM::addTimeouts(vector<TimeoutTransition *> timeouts, bool isMutated)
 {
-    TFSM_TO::addTimeouts(timeouts);
+    TFSM_TO::addTimeouts(timeouts, isMutated);
     this->computeMaps();
+    for (TimeoutTransition * t : timeouts) {
+        this->mutatedTransitions.insert(make_pair(t->id, isMutated));
+    }
 }
 
 vector<IOTransition *> TFSM::getXi(int s, string i)
@@ -269,10 +272,24 @@ string TFSM::generateDot()
     ostringstream res;
     res << "digraph S {" << endl;
     for (IOTransition * t : this->transitions) {
-        res << t->src << " -> " << t->tgt << " [label=\"" << t->getGuard().toString() << " " << t->i << " / " << t->o << "\"];" << endl;
+        res << t->src << " -> " << t->tgt;
+        if (this->mutatedTransitions.find(t->id)->second) {
+            res << " [style=\"dashed\" label=\"" << t->getGuard().toString() << " " << t->i << " / " << t->o << "\"];";
+        }
+        else {
+            res << " [label=\"" << t->getGuard().toString() << " " << t->i << " / " << t->o << "\"];";
+        }
+        res << endl;
     }
     for (TimeoutTransition * t : this->timeouts) {
-        res << t->src << " -> " << t->tgt << " [label=\"" << t->t << "\"];" << endl;
+        res << t->src << " -> " << t->tgt;
+        if (this->mutatedTransitions.find(t->id)->second) {
+            res << " [style=\"dashed\" label=\"" << t->t << "\"];";
+        }
+        else {
+            res << " [label=\"" << t->t << "\"];";
+        }
+        res << endl;
     }
     res << "}" << endl;
     return res.str();

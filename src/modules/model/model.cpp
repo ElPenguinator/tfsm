@@ -3,11 +3,11 @@ using namespace std;
 #include "algorithm/algorithms_fsm.h"
 #include "algorithm/algorithms_tfsm_to.h"
 #include "algorithm/algorithms_tfsm.h"
-//#include <graphviz/gvc.h>
+#include <graphviz/gvc.h>
 
 Model::Model() : QObject()
 {
-
+showSpecification = true;
 }
 
 Model::~Model()
@@ -42,7 +42,7 @@ void exampleFSM(FSM *& S, FSM *& M, vector<sequence> & E)
     M->addTransitions({new IOTransition(3, "a", "1", 3, 8),
                        new IOTransition(3, "b", "0", 3, 9),
                        new IOTransition(4, "a", "1", 2, 10)
-                      });
+                      }, true);
 
     E = {sequence({ts("b", 0),
                    ts("a", 0),
@@ -79,10 +79,10 @@ void exampleTFSM_TO(TFSM_TO *& S, TFSM_TO *& M, vector<sequence> & E)
     M->addTransitions({new IOTransition(3, "a", "1", 3, 13),
                        new IOTransition(3, "b", "0", 3, 14),
                        new IOTransition(4, "a", "1", 2, 12)
-                      });
+                      }, true);
     M->addTimeouts({new TimeoutTransition(1, 3, 4, 15),
                     new TimeoutTransition(3, 8, 1, 16)
-                   });
+                   }, true);
 
     E = {sequence({ts("a", 0),
                    ts("a", 2),
@@ -134,11 +134,11 @@ void exampleTFSM(TFSM*& S, TFSM *& M, vector<sequence> & E)
                        new GuardedTransition(4, "a", Guard("[", 0, inf, ")"), "1", 2, 20),
                        new GuardedTransition(4, "a", Guard("[", 3, inf, ")"), "1", 1, 21),
                        new GuardedTransition(4, "a", Guard("[", 0, 3, ")"), "1", 3, 22)
-                      });
+                      }, true);
 
     M->addTimeouts({new TimeoutTransition(1, 3, 4, 14),
                     new TimeoutTransition(3, 8, 1, 19)
-                   });
+                   }, true);
 
     E = {sequence({ts("a", 0),
                    ts("a", 2),
@@ -193,17 +193,17 @@ void checkTFSM_TO() {
 
     cout << S->generateDot();
 
-//    DistinguishingAutomaton_TFSM_TO * P = new DistinguishingAutomaton_TFSM_TO(S, M);
-//    P->initialize();
-//    P->print();
+    //    DistinguishingAutomaton_TFSM_TO * P = new DistinguishingAutomaton_TFSM_TO(S, M);
+    //    P->initialize();
+    //    P->print();
 
-//    Algorithms * algo = new Algorithms_TFSM_TO();
-//    vector<sequence> Einit;
-//    E = algo->generateCheckingExperiment(Einit, S, M);
-//    cout << "E : " << endl;
-//    for (auto s : E) {
-//        printSequence(s);
-//    }
+    //    Algorithms * algo = new Algorithms_TFSM_TO();
+    //    vector<sequence> Einit;
+    //    E = algo->generateCheckingExperiment(Einit, S, M);
+    //    cout << "E : " << endl;
+    //    for (auto s : E) {
+    //        printSequence(s);
+    //    }
 }
 
 void checkTFSM() {
@@ -220,7 +220,7 @@ void checkTFSM() {
     P->initialize();
     P->print();
     */
-//    Algorithms * algo = new Algorithms_TFSM();
+    //    Algorithms * algo = new Algorithms_TFSM();
 
     /*
     vector<sequence> Einit = {sequence({ts("a", 7),
@@ -240,12 +240,12 @@ void checkTFSM() {
     }
     */
 
-//    vector<sequence> Einit;
-//    E = algo->generateCheckingExperiment(Einit, S, M);
-//    cout << "E : " << endl;
-//    for (auto s : E) {
-//        printSequence(s);
-//    }
+    //    vector<sequence> Einit;
+    //    E = algo->generateCheckingExperiment(Einit, S, M);
+    //    cout << "E : " << endl;
+    //    for (auto s : E) {
+    //        printSequence(s);
+    //    }
 
 }
 
@@ -268,6 +268,7 @@ void Model::exportFile(QString fileName)
 
 void Model::checkingExperiment()
 {
+    /*
     FSM * S;
     FSM * M;
     vector<sequence> E;
@@ -278,10 +279,19 @@ void Model::checkingExperiment()
     E = algo->generateCheckingExperiment(Einit, S, M);
 
     emit checkingExperimentResults(E);
+    */
+    SpecificationMachine->print();
+    MutationMachine->print();
+    Algorithms * algo = new Algorithms_FSM();
+    vector<sequence> E;
+    vector<sequence> Einit;
+    E = algo->generateCheckingExperiment(Einit, SpecificationMachine, MutationMachine);
+    emit checkingExperimentResults(E);
 }
 
 void Model::checkingSequence()
 {
+    /*
     FSM * S;
     FSM * M;
     vector<sequence> E;
@@ -292,12 +302,45 @@ void Model::checkingSequence()
     seq = algo->generateCheckingSequence(S, M);
 
     emit checkingSequenceResults(seq);
+    */
+    Algorithms * algo = new Algorithms_FSM();
+    sequence seq;
+    seq = algo->generateCheckingSequence(SpecificationMachine, MutationMachine);
+    emit checkingSequenceResults(seq);
+}
 
+bool Model::saveSVG(string dot)
+{
+    //save .dot
+    string dotPath = "tmp/spec.dot";
+    string svgPath = "tmp/spec.svg";
+    ofstream dotFile;
+    dotFile.open(dotPath);
+    dotFile << dot;
+    dotFile.close();
+    string o_arg = "-o tmp/spec.svg";
+    char* args[] = {const_cast<char*>("dot"), const_cast<char*>("-Tsvg"), const_cast<char*>(dotPath.c_str()), const_cast<char*>(o_arg.c_str()) };
+
+    const int argc = sizeof(args)/sizeof(char*);
+    GVC_t *gvc;
+    Agraph_t * g;
+    gvc = gvContext();
+    gvParseArgs(gvc, argc, args);
+    FILE * fpDot;
+    FILE * fpSVG;
+    fpDot = fopen(dotPath.c_str(), "r");
+    fpSVG = fopen(svgPath.c_str(), "wb+");
+    g = agread(fpDot, 0);
+    gvLayout(gvc, g, "dot");
+    gvRender(gvc, g, "svg", fpSVG);
+    gvFreeLayout(gvc, g);
+    agclose(g);
+    fclose(fpDot);
+    return (gvFreeContext(gvc));
 }
 
 void Model::generateSpecification(QTableWidget * tableTransitions, int nbOfStates, QTableWidget * tableInputs, QTableWidget * tableOutputs)
 {
-    cout << "SPEC !" << endl;
 
     set<int> S;
     for (int i=1; i<nbOfStates+1; i++) {
@@ -314,7 +357,7 @@ void Model::generateSpecification(QTableWidget * tableTransitions, int nbOfState
         O.insert(tableOutputs->item(row, 0)->text().toStdString());
     }
     vector<IOTransition *> lambda;
-
+    int id=0;
     for (int row=0; row<tableTransitions->rowCount()-1; row++) {
         int src = -1;
         string i = "";
@@ -336,9 +379,68 @@ void Model::generateSpecification(QTableWidget * tableTransitions, int nbOfState
                 tgt = item->text().toInt();
             }
         }
-        lambda.push_back(new IOTransition(src, i, o, tgt, row));
+        lambda.push_back(new IOTransition(src, i, o, tgt, id));
+        id++;
     }
 
     SpecificationMachine = new FSM(S, s0, I, O, lambda);
-    SpecificationMachine->print();
+    if (showSpecification) {
+        this->saveSVG(SpecificationMachine->generateDot());
+
+        emit machineSVGGenerated(true);
+    }
+}
+
+void Model::generateMutation(QTableWidget * tableTransitions, int nbOfStates, QTableWidget * tableInputs, QTableWidget * tableOutputs)
+{
+
+    set<int> S;
+    for (int i=1; i<nbOfStates+1; i++) {
+        S.insert(i);
+    }
+    int s0 = 1;
+
+    set<string> I;
+    for (int row=0; row<tableInputs->rowCount()-1; row++) {
+        I.insert(tableInputs->item(row, 0)->text().toStdString());
+    }
+    set<string> O;
+    for (int row=0; row<tableOutputs->rowCount()-1; row++) {
+        O.insert(tableOutputs->item(row, 0)->text().toStdString());
+    }
+    vector<IOTransition *> lambda;
+    if (SpecificationMachine)
+        lambda = SpecificationMachine->getTransitions();
+    vector<IOTransition *> newLambda;
+    int id = SpecificationMachine->getTransitionSize();
+    for (int row=0; row<tableTransitions->rowCount()-1; row++) {
+        int src = -1;
+        string i = "";
+        string o = "";
+        int tgt = -1;
+        for (int column=0; column<tableTransitions->columnCount(); column++) {
+            QTableWidgetItem * item = tableTransitions->item(row, column);
+            QString header = tableTransitions->horizontalHeaderItem(column)->text();
+            if (header == "src") {
+                src = item->text().toInt();
+            }
+            else if (header == "i") {
+                i = item->text().toStdString();
+            }
+            else if (header == "o") {
+                o = item->text().toStdString();
+            }
+            else if (header == "tgt") {
+                tgt = item->text().toInt();
+            }
+        }
+        newLambda.push_back(new IOTransition(src, i, o, tgt, id));
+        id++;
+    }
+    showSpecification = false;
+    MutationMachine = new FSM(S, s0, I, O, lambda);
+    MutationMachine->addTransitions(newLambda, true);
+    this->saveSVG(MutationMachine->generateDot());
+
+    emit machineSVGGenerated(true);
 }

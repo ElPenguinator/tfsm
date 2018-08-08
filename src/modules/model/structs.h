@@ -7,6 +7,6 @@
 
 typedef std::pair<std::string, int> ts;
 typedef std::vector<ts> sequence;
-typedef std::vector<int> path;
+typedef std::vector<int> executingPath;
 const int inf = std::numeric_limits<double>::infinity();
 #endif // STRUCTS_H

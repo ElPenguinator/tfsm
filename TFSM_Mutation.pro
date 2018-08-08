@@ -6,7 +6,7 @@ QT += svg
 qtHaveModule(opengl): QT += opengl
 
 
-TARGET = PDP
+TARGET = MutationTesting
 TEMPLATE = app
 
 SOURCES += src/main.cpp \
@@ -73,3 +73,8 @@ HEADERS += \
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 
 LIBS +=  -L/misc/home/asyd/prestadi/lib/ -lcryptominisat5
+
+unix {
+ CONFIG += link_pkgconfig
+ PKGCONFIG += libcdt libgvc libcgraph
+}

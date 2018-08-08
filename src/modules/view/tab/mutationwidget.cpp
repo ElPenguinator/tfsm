@@ -225,6 +225,20 @@ bool MutationWidget::validateMachine(QTableWidget * table)
             }
         }
     }
+    //If the cells are valid, check if the lines are empty
+
+    if (isValid) {
+        for (int row=0; row<table->rowCount()-1; row++) {
+            bool isFull = true;
+            for (int column=0; column<table->columnCount(); column++) {
+                QTableWidgetItem * item = table->item(row, column);
+                if (!item || item->text().isEmpty()) {
+                    isFull = false;
+                }
+            }
+            isValid = isValid && isFull;
+        }
+    }
     return isValid;
 }
 
@@ -269,6 +283,7 @@ void MutationWidget::updateSpecification(int row, int column)
 
         if (isValid) {
             emit generateSpecification(_specification_machine_tab, this->_nbStates_input->text().toInt(), this->_input_tab, this->_output_tab);
+            emit generateMutation(_mutation_machine_tab, this->_nbStates_input->text().toInt(), this->_input_tab, this->_output_tab);
         }
     }
 }
@@ -281,7 +296,7 @@ void MutationWidget::updateMutation(int row, int column)
         //Validator
         bool isValid = validateMachine(_mutation_machine_tab);
         if (isValid) {
-            cout << "Update MM" << endl;
+            emit generateMutation(_mutation_machine_tab, this->_nbStates_input->text().toInt(), this->_input_tab, this->_output_tab);
         }
     }
 }
@@ -411,4 +426,11 @@ void MutationWidget::checkingSequenceResults(sequence s)
         text += timeState.first;
     }
     _test_results_text->appendPlainText(QString(text.c_str()));
+}
+
+void MutationWidget::machineSVGGenerated(bool success)
+{
+    if (success) {
+        _renderer->openFile(QString("tmp/spec.svg"));
+    }
 }

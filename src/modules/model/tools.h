@@ -5,7 +5,7 @@
 #include "machine/tfsm_to.h"
 #include "machine/tfsm.h"
 
-void printPath(path p);
+void printPath(executingPath p);
 void printSequence(sequence s);
 void printClause(std::vector<CMSat::Lit> clause);
 

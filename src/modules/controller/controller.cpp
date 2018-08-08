@@ -24,9 +24,11 @@ void Controller::bindEvents(View &view, Model &model)
     connect(_view, &View::checkingExperiment, _model, &Model::checkingExperiment);
     connect(_view, &View::checkingSequence, _model, &Model::checkingSequence);
     connect(_view, &View::generateSpecification, _model, &Model::generateSpecification);
+    connect(_view, &View::generateMutation, _model, &Model::generateMutation);
 
     connect(_model, &Model::checkingExperimentResults, _view, &View::checkingExperimentResults);
     connect(_model, &Model::checkingSequenceResults, _view, &View::checkingSequenceResults);
+    connect(_model, &Model::machineSVGGenerated, _view, &View::machineSVGGenerated);
 
 //    /* bind events between model and view */
 

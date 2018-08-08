@@ -54,7 +54,7 @@ void Algorithms_TFSM::computePhiP(SATSolver * &solver, FSM * P)
 void Algorithms_TFSM::computePhiE(SATSolver * &solver, vector<sequence> E, DistinguishingAutomaton_FSM * D)
 {
     for (auto alpha : E) {
-        vector<path> rev = D->revealingPaths(alpha);
+        vector<executingPath> rev = D->revealingPaths(alpha);
         cout << "Paths : " << endl;
         for (auto path : rev) {
             printPath(path);

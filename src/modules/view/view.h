@@ -24,7 +24,9 @@ signals:
     void checkingSequence();
     void checkingExperimentResults(std::vector<sequence>);
     void checkingSequenceResults(sequence);
+    void machineSVGGenerated(bool);
     void generateSpecification(QTableWidget *, int, QTableWidget *, QTableWidget *);
+    void generateMutation(QTableWidget *, int, QTableWidget *, QTableWidget *);
 };
 
 #endif // VIEW_H

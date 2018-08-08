@@ -5,7 +5,7 @@
 #include <queue>
 using namespace std;
 using namespace CMSat;
-void printPath(path p)
+void printPath(executingPath p)
 {
     cout << "Path : ";
     for (int t : p) {
@@ -227,8 +227,8 @@ TFSM * generateRandomMutationMachine(TFSM * S, int maxTime, int numberOfMutation
         }
     }
     cout << "}" << endl;
-    M->addTransitions(newLambda);
-    M->addTimeouts(newDelta);
+    M->addTransitions(newLambda, true);
+    M->addTimeouts(newDelta, true);
     return M;
 }
 
@@ -275,8 +275,8 @@ TFSM_TO * generateRandomMutationMachine_TO(TFSM_TO * S, int maxTime, int numberO
             }
         }
     }
-    M->addTransitions(newLambda);
-    M->addTimeouts(newDelta);
+    M->addTransitions(newLambda, true);
+    M->addTimeouts(newDelta, true);
     return M;
 }
 
@@ -429,7 +429,7 @@ TFSM_TO * generateChaosMachine(TFSM_TO * S, int maxTime)
             }
         }
     }
-    M->addTransitions(newLambda);
-    M->addTimeouts(newDelta);
+    M->addTransitions(newLambda, true);
+    M->addTimeouts(newDelta, true);
     return M;
 }

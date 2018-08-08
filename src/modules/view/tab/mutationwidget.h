@@ -55,9 +55,11 @@ signals:
     void checkingExperiment();
     void checkingSequence();
     void generateSpecification(QTableWidget *, int, QTableWidget *, QTableWidget *);
+    void generateMutation(QTableWidget *, int, QTableWidget *, QTableWidget *);
 public slots:
     void checkingExperimentResults(std::vector<sequence> E);
     void checkingSequenceResults(sequence s);
+    void machineSVGGenerated(bool success);
     void updateSpecification(int row, int column);
     void updateMutation(int row, int column);
     void updateInputs(int row, int column);

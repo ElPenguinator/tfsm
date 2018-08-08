@@ -17,8 +17,8 @@ public:
     std::map<int, std::vector<TimeoutTransition *> > timeoutsPerState;
     std::map<int, TimeoutTransition *> timeoutIdMap;
     TFSM_TO(std::set<int> S, int s0, std::set<std::string> I, std::set<std::string> O, std::vector<IOTransition *> lambda, std::vector<TimeoutTransition *> delta);
-    void addTransitions(std::vector<IOTransition *> transitions);
-    void addTimeouts(std::vector<TimeoutTransition *> timeouts);
+    void addTransitions(std::vector<IOTransition *> transitions, bool isMutated);
+    void addTimeouts(std::vector<TimeoutTransition *> timeouts, bool isMutated);
     std::vector<IOTransition *> getXi(int s, std::string i);
     std::vector<TimeoutTransition *> getXi(int s);
     bool isIdTimeout(int id);

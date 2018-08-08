@@ -60,15 +60,15 @@ void DistinguishingAutomaton_FSM::generateNext(ProductState * state)
     }
 }
 
-std::vector<path> DistinguishingAutomaton_FSM::revealingPaths(sequence alpha)
+std::vector<executingPath> DistinguishingAutomaton_FSM::revealingPaths(sequence alpha)
 {
-    vector<path> results;
-    path currentPath;
+    vector<executingPath> results;
+    executingPath currentPath;
     revealingPathsRecursive(this->initialState, currentPath, results, alpha, 0, 0);
     return results;
 }
 
-bool DistinguishingAutomaton_FSM::isPathDeterministic(const path p)
+bool DistinguishingAutomaton_FSM::isPathDeterministic(const executingPath p)
 {
     for (int id : p) {
         vector<IOTransition *> xiTransitions = this->mutationMachine->getXi(this->mutationMachine->getTransitionFromId(id)->src, this->mutationMachine->getTransitionFromId(id)->i);
@@ -80,7 +80,7 @@ bool DistinguishingAutomaton_FSM::isPathDeterministic(const path p)
     return true;
 }
 
-void DistinguishingAutomaton_FSM::revealingPathsRecursive(ProductState * state, path currentPath, vector<path> &results, sequence alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_FSM::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, sequence alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() == "sink") {
         results.push_back(currentPath);
@@ -93,7 +93,7 @@ void DistinguishingAutomaton_FSM::revealingPathsRecursive(ProductState * state, 
             if (transition->src == state->getKey() && !transition->isTimeout) {
                 if (transition->i == symbol) {
                     ProductState * tgtNode = this->states.find(transition->tgt)->second;
-                    path newPath(currentPath);
+                    executingPath newPath(currentPath);
                     newPath.push_back(transition->id);
                     if (this->isPathDeterministic(newPath))
                         this->revealingPathsRecursive(tgtNode, newPath, results, alpha, sequenceIndex+1, 0);
@@ -210,7 +210,7 @@ std::deque<ProductTransition *> DistinguishingAutomaton_FSM::Dijkstra(string key
     return results;
 }
 
-void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, path currentPath, set<string> &results, sequence alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, sequence alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() != "sink") {
         if (sequenceIndex < alpha.size()) {
@@ -220,7 +220,7 @@ void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, path cur
                 if (transition->src == state->getKey() && !transition->isTimeout) {
                     if (transition->i == symbol) {
                         ProductState * tgtNode = this->states.find(transition->tgt)->second;
-                        path newPath(currentPath);
+                        executingPath newPath(currentPath);
                         newPath.push_back(transition->id);
                         if (this->isPathDeterministic(newPath))
                             this->reachableStates(tgtNode, newPath, results, alpha, sequenceIndex+1, 0);
@@ -239,7 +239,7 @@ sequence DistinguishingAutomaton_FSM::inputSequenceFromAcceptedLanguage(set<stri
     sequence input;
     if (!this->hasNoSinkState && this->isConnected) {
         set<string> results;
-        path currentPath;
+        executingPath currentPath;
         reachableStates(this->initialState, currentPath, results, prefix, 0, 0);
         for (string key : results) {
             deque<ProductTransition *> res = Dijkstra(key);
