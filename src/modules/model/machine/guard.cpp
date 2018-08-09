@@ -152,7 +152,7 @@ std::string Guard::toString() {
     if (this->tmax != inf)
         guardString += to_string(this->tmax);
     else
-        guardString += "INF";
+        guardString += "∞";
     if (this->right == Bracket::Square)
         guardString+="]";
     else

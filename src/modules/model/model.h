@@ -1,9 +1,11 @@
 #ifndef MODEL_H
 #define MODEL_H
 #include <QObject>
+#include <QMap>
 #include "machine/tfsm.h"
 #include "machine/distinguishingautomaton_tfsm.h"
 #include <QTableWidgetItem>
+#include "factory/machinefactory.h"
 
 class Model : public QObject
 {
@@ -11,6 +13,7 @@ class Model : public QObject
 private:
     void bindEvents();
     bool showSpecification;
+    MachineFactory * currentFactory;
 public:
     explicit Model();
     ~Model();
@@ -24,8 +27,9 @@ public slots:
     void exportFile(QString fileName);
     void checkingExperiment();
     void checkingSequence();
-    void generateSpecification(QTableWidget * tableTransitions, int nbOfStates, QTableWidget *tableInputs, QTableWidget *tableOutputs);
-    void generateMutation(QTableWidget * tableTransitions, int nbOfStates, QTableWidget *tableInputs, QTableWidget *tableOutputs);
+    void generateSpecification(QMap<QString, QTableWidget *> map, int nbOfStates);
+    void generateMutation(QMap<QString, QTableWidget *> map, int nbOfStates);
+    void changeMachineType(const QString & type);
 signals:
     void checkingExperimentResults(std::vector<sequence>);
     void checkingSequenceResults(sequence);

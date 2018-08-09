@@ -25,8 +25,9 @@ signals:
     void checkingExperimentResults(std::vector<sequence>);
     void checkingSequenceResults(sequence);
     void machineSVGGenerated(bool);
-    void generateSpecification(QTableWidget *, int, QTableWidget *, QTableWidget *);
-    void generateMutation(QTableWidget *, int, QTableWidget *, QTableWidget *);
+    void generateSpecification(QMap<QString, QTableWidget *>, int);
+    void generateMutation(QMap<QString, QTableWidget *>, int);
+    void machineTypeChanged(const QString &);
 };
 
 #endif // VIEW_H

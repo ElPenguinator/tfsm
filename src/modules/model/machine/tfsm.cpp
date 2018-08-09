@@ -283,11 +283,22 @@ string TFSM::generateDot()
     }
     for (TimeoutTransition * t : this->timeouts) {
         res << t->src << " -> " << t->tgt;
+
         if (this->mutatedTransitions.find(t->id)->second) {
-            res << " [style=\"dashed\" label=\"" << t->t << "\"];";
+            if (t->t == inf) {
+                res << " [style=\"dashed\" label=\"∞\"];";
+            }
+            else {
+                res << " [style=\"dashed\" label=\"" << t->t << "\"];";
+            }
         }
         else {
-            res << " [label=\"" << t->t << "\"];";
+            if (t->t == inf) {
+                res << " [label=\"∞\"];";
+            }
+            else {
+                res << " [label=\"" << t->t << "\"];";
+            }
         }
         res << endl;
     }

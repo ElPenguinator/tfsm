@@ -37,7 +37,11 @@ SOURCES += src/main.cpp \
     src/modules/view/tab/mutationwidget.cpp \
     src/modules/view/tab/svgview.cpp \
     src/modules/view/tab/benchmarkwidget.cpp \
-    src/modules/model/validator/validator.cpp
+    src/modules/model/validator/validator.cpp \
+    src/modules/model/factory/machinefactory.cpp \
+    src/modules/model/factory/fsmfactory.cpp \
+    src/modules/model/factory/tfsmfactory.cpp \
+    src/modules/model/factory/tfsmtofactory.cpp
 
 HEADERS += \
     src/modules/model/machine/tfsm_to.h \
@@ -68,7 +72,11 @@ HEADERS += \
     src/modules/view/tab/mutationwidget.h \
     src/modules/view/tab/svgview.h \
     src/modules/view/tab/benchmarkwidget.h \
-    src/modules/model/validator/validator.h
+    src/modules/model/validator/validator.h \
+    src/modules/model/factory/machinefactory.h \
+    src/modules/model/factory/fsmfactory.h \
+    src/modules/model/factory/tfsmfactory.h \
+    src/modules/model/factory/tfsmtofactory.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

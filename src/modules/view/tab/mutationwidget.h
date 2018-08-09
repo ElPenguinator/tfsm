@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QTextBrowser>
 #include <QtSvg>
+#include <QMap>
 
 #include "svgview.h"
 
@@ -31,8 +32,10 @@ private:
     QGroupBox *_machine_content;
     QLineEdit *_nbStates_input;
     QComboBox *_machine_type;
-    QTableWidget *_specification_machine_tab;
-    QTableWidget *_mutation_machine_tab;
+    QTableWidget *_specification_machine_transitions_tab;
+    QTableWidget *_mutation_machine_transitions_tab;
+    QTableWidget *_specification_machine_timeouts_tab;
+    QTableWidget *_mutation_machine_timeouts_tab;
     QTableWidget *_input_tab;
     QTableWidget *_output_tab;
     SvgView *_renderer;
@@ -40,31 +43,41 @@ private:
     void buildInterface();
     void fillInterface();
     void relaySignals();
-    void updateTab();
+    void updateTab(bool needGuards, bool needTimeouts);
     void setButtonStyle(QPushButton *);
+    void initializeAlphabetTable(QTableWidget *table, QString name);
+    void initializeMachineTransitionsTable(QTableWidget * table, bool needGuards);
+    void initializeMachineTimeoutsTable(QTableWidget * table);
 
     bool validateMachineCell(QTableWidget * table, int row, int column, QString content, QString columnHeader);
     bool validateMachine(QTableWidget * table);
     bool stateValidator(QTableWidget * ref, int row, int column, QString content);
+    bool timeoutValidator(QTableWidget * ref, int row, int column, QString content);
+    bool guardValidator(QTableWidget * ref, int row, int column, QString content);
     bool alphabetValidator(QTableWidget * ref, QTableWidget * table, int row, int column, QString content);
     bool updateMachineStates(QTableWidget * table, QString header);
     void updateMachineAlphabet(QTableWidget * table, QString header, QTableWidget * tableAlphabet);
+    void sendMachine(QTableWidget *transitions, QTableWidget *timeouts, bool isSpecification);
 signals:
     void importFile();
     void exportFile();
     void checkingExperiment();
     void checkingSequence();
-    void generateSpecification(QTableWidget *, int, QTableWidget *, QTableWidget *);
-    void generateMutation(QTableWidget *, int, QTableWidget *, QTableWidget *);
+    void generateSpecification(QMap<QString, QTableWidget *>, int);
+    void generateMutation(QMap<QString, QTableWidget *>, int);
+    void machineTypeChanged(const QString &);
 public slots:
     void checkingExperimentResults(std::vector<sequence> E);
     void checkingSequenceResults(sequence s);
     void machineSVGGenerated(bool success);
-    void updateSpecification(int row, int column);
-    void updateMutation(int row, int column);
+    void updateSpecificationTransitions(int row, int column);
+    void updateMutationTransitions(int row, int column);
+    void updateSpecificationTimeouts(int row, int column);
+    void updateMutationTimeouts(int row, int column);
     void updateInputs(int row, int column);
     void updateOutputs(int row, int column);
     void updateNbOfStates();
+    void changeMachineType(const QString &text);
 };
 
 #endif // MUTATIONWIDGET_H

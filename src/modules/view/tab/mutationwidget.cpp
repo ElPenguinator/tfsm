@@ -1,11 +1,12 @@
 #include "mutationwidget.h"
 #include <iostream>
+#include <sstream>
 using namespace std;
 
 MutationWidget::MutationWidget(QWidget *parent) : QWidget(parent)
 {
     buildInterface();
-    updateTab();
+    updateTab(false, false);
     relaySignals();
     fillInterface();
 }
@@ -16,6 +17,7 @@ void MutationWidget::setButtonStyle(QPushButton *button)
     font.setPointSize(12);
     font.setBold(true);
     button->setFont(font);
+    button->setMaximumWidth(300);
 }
 
 void SetHeight (QPlainTextEdit* edit, int nRows)
@@ -23,35 +25,66 @@ void SetHeight (QPlainTextEdit* edit, int nRows)
     QFontMetrics m (edit -> font()) ;
     int RowHeight = m.lineSpacing() ;
     edit -> setFixedHeight  (nRows * RowHeight) ;
+    edit->setMaximumWidth(400);
 }
 
-void MutationWidget::updateTab()
+void MutationWidget::initializeMachineTransitionsTable(QTableWidget * table, bool needGuards)
 {
-    _specification_machine_tab->clear();
-    _specification_machine_tab->setRowCount(1);
-    _specification_machine_tab->setColumnCount(4);
-    _specification_machine_tab->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("src")));
-    _specification_machine_tab->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("i")));
-    _specification_machine_tab->setHorizontalHeaderItem(2, new QTableWidgetItem(QString("o")));
-    _specification_machine_tab->setHorizontalHeaderItem(3, new QTableWidgetItem(QString("tgt")));
+    table->clear();
+    table->setRowCount(1);
+    table->setColumnCount(4 + needGuards);
+    table->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("src")));
+    table->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("i")));
+    if (needGuards)
+        table->setHorizontalHeaderItem(2, new QTableWidgetItem(QString("g")));
+    table->setHorizontalHeaderItem(2 + needGuards, new QTableWidgetItem(QString("o")));
+    table->setHorizontalHeaderItem(3 + needGuards, new QTableWidgetItem(QString("tgt")));
 
-    _mutation_machine_tab->clear();
-    _mutation_machine_tab->setRowCount(1);
-    _mutation_machine_tab->setColumnCount(4);
-    _mutation_machine_tab->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("src")));
-    _mutation_machine_tab->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("i")));
-    _mutation_machine_tab->setHorizontalHeaderItem(2, new QTableWidgetItem(QString("o")));
-    _mutation_machine_tab->setHorizontalHeaderItem(3, new QTableWidgetItem(QString("tgt")));
+    for (int i=0; i < 4 + needGuards; i++) {
+        table->setColumnWidth(i, 50);
+    }
+}
 
-    _input_tab->clear();
-    _input_tab->setRowCount(1);
-    _input_tab->setColumnCount(1);
-    _input_tab->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Inputs")));
+void MutationWidget::initializeMachineTimeoutsTable(QTableWidget * table)
+{
+    table->clear();
+    table->setRowCount(1);
+    table->setColumnCount(3);
+    table->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("src")));
+    table->setHorizontalHeaderItem(1, new QTableWidgetItem(QString("t")));
+    table->setHorizontalHeaderItem(2, new QTableWidgetItem(QString("tgt")));
 
-    _output_tab->clear();
-    _output_tab->setRowCount(1);
-    _output_tab->setColumnCount(1);
-    _output_tab->setHorizontalHeaderItem(0, new QTableWidgetItem(QString("Outputs")));
+    for (int i=0; i < 3; i++) {
+        table->setColumnWidth(i, 50);
+    }
+}
+
+void MutationWidget::initializeAlphabetTable(QTableWidget * table, QString name)
+{
+    table->clear();
+    table->setRowCount(1);
+    table->setColumnCount(1);
+    table->setHorizontalHeaderItem(0, new QTableWidgetItem(name));
+
+    table->setColumnWidth(0, 50);
+}
+
+void MutationWidget::updateTab(bool needGuards, bool needTimeouts)
+{
+    initializeMachineTransitionsTable(_specification_machine_transitions_tab, needGuards);
+    initializeMachineTransitionsTable(_mutation_machine_transitions_tab, needGuards);
+
+    if (needTimeouts) {
+        initializeMachineTimeoutsTable(_specification_machine_timeouts_tab);
+        initializeMachineTimeoutsTable(_mutation_machine_timeouts_tab);
+        //_main_layout
+    }
+
+    _specification_machine_timeouts_tab->setVisible(needTimeouts);
+    _mutation_machine_timeouts_tab->setVisible(needTimeouts);
+
+    initializeAlphabetTable(_input_tab, QString("Inputs"));
+    initializeAlphabetTable(_output_tab, QString("Outputs"));
 
 }
 
@@ -97,13 +130,22 @@ void MutationWidget::buildInterface()
     _machine_type->addItem(QString("TEFSM"));
     _main_layout->addWidget(_machine_type, 0, 2);
 
-    _specification_machine_tab = new QTableWidget(this);
-    _main_layout->addWidget(_specification_machine_tab, 2, 2, 1
-                            , 2);
+    _specification_machine_transitions_tab = new QTableWidget(this);
+    _main_layout->addWidget(_specification_machine_transitions_tab, 2, 2, 1
+                            , 1);
 
-    _mutation_machine_tab = new QTableWidget(this);
-    _main_layout->addWidget(_mutation_machine_tab, 3, 2, 1
-                            , 2);
+    _mutation_machine_transitions_tab = new QTableWidget(this);
+    _main_layout->addWidget(_mutation_machine_transitions_tab, 3, 2, 1
+                            , 1);
+
+
+    _specification_machine_timeouts_tab = new QTableWidget(this);
+    _main_layout->addWidget(_specification_machine_timeouts_tab, 2, 3, 1
+                            , 1);
+
+    _mutation_machine_timeouts_tab = new QTableWidget(this);
+    _main_layout->addWidget(_mutation_machine_timeouts_tab, 3, 3, 1
+                            , 1);
 
     _input_tab = new QTableWidget(this);
     _main_layout->addWidget(_input_tab, 4, 2, 1
@@ -123,6 +165,7 @@ void MutationWidget::buildInterface()
 
     _renderer = new SvgView();
     _renderer->openFile(QString("penguin-01.svg"));
+    _renderer->setMaximumWidth(700);
     _main_layout->addWidget(_renderer, 0, 0, 4, 2);
 
 }
@@ -136,11 +179,11 @@ bool MutationWidget::stateValidator(QTableWidget * ref, int row, int column, QSt
 {
     bool isValid = true;
     QString reason;
-    QString pattern = "[0-9]+";
+    QString pattern = "^[1-9][0-9]*$";
     QRegExp rx(pattern);
     int nbOfState = _nbStates_input->text().toInt();
     int index = rx.indexIn(content);
-    if (index != -1  && rx.matchedLength() == _nbStates_input->text().length()) {
+    if (index != -1  && rx.matchedLength() == content.length()) {
         int src = rx.cap(0).toInt();
         if (src > nbOfState) {
             isValid = false;
@@ -150,6 +193,62 @@ bool MutationWidget::stateValidator(QTableWidget * ref, int row, int column, QSt
     else {
         isValid = false;
         reason = "Not a number.";
+    }
+
+    if (!isValid) {
+        ref->item(row, column)->setBackground(QBrush(QColor(255, 0, 0)));
+        ref->item(row, column)->setToolTip(reason);
+    }
+    else {
+        ref->item(row, column)->setBackground(QBrush(QColor(255, 255, 255)));
+        ref->item(row, column)->setToolTip(QString());
+    }
+    return isValid;
+}
+
+bool MutationWidget::timeoutValidator(QTableWidget * ref, int row, int column, QString content)
+{
+    bool isValid = true;
+    QString reason;
+    QString pattern = "^[1-9][0-9]*$";
+    QRegExp rx(pattern);
+    int index = rx.indexIn(content);
+    if (content == "inf") {
+        //Valid
+    }
+    else if (index != -1  && rx.matchedLength() == content.length()) {
+        //Valid
+    }
+    else {
+        isValid = false;
+        reason = "Not a valid number.";
+    }
+
+    if (!isValid) {
+        ref->item(row, column)->setBackground(QBrush(QColor(255, 0, 0)));
+        ref->item(row, column)->setToolTip(reason);
+    }
+    else {
+        ref->item(row, column)->setBackground(QBrush(QColor(255, 255, 255)));
+        ref->item(row, column)->setToolTip(QString());
+    }
+    return isValid;
+}
+
+bool MutationWidget::guardValidator(QTableWidget * ref, int row, int column, QString content)
+{
+    bool isValid = true;
+    QString reason;
+    QString pattern = "([\\[\\(])\\s*([0-9]+)\\s*,\\s*([0-9]+|inf)\\s*([\\)\\]])";
+    QRegExp rx(pattern);
+    int index = rx.indexIn(content);
+    cout << "Guard : " << content.toStdString() << " " << index << " " << rx.matchedLength() << " " << content.length() << endl;
+    if (index != -1  && rx.matchedLength() == content.length()) {
+        //Valid
+    }
+    else {
+        isValid = false;
+        reason = "Not a guard.";
     }
 
     if (!isValid) {
@@ -254,8 +353,11 @@ bool MutationWidget::validateMachineCell(QTableWidget * table, int row, int colu
     else if (columnHeader == "i") {
         isValid = this->alphabetValidator(table, this->_input_tab, row, column, content);
     }
+    else if (columnHeader == "t") {
+        isValid = this->timeoutValidator(table, row, column, content);
+    }
     else if (columnHeader == "g") {
-        isValid = this->stateValidator(table, row, column, content);
+        isValid = this->guardValidator(table, row, column, content);
     }
     else if (columnHeader == "o") {
         isValid = this->alphabetValidator(table, this->_output_tab, row, column, content);
@@ -269,34 +371,89 @@ bool MutationWidget::validateMachineCell(QTableWidget * table, int row, int colu
     return isValid;
 }
 
-void MutationWidget::updateSpecification(int row, int column)
+void MutationWidget::sendMachine(QTableWidget * transitions, QTableWidget * timeouts, bool isSpecification)
+{
+    QMap<QString, QTableWidget *> map;
+    map.insert(QString("inputs"), this->_input_tab);
+    map.insert(QString("outputs"), this->_output_tab);
+    map.insert(QString("transitions"), transitions);
+    map.insert(QString("timeouts"), timeouts);
+    if (isSpecification) {
+        emit generateSpecification(map, this->_nbStates_input->text().toInt());
+    }
+    else {
+        emit generateMutation(map, this->_nbStates_input->text().toInt());
+    }
+}
+
+void MutationWidget::updateSpecificationTransitions(int row, int column)
 {
 
-    lastLineUpdate(_specification_machine_tab, row);
-    bool isEmpty = emptyUpdate(_specification_machine_tab, row);
+    lastLineUpdate(_specification_machine_transitions_tab, row);
+    bool isEmpty = emptyUpdate(_specification_machine_transitions_tab, row);
 
     if (!isEmpty) {
-        bool isValid = validateMachine(_specification_machine_tab);
+        bool isValid = validateMachine(_specification_machine_transitions_tab);
+        bool timeoutsValid = validateMachine(_specification_machine_timeouts_tab);
+        isValid = isValid && timeoutsValid;
         //Deterministic Check
 
         //Complete Check
 
         if (isValid) {
-            emit generateSpecification(_specification_machine_tab, this->_nbStates_input->text().toInt(), this->_input_tab, this->_output_tab);
-            emit generateMutation(_mutation_machine_tab, this->_nbStates_input->text().toInt(), this->_input_tab, this->_output_tab);
+            sendMachine(_specification_machine_transitions_tab, _specification_machine_timeouts_tab, true);
+            sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
         }
     }
 }
 
-void MutationWidget::updateMutation(int row, int column)
+void MutationWidget::updateMutationTransitions(int row, int column)
 {
-    lastLineUpdate(_mutation_machine_tab, row);
-    bool isEmpty = emptyUpdate(_mutation_machine_tab, row);
+    lastLineUpdate(_mutation_machine_transitions_tab, row);
+    bool isEmpty = emptyUpdate(_mutation_machine_transitions_tab, row);
+
     if (!isEmpty) {
         //Validator
-        bool isValid = validateMachine(_mutation_machine_tab);
+        bool isValid = validateMachine(_mutation_machine_transitions_tab);
+        bool timeoutsValid = validateMachine(_mutation_machine_timeouts_tab);
+        isValid = isValid && timeoutsValid;
         if (isValid) {
-            emit generateMutation(_mutation_machine_tab, this->_nbStates_input->text().toInt(), this->_input_tab, this->_output_tab);
+            sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
+        }
+    }
+}
+
+void MutationWidget::updateSpecificationTimeouts(int row, int column)
+{
+    lastLineUpdate(_specification_machine_timeouts_tab, row);
+    bool isEmpty = emptyUpdate(_specification_machine_timeouts_tab, row);
+
+    if (!isEmpty) {
+        bool isValid = validateMachine(_specification_machine_transitions_tab);
+        bool timeoutsValid = validateMachine(_specification_machine_timeouts_tab);
+        isValid = isValid && timeoutsValid;
+        //Deterministic Check
+
+        //Complete Check
+
+        if (isValid) {
+            sendMachine(_specification_machine_transitions_tab, _specification_machine_timeouts_tab, true);
+            sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
+        }
+    }
+}
+
+void MutationWidget::updateMutationTimeouts(int row, int column)
+{
+    lastLineUpdate(_mutation_machine_timeouts_tab, row);
+    bool isEmpty = emptyUpdate(_mutation_machine_timeouts_tab, row);
+    if (!isEmpty) {
+        //Validator
+        bool isValid = validateMachine(_mutation_machine_transitions_tab);
+        bool timeoutsValid = validateMachine(_mutation_machine_timeouts_tab);
+        isValid = isValid && timeoutsValid;
+        if (isValid) {
+            sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
         }
     }
 }
@@ -320,8 +477,8 @@ void MutationWidget::updateInputs(int row, int column)
     lastLineUpdate(_input_tab, row);
     bool isEmpty = emptyUpdate(_input_tab, row);
     if (!isEmpty) {
-        updateMachineAlphabet(_specification_machine_tab, QString("i"), _input_tab);
-        updateMachineAlphabet(_mutation_machine_tab, QString("i"), _input_tab);
+        updateMachineAlphabet(_specification_machine_transitions_tab, QString("i"), _input_tab);
+        updateMachineAlphabet(_mutation_machine_transitions_tab, QString("i"), _input_tab);
     }
 }
 
@@ -330,8 +487,8 @@ void MutationWidget::updateOutputs(int row, int column)
     lastLineUpdate(_output_tab, row);
     bool isEmpty = emptyUpdate(_output_tab, row);
     if (!isEmpty) {
-        updateMachineAlphabet(_specification_machine_tab, QString("o"), _output_tab);
-        updateMachineAlphabet(_mutation_machine_tab, QString("o"), _output_tab);
+        updateMachineAlphabet(_specification_machine_transitions_tab, QString("o"), _output_tab);
+        updateMachineAlphabet(_mutation_machine_transitions_tab, QString("o"), _output_tab);
     }
 }
 
@@ -376,11 +533,11 @@ void MutationWidget::updateNbOfStates()
     _nbStates_input->setPalette(palette);
     if (isValid) {
         bool machineValid;
-        updateMachineStates(_specification_machine_tab, QString("src"));
-        updateMachineStates(_specification_machine_tab, QString("tgt"));
+        updateMachineStates(_specification_machine_transitions_tab, QString("src"));
+        updateMachineStates(_specification_machine_transitions_tab, QString("tgt"));
 
-        updateMachineStates(_mutation_machine_tab, QString("src"));
-        updateMachineStates(_mutation_machine_tab, QString("tgt"));
+        updateMachineStates(_mutation_machine_transitions_tab, QString("src"));
+        updateMachineStates(_mutation_machine_transitions_tab, QString("tgt"));
     }
 
 
@@ -392,11 +549,14 @@ void MutationWidget::relaySignals()
     connect(_export_button, &QPushButton::released, this, &MutationWidget::exportFile);
     connect(_ce_button, &QPushButton::released, this, &MutationWidget::checkingExperiment);
     connect(_cs_button, &QPushButton::released, this, &MutationWidget::checkingSequence);
-    connect(_specification_machine_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateSpecification);
-    connect(_mutation_machine_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateMutation);
+    connect(_specification_machine_transitions_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateSpecificationTransitions);
+    connect(_mutation_machine_transitions_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateMutationTransitions);
+    connect(_specification_machine_timeouts_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateSpecificationTimeouts);
+    connect(_mutation_machine_timeouts_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateMutationTimeouts);
     connect(_input_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateInputs);
     connect(_output_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateOutputs);
     connect(_nbStates_input, &QLineEdit::textChanged, this, &MutationWidget::updateNbOfStates);
+    connect(_machine_type, static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged), this, &MutationWidget::changeMachineType);
     /*
     connect(_graph_button, &QPushButton::released, this, &HomepageWidget::switchToGraph);
     connect(_gestion_button, &QPushButton::released, this, &HomepageWidget::switchToGestion);
@@ -407,25 +567,25 @@ void MutationWidget::relaySignals()
 void MutationWidget::checkingExperimentResults(std::vector<sequence> E)
 {
     _test_results_text->clear();
-    std::string text = "";
+    ostringstream text;
     for (sequence s : E) {
         for (ts timeState : s) {
-            text += timeState.first;
+            text << "(" << timeState.first << ", " << timeState.second << ")";
         }
-        text += "\n";
+        text << endl;
     }
-    _test_results_text->appendPlainText(QString(text.c_str()));
+    _test_results_text->appendPlainText(QString(text.str().c_str()));
 
 }
 
 void MutationWidget::checkingSequenceResults(sequence s)
 {
     _test_results_text->clear();
-    std::string text = "";
+    ostringstream text;
     for (ts timeState : s) {
-        text += timeState.first;
+        text << "(" << timeState.first << ", " << timeState.second << ")";
     }
-    _test_results_text->appendPlainText(QString(text.c_str()));
+    _test_results_text->appendPlainText(QString(text.str().c_str()));
 }
 
 void MutationWidget::machineSVGGenerated(bool success)
@@ -433,4 +593,24 @@ void MutationWidget::machineSVGGenerated(bool success)
     if (success) {
         _renderer->openFile(QString("tmp/spec.svg"));
     }
+}
+
+void MutationWidget::changeMachineType(const QString &text)
+{
+    cout << "Type : " << text.toStdString() << endl;
+    //Change tab if needed
+    if (text == "FSM") {
+        updateTab(false, false);
+    }
+    else if (text == "TFSM_TO") {
+        updateTab(false, true);
+    }
+    else if (text == "TFSM") {
+        updateTab(true, true);
+    }
+    else {
+        //Not implemented
+    }
+
+    emit machineTypeChanged(text);
 }
