@@ -6,7 +6,7 @@ class TFSMFactory : public MachineFactory
 {
 public:
     TFSMFactory();
-    Algorithms * getAlgorithms();
+    Algorithms * getAlgorithms(bool generateLogs);
     FSM * generateSpecification(QMap<QString, QTableWidget *> map, int nbOfStates);
     FSM * generateMutation(FSM *specification, QMap<QString, QTableWidget *> map, int nbOfStates);
 };

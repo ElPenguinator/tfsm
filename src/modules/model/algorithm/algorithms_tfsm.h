@@ -5,7 +5,7 @@
 class Algorithms_TFSM : public Algorithms
 {
 public:
-    Algorithms_TFSM();
+    Algorithms_TFSM(bool generateLogs);
 
     FSM * generateSubmachine(CMSat::SATSolver * &solver, FSM * M);
 

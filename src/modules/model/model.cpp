@@ -37,7 +37,7 @@ void Model::exportFile(QString fileName)
 void Model::checkingExperiment()
 {
     cout << ":D " << endl;
-    Algorithms * algo = currentFactory->getAlgorithms();
+    Algorithms * algo = currentFactory->getAlgorithms(true);
     vector<sequence> E;
     vector<sequence> Einit;
     SpecificationMachine->print();
@@ -53,7 +53,7 @@ void Model::checkingExperiment()
 void Model::checkingSequence()
 {
     cout << ":( " << endl;
-    Algorithms * algo = currentFactory->getAlgorithms();
+    Algorithms * algo = currentFactory->getAlgorithms(false);
     sequence seq;
     seq = algo->generateCheckingSequence(SpecificationMachine, MutationMachine);
     printSequence(seq);

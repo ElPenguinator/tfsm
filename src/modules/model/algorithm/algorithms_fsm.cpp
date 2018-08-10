@@ -2,7 +2,7 @@
 using namespace std;
 using namespace CMSat;
 
-Algorithms_FSM::Algorithms_FSM()
+Algorithms_FSM::Algorithms_FSM(bool generateLogs) : Algorithms(generateLogs)
 {
 
 }
@@ -93,8 +93,13 @@ sequence Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<seq
     while (alpha.size() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
+            nbPassedMutants++;
             DistinguishingAutomaton_FSM * DP = new DistinguishingAutomaton_FSM(S, P);
             DP->initialize();
+            if (generateLogs) {
+                printDOT(P->generateDot(), "test/mutant" + to_string(nbPassedMutants) +".dot");
+                printDOT(DP->generateDot(), "test/productMutant" + to_string(nbPassedMutants) + ".dot");
+            }
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
@@ -120,7 +125,7 @@ vector<sequence> Algorithms_FSM::generateCheckingExperimentTimeouted(vector<sequ
     D->initialize();
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
-
+    nbPassedMutants = 0;
     double elapsed_secs = 0;
     do {
         clock_t begin = clock();
@@ -146,8 +151,14 @@ vector<sequence> Algorithms_FSM::generateCheckingExperiment(vector<sequence> Ein
     solver->new_vars(M->transitions.size());
     solver->log_to_file("/tmp/test.txt");
     computePhiM(solver, S, M);
+
     DistinguishingAutomaton_FSM * D = new DistinguishingAutomaton_FSM(S, M);
     D->initialize();
+    if (generateLogs) {
+        printDOT(S->generateDot(), "test/specification.dot");
+        printDOT(M->generateDot(), "test/mutation.dot");
+        printDOT(D->generateDot(), "test/distinguishing.dot");
+    }
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
     sequence alpha;

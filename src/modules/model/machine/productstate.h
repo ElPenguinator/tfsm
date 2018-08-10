@@ -51,13 +51,13 @@ class ProductState
 public:
     int specificationState;
     int mutationState;
+    int id;
     bool isGenerated;
     ProductState();
     ProductState(int s, int m);
     virtual std::string getKey();
     virtual int getSpecificationCounter();
     virtual int getMutationCounter();
-
 };
 
 class ProductSinkState : public ProductState

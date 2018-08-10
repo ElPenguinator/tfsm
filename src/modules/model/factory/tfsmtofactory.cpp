@@ -7,9 +7,9 @@ TFSMTOFactory::TFSMTOFactory() : MachineFactory()
 
 }
 
-Algorithms * TFSMTOFactory::getAlgorithms()
+Algorithms * TFSMTOFactory::getAlgorithms(bool generateLogs)
 {
-    return new Algorithms_TFSM_TO();
+    return new Algorithms_TFSM_TO(generateLogs);
 }
 
 FSM * TFSMTOFactory::generateSpecification(QMap<QString, QTableWidget *> map, int nbOfStates)

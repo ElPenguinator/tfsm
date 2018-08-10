@@ -2,6 +2,7 @@
 #include <limits>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <queue>
 #include "../tools.h"
 using namespace std;
@@ -10,19 +11,22 @@ DistinguishingAutomaton_FSM::DistinguishingAutomaton_FSM(FSM * S, FSM * M)
 {
     this->specification = S;
     this->mutationMachine = M;
-
+    this->nextID = 0;
     ProductState * initialState = new ProductState(S->getInitialState(), M->getInitialState());
+    initialState->id = nextID++;
     this->states.insert(make_pair(initialState->getKey(), initialState));
     this->initialState = initialState;
     this->hasNoSinkState = true;
     this->isConnected = true;
-//    this->generateNext(initialState);
-//    this->isConnected = this->isProductConnected();
+
+    //    this->generateNext(initialState);
+    //    this->isConnected = this->isProductConnected();
 }
 
 void DistinguishingAutomaton_FSM::insertState(ProductState * state, string i, ProductState * newState, bool isTimeout, int id)
 {
     if (this->states.find(newState->getKey()) == this->states.end()) {
+        newState->id = nextID++;
         this->states.insert(make_pair(newState->getKey(), newState));
     }
     this->transitions.push_back(new ProductTransition(state->getKey(), i, newState->getKey(), isTimeout, id));
@@ -262,4 +266,24 @@ sequence DistinguishingAutomaton_FSM::inputSequenceFromAcceptedLanguage(set<stri
 void DistinguishingAutomaton_FSM::initialize() {
     this->generateNext(this->initialState);
     this->isConnected = this->isProductConnected();
+}
+
+string DistinguishingAutomaton_FSM::generateDot()
+{
+    ostringstream res;
+    res << "digraph DistinguishingFSM {" << endl << "forcelabels=true;" << endl;
+    for (auto s : this->states) {
+        //res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " " << s.second->specificationCounter << " " << s.second->mutationCounter << "\"];" << endl;
+        if (s.first == "sink") {
+            res << s.second->id << " [label=\"∇\"];" << endl;
+        }
+        else {
+            res << s.second->id << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << "\"];" << endl;
+        }
+    }
+    for (ProductTransition * t : this->transitions) {
+        res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << t->i<< "\"];" << endl;
+    }
+    res << "}" << endl;
+    return res.str();
 }

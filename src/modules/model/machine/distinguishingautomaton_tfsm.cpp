@@ -2,6 +2,7 @@
 #include <limits>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <queue>
 #include "../tools.h"
 using namespace std;
@@ -10,8 +11,9 @@ DistinguishingAutomaton_TFSM::DistinguishingAutomaton_TFSM(FSM *S, FSM *M) : Dis
 {
     this->specification = S;
     this->mutationMachine = M;
-
+    this->nextID = 0;
     ProductState * initialState = new TimedProductState(S->initialState, M->initialState, 0, 0);
+    initialState->id = nextID++;
     this->states.clear();
     this->states.insert(make_pair(initialState->getKey(), initialState));
     this->initialState = initialState;
@@ -24,6 +26,7 @@ DistinguishingAutomaton_TFSM::DistinguishingAutomaton_TFSM(FSM *S, FSM *M) : Dis
 void DistinguishingAutomaton_TFSM::insertState(ProductState * state, string i, Guard g, ProductState * newState, bool isTimeout, int id)
 {
     if (this->states.find(newState->getKey()) == this->states.end()) {
+        newState->id = nextID++;
         this->states.insert(make_pair(newState->getKey(), newState));
     }
     this->transitions.push_back(new GuardedProductTransition(state->getKey(), i, g, newState->getKey(), isTimeout, id));
@@ -402,4 +405,20 @@ sequence DistinguishingAutomaton_TFSM::inputSequenceFromAcceptedLanguage(set<str
 void DistinguishingAutomaton_TFSM::initialize() {
     this->generateNext(this->initialState);
     this->isConnected = this->isProductConnected();
+}
+
+string DistinguishingAutomaton_TFSM::generateDot()
+{
+    ostringstream res;
+    res << "digraph DistinguishingTFSM {" << endl << "forcelabels=true;" << endl;
+    for (auto s : this->states) {
+        //res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " " << s.second->specificationCounter << " " << s.second->mutationCounter << "\"];" << endl;
+        res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << "\"];" << endl;
+    }
+
+    for (ProductTransition * t : this->transitions) {
+        res << t->src << " -> " << t->tgt << " [label=\"" << t->i<< "\"];" << endl;
+    }
+    res << "}" << endl;
+    return res.str();
 }

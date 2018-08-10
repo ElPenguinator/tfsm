@@ -124,13 +124,8 @@ set<set<int>> FSM::getEta(int s, string i)
 
 string FSM::generateDot()
 {
-    cout << "TEST" << endl;
-    for (auto tmp : this->mutatedTransitions) {
-        cout << "B: " << tmp.first << " " << tmp.second << endl;
-    }
-
     ostringstream res;
-    res << "digraph S {" << endl;
+    res << "digraph FSM {" << endl;
     for (IOTransition * t : this->transitions) {
         res << t->src << " -> " << t->tgt;
         cout << "?: " << this->mutatedTransitions.find(t->id)->second << endl;

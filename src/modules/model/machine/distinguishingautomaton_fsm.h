@@ -17,6 +17,7 @@ public:
     DistinguishingAutomaton_FSM(FSM * S, FSM * M);
     bool hasNoSinkState;
     bool isConnected;
+    int nextID;
     virtual void generateNext(ProductState * state);
     virtual void insertState(ProductState * state, std::string i, ProductState * newState, bool isTimeout, int id);
     virtual std::vector<executingPath> revealingPaths(sequence alpha);
@@ -29,6 +30,7 @@ public:
     virtual void DijkstraUpdateDistancesMin(std::map<std::string, int> & distances, std::map<std::string, ProductTransition *> & predecessors, std::string s1, std::string s2, ProductTransition * transition);
     virtual std::deque<ProductTransition *> Dijkstra(std::string key);
     virtual void initialize();
+    virtual std::string generateDot();
 };
 
 #endif // DISTINGUISHINGAUTOMATON_H

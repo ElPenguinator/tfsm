@@ -20,6 +20,7 @@ public:
     void DijkstraUpdateDistancesMin(std::map<std::string, int> & distances, std::map<std::string, ProductTransition *> & predecessors, std::string s1, std::string s2, ProductTransition * transition);
     std::deque<ProductTransition *> Dijkstra(std::string key);
     virtual void initialize();
+    std::string generateDot();
 };
 
 #endif // DISTINGUISHINGAUTOMATON_TFSM_H

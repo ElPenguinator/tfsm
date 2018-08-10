@@ -13,8 +13,14 @@
 
 class Algorithms
 {
+protected:
+    bool generateLogs;
+    int nbPassedMutants;
 public:
-    Algorithms();
+    Algorithms(bool generateLogs);
+
+    void printDOT(std::string content, std::string path);
+
     virtual FSM * generateSubmachine(CMSat::SATSolver * &solver, FSM * M) = 0;
 
     virtual void computePhiP(CMSat::SATSolver * &solver, FSM * P) = 0;

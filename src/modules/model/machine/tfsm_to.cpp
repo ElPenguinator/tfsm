@@ -144,7 +144,7 @@ set<set<int>> TFSM_TO::getEta(int s, string i)
 string TFSM_TO::generateDot()
 {
     ostringstream res;
-    res << "digraph S {" << endl;
+    res << "digraph TFSM_TO {" << endl;
     for (IOTransition * t : this->transitions) {
         res << t->src << " -> " << t->tgt;
         if (this->mutatedTransitions.find(t->id)->second) {

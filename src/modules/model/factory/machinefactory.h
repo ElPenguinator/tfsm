@@ -11,7 +11,7 @@ public:
     MachineFactory();
     std::set<int> generateStates(int nbOfStates);
     std::set<std::string> generateAlphabet(QTableWidget * table);
-    virtual Algorithms * getAlgorithms() = 0;
+    virtual Algorithms * getAlgorithms(bool generateLogs) = 0;
     virtual FSM * generateSpecification(QMap<QString, QTableWidget *> map, int nbOfStates) = 0;
     virtual FSM * generateMutation(FSM *specification, QMap<QString, QTableWidget *> map, int nbOfStates) = 0;
 };

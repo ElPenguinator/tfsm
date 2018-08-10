@@ -3,7 +3,7 @@
 using namespace std;
 using namespace CMSat;
 
-Algorithms_TFSM::Algorithms_TFSM()
+Algorithms_TFSM::Algorithms_TFSM(bool generateLogs) : Algorithms(generateLogs)
 {
 
 }

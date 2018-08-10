@@ -270,7 +270,7 @@ int TFSM::getInitialState()
 string TFSM::generateDot()
 {
     ostringstream res;
-    res << "digraph S {" << endl;
+    res << "digraph TFSM {" << endl;
     for (IOTransition * t : this->transitions) {
         res << t->src << " -> " << t->tgt;
         if (this->mutatedTransitions.find(t->id)->second) {
