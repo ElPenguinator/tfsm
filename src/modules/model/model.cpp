@@ -22,7 +22,7 @@ void testOmer()
                                      new GuardedTransition(4, "a", Guard("[", 1, 5, "]"), "y", 1, 6)
                                     };
     vector<TimeoutTransition *> delta = {new TimeoutTransition(1, 5, 2, 7),
-                                         new TimeoutTransition(2, 5, 1, 8),
+                                         new TimeoutTransition(2, inf, 2, 8),
                                          new TimeoutTransition(3, 5, 1, 9),
                                          new TimeoutTransition(4, 6, 1, 10),
                                         };
@@ -33,12 +33,11 @@ void testOmer()
                                         new GuardedTransition(3, "a", Guard("[", 1, 3, "["), "x", 4, 12),
                                         new GuardedTransition(4, "a", Guard("[", 1, 4, "["), "y", 2, 13),
                                         new GuardedTransition(4, "a", Guard("[", 2, 5, "]"), "y", 2, 14),
-                                        new GuardedTransition(4, "a", Guard("]", 2, 5, "]"), "y", 1, 15),
-                                        new GuardedTransition(4, "a", Guard("[", 4, 5, "]"), "y", 1, 16)
+                                        new GuardedTransition(4, "a", Guard("[", 4, 5, "]"), "y", 1, 15)
                                        };
     Muta->addTransitions(newLambda, true);
-    vector<TimeoutTransition *> newDelta = {new TimeoutTransition(4, 5, 2, 17),
-                                        new TimeoutTransition(3, 4, 1, 18)
+    vector<TimeoutTransition *> newDelta = {new TimeoutTransition(4, 5, 2, 16),
+                                        new TimeoutTransition(3, 4, 1, 17)
                                        };
     Muta->addTransitions(newLambda, true);
     Muta->addTimeouts(newDelta, true);
@@ -137,7 +136,7 @@ Model::Model() : QObject()
 {
     showSpecification = true;
     currentFactory = new FSMFactory();
-    //testOmer();
+    testOmer();
 }
 
 Model::~Model()
@@ -156,13 +155,14 @@ void Model::importFile(QString fileName, QMap<QString, QTableWidget *> map, QLin
 
     ifstream fileFill(fileName.toStdString(), ios::in);
     if(fileFill) {
+        string line;
+        getImportedType(line);
         MachineLoader * specLoader = currentFactory->getLoader();
         MachineLoader * mutaLoader = currentFactory->getLoader();
-        string line;
         //First line
         getline(fileFill, line);
         cout << "Bidibip " << line << endl;
-        getImportedType(line);
+
 
         while(getline(fileFill, line))
         {

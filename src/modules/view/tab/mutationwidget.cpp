@@ -388,7 +388,7 @@ void MutationWidget::sendMachine(QTableWidget * transitions, QTableWidget * time
 
 void MutationWidget::updateSpecificationTransitions(int row, int column)
 {
-
+    deactivateTabs();
     lastLineUpdate(_specification_machine_transitions_tab, row);
     bool isEmpty = emptyUpdate(_specification_machine_transitions_tab, row);
 
@@ -399,16 +399,20 @@ void MutationWidget::updateSpecificationTransitions(int row, int column)
         //Deterministic Check
 
         //Complete Check
-
+        activateTabs();
         if (isValid) {
             sendMachine(_specification_machine_transitions_tab, _specification_machine_timeouts_tab, true);
             sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
         }
     }
+    else {
+        activateTabs();
+    }
 }
 
 void MutationWidget::updateMutationTransitions(int row, int column)
 {
+    deactivateTabs();
     lastLineUpdate(_mutation_machine_transitions_tab, row);
     bool isEmpty = emptyUpdate(_mutation_machine_transitions_tab, row);
 
@@ -417,14 +421,19 @@ void MutationWidget::updateMutationTransitions(int row, int column)
         bool isValid = validateMachine(_mutation_machine_transitions_tab);
         bool timeoutsValid = validateMachine(_mutation_machine_timeouts_tab);
         isValid = isValid && timeoutsValid;
+        activateTabs();
         if (isValid) {
             sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
         }
+    }
+    else {
+        activateTabs();
     }
 }
 
 void MutationWidget::updateSpecificationTimeouts(int row, int column)
 {
+    deactivateTabs();
     lastLineUpdate(_specification_machine_timeouts_tab, row);
     bool isEmpty = emptyUpdate(_specification_machine_timeouts_tab, row);
 
@@ -435,16 +444,20 @@ void MutationWidget::updateSpecificationTimeouts(int row, int column)
         //Deterministic Check
 
         //Complete Check
-
+        activateTabs();
         if (isValid) {
             sendMachine(_specification_machine_transitions_tab, _specification_machine_timeouts_tab, true);
             sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
         }
     }
+    else {
+        activateTabs();
+    }
 }
 
 void MutationWidget::updateMutationTimeouts(int row, int column)
 {
+    deactivateTabs();
     lastLineUpdate(_mutation_machine_timeouts_tab, row);
     bool isEmpty = emptyUpdate(_mutation_machine_timeouts_tab, row);
     if (!isEmpty) {
@@ -452,14 +465,19 @@ void MutationWidget::updateMutationTimeouts(int row, int column)
         bool isValid = validateMachine(_mutation_machine_transitions_tab);
         bool timeoutsValid = validateMachine(_mutation_machine_timeouts_tab);
         isValid = isValid && timeoutsValid;
+        activateTabs();
         if (isValid) {
             sendMachine(_mutation_machine_transitions_tab, _mutation_machine_timeouts_tab, false);
         }
+    }
+    else {
+        activateTabs();
     }
 }
 
 void MutationWidget::updateMachineAlphabet(QTableWidget * table, QString header, QTableWidget * tableAlphabet)
 {
+    deactivateTabs();
     for (int j=0; j<table->columnCount(); j++) {
         if (table->horizontalHeaderItem(j)->text() == header) {
             for (int i=0; i<table->rowCount(); i++) {
@@ -470,30 +488,36 @@ void MutationWidget::updateMachineAlphabet(QTableWidget * table, QString header,
             }
         }
     }
+    activateTabs();
 }
 
 void MutationWidget::updateInputs(int row, int column)
 {
+    deactivateTabs();
     lastLineUpdate(_input_tab, row);
     bool isEmpty = emptyUpdate(_input_tab, row);
     if (!isEmpty) {
         updateMachineAlphabet(_specification_machine_transitions_tab, QString("i"), _input_tab);
         updateMachineAlphabet(_mutation_machine_transitions_tab, QString("i"), _input_tab);
     }
+    activateTabs();
 }
 
 void MutationWidget::updateOutputs(int row, int column)
 {
+    deactivateTabs();
     lastLineUpdate(_output_tab, row);
     bool isEmpty = emptyUpdate(_output_tab, row);
     if (!isEmpty) {
         updateMachineAlphabet(_specification_machine_transitions_tab, QString("o"), _output_tab);
         updateMachineAlphabet(_mutation_machine_transitions_tab, QString("o"), _output_tab);
     }
+    activateTabs();
 }
 
 bool MutationWidget::updateMachineStates(QTableWidget * table, QString header)
 {
+    deactivateTabs();
     bool isValid = true;
     for (int j=0; j<table->columnCount(); j++) {
         if (table->horizontalHeaderItem(j)->text() == header) {
@@ -506,11 +530,13 @@ bool MutationWidget::updateMachineStates(QTableWidget * table, QString header)
             }
         }
     }
+    activateTabs();
     return isValid;
 }
 
 void MutationWidget::updateNbOfStates()
 {
+    activateTabs();
     bool isValid = true;
     QString reason;
     QString pattern = "[0-9]+";
@@ -539,7 +565,7 @@ void MutationWidget::updateNbOfStates()
         updateMachineStates(_mutation_machine_transitions_tab, QString("src"));
         updateMachineStates(_mutation_machine_transitions_tab, QString("tgt"));
     }
-
+    deactivateTabs();
 
 }
 

@@ -37,7 +37,7 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
 
     for (IOTransition * mutationTransition : this->mutationMachine->lambda(state->mutationState)) {
         for (IOTransition * specificationTransition : this->specification->getXi(state->specificationState, mutationTransition->i)) {
-            if (!mutationTransition->getGuard().isIntersectionEmpty(specificationTransition->getGuard())) {
+            if (!mutationTransition->getGuard().substracted(state->getMutationCounter()).isIntersectionEmpty(specificationTransition->getGuard().substracted(state->getSpecificationCounter()))) {
 
                 ProductState * newState;
                 if (specificationTransition->o == mutationTransition->o)
@@ -424,7 +424,7 @@ string DistinguishingAutomaton_TFSM::generateDot()
                 res << "∞";
             else
                 res << s.second->getSpecificationCounter();
-             res << " ";
+            res << " ";
             if (s.second->getMutationCounter() == inf)
                 res << "∞";
             else
@@ -438,8 +438,13 @@ string DistinguishingAutomaton_TFSM::generateDot()
     }
     */
     for (ProductTransition * t : this->transitions) {
-        if (atoi(t->i.c_str()) == inf) {
-            res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << "∞" << " [" << t->id << "]\"];" << endl;
+        if (t->isTimeout) {
+            if (atoi(t->i.c_str()) == inf) {
+                res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << "∞" << " [" << t->id << "]\"];" << endl;
+            }
+            else {
+                res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << t->i << " [" << t->id << "]\"];" << endl;
+            }
         }
         else {
             res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << t->getGuard().toString() << " " << t->i << " [" << t->id << "]\"];" << endl;
