@@ -274,10 +274,10 @@ string TFSM::generateDot()
     for (IOTransition * t : this->transitions) {
         res << t->src << " -> " << t->tgt;
         if (this->mutatedTransitions.find(t->id)->second) {
-            res << " [style=\"dashed\" label=\"" << t->getGuard().toString() << " " << t->i << " / " << t->o << "\"];";
+            res << " [style=\"dashed\" label=\"" << t->getGuard().toString() << " " << t->i << " / " << t->o << " [" << t->id << "]\"];";
         }
         else {
-            res << " [label=\"" << t->getGuard().toString() << " " << t->i << " / " << t->o << "\"];";
+            res << " [label=\"" << t->getGuard().toString() << " " << t->i << " / " << t->o << " [" << t->id << "]\"];";
         }
         res << endl;
     }
@@ -286,18 +286,18 @@ string TFSM::generateDot()
 
         if (this->mutatedTransitions.find(t->id)->second) {
             if (t->t == inf) {
-                res << " [style=\"dashed\" label=\"∞\"];";
+                res << " [style=\"dashed\" label=\"∞" << " [" << t->id << "]\"];";
             }
             else {
-                res << " [style=\"dashed\" label=\"" << t->t << "\"];";
+                res << " [style=\"dashed\" label=\"" << t->t << " [" << t->id << "]\"];";
             }
         }
         else {
             if (t->t == inf) {
-                res << " [label=\"∞\"];";
+                res << " [label=\"∞" << " [" << t->id << "]\"];";
             }
             else {
-                res << " [label=\"" << t->t << "\"];";
+                res << " [label=\"" << t->t << " [" << t->id << "]\"];";
             }
         }
         res << endl;

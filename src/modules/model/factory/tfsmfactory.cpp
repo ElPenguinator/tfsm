@@ -1,5 +1,6 @@
 #include "tfsmfactory.h"
 #include "../algorithm/algorithms_tfsm.h"
+#include "../io/tfsmloader.h"
 
 using namespace std;
 
@@ -188,4 +189,14 @@ FSM * TFSMFactory::generateMutation(FSM *specification, QMap<QString, QTableWidg
     res->addTransitions(newLambda, true);
     res->addTimeouts(newDelta, true);
     return res;
+}
+
+MachineLoader * TFSMFactory::getLoader()
+{
+    return new TFSMLoader();
+}
+
+void TFSMFactory::fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLineEdit * edit)
+{
+
 }

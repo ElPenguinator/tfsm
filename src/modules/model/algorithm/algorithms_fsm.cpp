@@ -42,8 +42,12 @@ void Algorithms_FSM::computePhiP(SATSolver * &solver, FSM * P)
 
 void Algorithms_FSM::computePhiE(SATSolver * &solver, vector<sequence> E, DistinguishingAutomaton_FSM * D)
 {
+    int cpt = 1;
     for (auto alpha : E) {
         vector<executingPath> rev = D->revealingPaths(alpha);
+        if (generateLogs) {
+            savePath("test/paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
+        }
         for (auto path : rev) {
             vector<Lit> clause;
             for (auto id : path) {
@@ -55,6 +59,7 @@ void Algorithms_FSM::computePhiE(SATSolver * &solver, vector<sequence> E, Distin
             }
             solver->add_clause(clause);
         }
+        cpt++;
     }
 }
 
@@ -97,8 +102,8 @@ sequence Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<seq
             DistinguishingAutomaton_FSM * DP = new DistinguishingAutomaton_FSM(S, P);
             DP->initialize();
             if (generateLogs) {
-                printDOT(P->generateDot(), "test/mutant" + to_string(nbPassedMutants) +".dot");
-                printDOT(DP->generateDot(), "test/productMutant" + to_string(nbPassedMutants) + ".dot");
+                saveSVG("test/mutant" + to_string(nbPassedMutants) +".dot", "test/mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
+                saveSVG("test/productMutant" + to_string(nbPassedMutants) + ".dot", "test/productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
             }
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
@@ -112,6 +117,7 @@ sequence Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<seq
             delete DP;
         }
     }
+    nbVerifying++;
     return alpha;
 }
 
@@ -155,9 +161,9 @@ vector<sequence> Algorithms_FSM::generateCheckingExperiment(vector<sequence> Ein
     DistinguishingAutomaton_FSM * D = new DistinguishingAutomaton_FSM(S, M);
     D->initialize();
     if (generateLogs) {
-        printDOT(S->generateDot(), "test/specification.dot");
-        printDOT(M->generateDot(), "test/mutation.dot");
-        printDOT(D->generateDot(), "test/distinguishing.dot");
+        saveSVG("test/specification.dot", "test/specification.svg", S->generateDot());
+        saveSVG("test/mutation.dot", "test/mutation.svg", M->generateDot());
+        saveSVG("test/distinguishing.dot", "test/distinguishing.svg", D->generateDot());
     }
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;

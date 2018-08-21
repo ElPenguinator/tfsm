@@ -41,7 +41,11 @@ SOURCES += src/main.cpp \
     src/modules/model/factory/machinefactory.cpp \
     src/modules/model/factory/fsmfactory.cpp \
     src/modules/model/factory/tfsmfactory.cpp \
-    src/modules/model/factory/tfsmtofactory.cpp
+    src/modules/model/factory/tfsmtofactory.cpp \
+    src/modules/model/io/machineloader.cpp \
+    src/modules/model/io/fsmloader.cpp \
+    src/modules/model/io/tfsmloader.cpp \
+    src/modules/model/io/tfsmtoloader.cpp
 
 HEADERS += \
     src/modules/model/machine/tfsm_to.h \
@@ -76,7 +80,11 @@ HEADERS += \
     src/modules/model/factory/machinefactory.h \
     src/modules/model/factory/fsmfactory.h \
     src/modules/model/factory/tfsmfactory.h \
-    src/modules/model/factory/tfsmtofactory.h
+    src/modules/model/factory/tfsmtofactory.h \
+    src/modules/model/io/machineloader.h \
+    src/modules/model/io/fsmloader.h \
+    src/modules/model/io/tfsmloader.h \
+    src/modules/model/io/tfsmtoloader.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

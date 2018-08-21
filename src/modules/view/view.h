@@ -15,10 +15,10 @@ public:
     void bindEvents();
     void show();
 private slots:
-    void importFile();
+    void importFile(QMap<QString, QTableWidget *> map, QLineEdit * edit);
     void exportFile();
 signals:
-    void importedFile(QString);
+    void importedFile(QString, QMap<QString, QTableWidget *>, QLineEdit *);
     void exportedFile(QString);
     void checkingExperiment();
     void checkingSequence();

@@ -159,3 +159,19 @@ std::string Guard::toString() {
         guardString+=")";
     return guardString;
 }
+
+Guard Guard::substracted(int counter) {
+    int newTmin = this->tmin - counter;
+    int newTmax = this->tmax - counter;
+    Bracket newLeft = this->left;
+    Bracket newRight = this->right;
+    if (newTmin < 0) {
+        newLeft = Bracket::Square;
+        newTmin = 0;
+    }
+    if (newTmax < 0) {
+        newRight = Bracket::Curly;
+        newTmax = 0;
+    }
+    return Guard(left, newTmin, newTmax, newRight);
+}

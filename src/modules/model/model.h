@@ -14,6 +14,7 @@ private:
     void bindEvents();
     bool showSpecification;
     MachineFactory * currentFactory;
+    void getImportedType(std::string header);
 public:
     explicit Model();
     ~Model();
@@ -22,8 +23,10 @@ public:
     FSM * SpecificationMachine;
     FSM * MutationMachine;
     bool saveSVG(std::string dot);
+
+    void importMachine(std::string path);
 public slots:
-    void importFile(QString fileName);
+    void importFile(QString fileName, QMap<QString, QTableWidget *> map, QLineEdit * edit);
     void exportFile(QString fileName);
     void checkingExperiment();
     void checkingSequence();

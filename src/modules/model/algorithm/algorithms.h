@@ -16,6 +16,7 @@ class Algorithms
 protected:
     bool generateLogs;
     int nbPassedMutants;
+    int nbVerifying;
 public:
     Algorithms(bool generateLogs);
 
@@ -46,6 +47,10 @@ public:
     virtual void checkingSequenceBenchmarks() = 0;
 
     virtual std::vector<sequence> removePrefixes(std::vector<sequence> E) = 0;
+
+    bool saveSVG(std::string dotPath, std::string svgPath, std::string dot);
+
+    void savePath(std::string pathsPath, std::vector<executingPath> paths);
 };
 
 #endif // ALGORITHMS_H

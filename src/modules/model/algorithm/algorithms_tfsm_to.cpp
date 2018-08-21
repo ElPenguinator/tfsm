@@ -53,8 +53,12 @@ void Algorithms_TFSM_TO::computePhiP(SATSolver * &solver, FSM * P)
 
 void Algorithms_TFSM_TO::computePhiE(SATSolver * &solver, vector<sequence> E, DistinguishingAutomaton_FSM * D)
 {
+    int cpt = 1;
     for (auto alpha : E) {
         vector<executingPath> rev = D->revealingPaths(alpha);
+        if (generateLogs) {
+            savePath("test/paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
+        }
         for (auto path : rev) {
             vector<Lit> clause;
             for (auto id : path) {
@@ -75,6 +79,7 @@ void Algorithms_TFSM_TO::computePhiE(SATSolver * &solver, vector<sequence> E, Di
             }
             solver->add_clause(clause);
         }
+        cpt++;
     }
 }
 
@@ -134,8 +139,13 @@ sequence Algorithms_TFSM_TO::verifyCheckingExperiment(SATSolver * &solver,vector
     while (alpha.size() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
+            nbPassedMutants++;
             DistinguishingAutomaton_TFSM_TO * DP = new DistinguishingAutomaton_TFSM_TO(S, P);
             DP->initialize();
+            if (generateLogs) {
+                saveSVG("test/mutant" + to_string(nbPassedMutants) +".dot", "test/mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
+                saveSVG("test/productMutant" + to_string(nbPassedMutants) + ".dot", "test/productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
+            }
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
@@ -148,6 +158,7 @@ sequence Algorithms_TFSM_TO::verifyCheckingExperiment(SATSolver * &solver,vector
             delete DP;
         }
     }
+    nbVerifying++;
     return alpha;
 }
 
@@ -188,6 +199,11 @@ vector<sequence> Algorithms_TFSM_TO::generateCheckingExperiment(vector<sequence>
     computePhiM(solver, S, M);
     DistinguishingAutomaton_TFSM_TO * D = new DistinguishingAutomaton_TFSM_TO(S, M);
     D->initialize();
+    if (generateLogs) {
+        saveSVG("test/specification.dot", "test/specification.svg", S->generateDot());
+        saveSVG("test/mutation.dot", "test/mutation.svg", M->generateDot());
+        saveSVG("test/distinguishing.dot", "test/distinguishing.svg", D->generateDot());
+    }
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
 

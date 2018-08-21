@@ -130,10 +130,10 @@ string FSM::generateDot()
         res << t->src << " -> " << t->tgt;
         cout << "?: " << this->mutatedTransitions.find(t->id)->second << endl;
         if (this->mutatedTransitions.find(t->id)->second) {
-            res << " [style=\"dashed\" label=\"" << t->i << " / " << t->o << "\"];";
+            res << " [style=\"dashed\" label=\"" << t->i << " / " << t->o << " [" << t->id << "]\"];";
         }
         else {
-            res << " [label=\"" << t->i << " / " << t->o << "\"];";
+            res << " [label=\"" << t->i << " / " << t->o << " [" << t->id << "]\"];";
         }
         res << endl;
     }

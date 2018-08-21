@@ -9,6 +9,8 @@ public:
     Algorithms * getAlgorithms(bool generateLogs);
     FSM * generateSpecification(QMap<QString, QTableWidget *> map, int nbOfStates);
     FSM * generateMutation(FSM *specification, QMap<QString, QTableWidget *> map, int nbOfStates);
+    MachineLoader * getLoader();
+    void fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLineEdit * edit);
 };
 
 #endif // FSMFACTORY_H

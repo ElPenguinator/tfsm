@@ -10,14 +10,14 @@ void View::show()
     _main_window->show();
 }
 
-void View::importFile()
+void View::importFile(QMap<QString, QTableWidget *> map, QLineEdit * edit)
 {
     QString fileName(QFileDialog::getOpenFileName(
                          _main_window,
                          "Select machine file to import"
                          ));
     if (!fileName.isNull())
-        emit importedFile(fileName);
+        emit importedFile(fileName, map, edit);
 }
 
 void View::exportFile()

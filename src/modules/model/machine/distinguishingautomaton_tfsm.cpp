@@ -46,7 +46,7 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
                     newState = new TimedProductSinkState();
                     this->hasNoSinkState = false;
                 }
-                this->insertState(state, specificationTransition->i, mutationTransition->getGuard().intersect(specificationTransition->getGuard()), newState, false, mutationTransition->id);
+                this->insertState(state, specificationTransition->i, mutationTransition->getGuard().substracted(state->getMutationCounter()).intersect(specificationTransition->getGuard().substracted(state->getSpecificationCounter())), newState, false, mutationTransition->id);
             }
         }
 
@@ -413,11 +413,37 @@ string DistinguishingAutomaton_TFSM::generateDot()
     res << "digraph DistinguishingTFSM {" << endl << "forcelabels=true;" << endl;
     for (auto s : this->states) {
         //res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " " << s.second->specificationCounter << " " << s.second->mutationCounter << "\"];" << endl;
-        res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << "\"];" << endl;
+        //res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << "\"];" << endl;
+        if (s.first == "sink") {
+            res << s.second->id << " [label=\"∇\"];" << endl;
+        }
+        else {
+            //res << s.second->id << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " " << s.second->getSpecificationCounter() << " " << s.second->getMutationCounter() << "\"];" << endl;
+            res << s.second->id << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " ";
+            if (s.second->getSpecificationCounter() == inf)
+                res << "∞";
+            else
+                res << s.second->getSpecificationCounter();
+             res << " ";
+            if (s.second->getMutationCounter() == inf)
+                res << "∞";
+            else
+                res << s.second->getMutationCounter();
+            res << "\"];" << endl;
+        }
     }
-
+    /*
     for (ProductTransition * t : this->transitions) {
         res << t->src << " -> " << t->tgt << " [label=\"" << t->i<< "\"];" << endl;
+    }
+    */
+    for (ProductTransition * t : this->transitions) {
+        if (atoi(t->i.c_str()) == inf) {
+            res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << "∞" << " [" << t->id << "]\"];" << endl;
+        }
+        else {
+            res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << t->getGuard().toString() << " " << t->i << " [" << t->id << "]\"];" << endl;
+        }
     }
     res << "}" << endl;
     return res.str();

@@ -1,6 +1,12 @@
 #include "fsmfactory.h"
 #include "../algorithm/algorithms_fsm.h"
-
+#include "../io/fsmloader.h"
+#include <QWidget>
+#include <QGridLayout>
+#include <QPushButton>
+#include <QTextBrowser>
+#include <QtSvg>
+#include <QMap>
 using namespace std;
 FSMFactory::FSMFactory() : MachineFactory()
 {
@@ -99,4 +105,57 @@ FSM * FSMFactory::generateMutation(FSM * specification, QMap<QString, QTableWidg
     FSM * res =  new FSM(S, s0, I, O, lambda);
     res->addTransitions(newLambda, true);
     return res;
+}
+
+MachineLoader * FSMFactory::getLoader()
+{
+    return new FSMLoader();
+}
+
+void FSMFactory::fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLineEdit * edit)
+{
+    edit->setText(QString::number(machine->states.size()));
+    QTableWidget * tableInputs = (*map.find(QString("inputs")));
+    QTableWidget * tableOutputs = (*map.find(QString("outputs")));
+    QTableWidget * tableSpecTransitions = (*map.find(QString("specificationTransitions")));
+    QTableWidget * tableMutaTransitions = (*map.find(QString("mutationTransitions")));
+    tableInputs->setRowCount(0);
+    tableInputs->setRowCount(machine->inputs.size()+1);
+    tableOutputs->setRowCount(0);
+    tableOutputs->setRowCount(machine->outputs.size()+1);
+    tableSpecTransitions->setRowCount(0);
+    tableSpecTransitions->setRowCount(1);
+    tableMutaTransitions->setRowCount(0);
+    tableMutaTransitions->setRowCount(1);
+    int row = 0;
+    machine->print();
+    for (string i : machine->inputs) {
+        tableInputs->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(i)));
+        row++;
+    }
+    row = 0;
+    for (string o : machine->outputs) {
+        tableOutputs->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(o)));
+        row++;
+    }
+    int rowSpec = 0;
+    int rowMuta = 0;
+    for (IOTransition * t : machine->transitions) {
+        if ((*machine->mutatedTransitions.find(t->id)).second == false) {
+            tableSpecTransitions->setRowCount(tableSpecTransitions->rowCount()+1);
+            tableSpecTransitions->setItem(rowSpec, 0, new QTableWidgetItem(QString::number(t->src)));
+            tableSpecTransitions->setItem(rowSpec, 1, new QTableWidgetItem(QString::fromStdString(t->i)));
+            tableSpecTransitions->setItem(rowSpec, 2, new QTableWidgetItem(QString::fromStdString(t->o)));
+            tableSpecTransitions->setItem(rowSpec, 3, new QTableWidgetItem(QString::number(t->tgt)));
+            rowSpec++;
+        }
+        else {
+            tableMutaTransitions->setRowCount(tableMutaTransitions->rowCount()+1);
+            tableMutaTransitions->setItem(rowMuta, 0, new QTableWidgetItem(QString::number(t->src)));
+            tableMutaTransitions->setItem(rowMuta, 1, new QTableWidgetItem(QString::fromStdString(t->i)));
+            tableMutaTransitions->setItem(rowMuta, 2, new QTableWidgetItem(QString::fromStdString(t->o)));
+            tableMutaTransitions->setItem(rowMuta, 3, new QTableWidgetItem(QString::number(t->tgt)));
+            rowMuta++;
+        }
+    }
 }

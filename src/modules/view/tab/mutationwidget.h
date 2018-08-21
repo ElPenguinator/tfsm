@@ -39,7 +39,6 @@ private:
     QTableWidget *_input_tab;
     QTableWidget *_output_tab;
     SvgView *_renderer;
-
     void buildInterface();
     void fillInterface();
     void relaySignals();
@@ -58,8 +57,10 @@ private:
     bool updateMachineStates(QTableWidget * table, QString header);
     void updateMachineAlphabet(QTableWidget * table, QString header, QTableWidget * tableAlphabet);
     void sendMachine(QTableWidget *transitions, QTableWidget *timeouts, bool isSpecification);
+    void activateTabs();
+    void deactivateTabs();
 signals:
-    void importFile();
+    void importFile(QMap<QString, QTableWidget *>, QLineEdit *);
     void exportFile();
     void checkingExperiment();
     void checkingSequence();
@@ -67,6 +68,7 @@ signals:
     void generateMutation(QMap<QString, QTableWidget *>, int);
     void machineTypeChanged(const QString &);
 public slots:
+    void prepareImportFile();
     void checkingExperimentResults(std::vector<sequence> E);
     void checkingSequenceResults(sequence s);
     void machineSVGGenerated(bool success);

@@ -148,20 +148,30 @@ string TFSM_TO::generateDot()
     for (IOTransition * t : this->transitions) {
         res << t->src << " -> " << t->tgt;
         if (this->mutatedTransitions.find(t->id)->second) {
-            res << " [style=\"dashed\" label=\"" << t->i << " / " << t->o << "\"];";
+            res << " [style=\"dashed\" label=\"" << t->i << " / " << t->o << " [" << t->id << "]\"];";
         }
         else {
-            res << " [label=\"" << t->i << " / " << t->o << "\"];";
+            res << " [label=\"" << t->i << " / " << t->o << " [" << t->id << "]\"];";
         }
         res << endl;
     }
     for (TimeoutTransition * t : this->timeouts) {
         res << t->src << " -> " << t->tgt;
         if (this->mutatedTransitions.find(t->id)->second) {
-            res << " [style=\"dashed\" label=\"" << t->t << "\"];";
+            if (t->t == inf) {
+                res << " [style=\"dashed\" label=\"∞" << " [" << t->id << "]\"];";
+            }
+            else {
+                res << " [style=\"dashed\" label=\"" << t->t << " [" << t->id << "]\"];";
+            }
         }
         else {
-            res << " [label=\"" << t->t << "\"];";
+            if (t->t == inf) {
+                res << " [label=\"∞" << " [" << t->id << "]\"];";
+            }
+            else {
+                res << " [label=\"" << t->t << " [" << t->id << "]\"];";
+            }
         }
         res << endl;
     }

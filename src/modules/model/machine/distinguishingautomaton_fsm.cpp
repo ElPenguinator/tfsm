@@ -282,7 +282,7 @@ string DistinguishingAutomaton_FSM::generateDot()
         }
     }
     for (ProductTransition * t : this->transitions) {
-        res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << t->i<< "\"];" << endl;
+        res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << t->i << " [" << t->id << "]\"];" << endl;
     }
     res << "}" << endl;
     return res.str();

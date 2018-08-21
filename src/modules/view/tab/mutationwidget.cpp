@@ -543,12 +543,21 @@ void MutationWidget::updateNbOfStates()
 
 }
 
-void MutationWidget::relaySignals()
+void MutationWidget::prepareImportFile()
 {
-    connect(_import_button, &QPushButton::released, this, &MutationWidget::importFile);
-    connect(_export_button, &QPushButton::released, this, &MutationWidget::exportFile);
-    connect(_ce_button, &QPushButton::released, this, &MutationWidget::checkingExperiment);
-    connect(_cs_button, &QPushButton::released, this, &MutationWidget::checkingSequence);
+    QMap<QString, QTableWidget *> map;
+    map.insert(QString("inputs"), this->_input_tab);
+    map.insert(QString("outputs"), this->_output_tab);
+    map.insert(QString("specificationTransitions"), _specification_machine_transitions_tab);
+    map.insert(QString("specificationTimeouts"), _specification_machine_timeouts_tab);
+    map.insert(QString("mutationTransitions"), _mutation_machine_transitions_tab);
+    map.insert(QString("mutationTimeouts"), _mutation_machine_timeouts_tab);
+    deactivateTabs();
+    emit importFile(map, this->_nbStates_input);
+}
+
+void MutationWidget::activateTabs()
+{
     connect(_specification_machine_transitions_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateSpecificationTransitions);
     connect(_mutation_machine_transitions_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateMutationTransitions);
     connect(_specification_machine_timeouts_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateSpecificationTimeouts);
@@ -556,6 +565,26 @@ void MutationWidget::relaySignals()
     connect(_input_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateInputs);
     connect(_output_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateOutputs);
     connect(_nbStates_input, &QLineEdit::textChanged, this, &MutationWidget::updateNbOfStates);
+}
+
+void MutationWidget::deactivateTabs()
+{
+    disconnect(_specification_machine_transitions_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateSpecificationTransitions);
+    disconnect(_mutation_machine_transitions_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateMutationTransitions);
+    disconnect(_specification_machine_timeouts_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateSpecificationTimeouts);
+    disconnect(_mutation_machine_timeouts_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateMutationTimeouts);
+    disconnect(_input_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateInputs);
+    disconnect(_output_tab, &QTableWidget::cellChanged, this, &MutationWidget::updateOutputs);
+    disconnect(_nbStates_input, &QLineEdit::textChanged, this, &MutationWidget::updateNbOfStates);
+}
+
+void MutationWidget::relaySignals()
+{
+    connect(_import_button, &QPushButton::released, this, &MutationWidget::prepareImportFile);
+    connect(_export_button, &QPushButton::released, this, &MutationWidget::exportFile);
+    connect(_ce_button, &QPushButton::released, this, &MutationWidget::checkingExperiment);
+    connect(_cs_button, &QPushButton::released, this, &MutationWidget::checkingSequence);
+    activateTabs();
     connect(_machine_type, static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged), this, &MutationWidget::changeMachineType);
     /*
     connect(_graph_button, &QPushButton::released, this, &HomepageWidget::switchToGraph);
@@ -593,6 +622,7 @@ void MutationWidget::machineSVGGenerated(bool success)
     if (success) {
         _renderer->openFile(QString("tmp/spec.svg"));
     }
+    activateTabs();
 }
 
 void MutationWidget::changeMachineType(const QString &text)

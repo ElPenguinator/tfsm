@@ -19,6 +19,7 @@ public:
     Guard intersect(Guard other);
     bool contains(int x);
     bool equals(Guard other);
+    Guard substracted(int counter);
 };
 
 #endif // GUARD_H
