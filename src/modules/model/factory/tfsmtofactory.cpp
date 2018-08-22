@@ -167,5 +167,70 @@ MachineLoader * TFSMTOFactory::getLoader()
 
 void TFSMTOFactory::fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLineEdit * edit)
 {
+    this->fillNbStates(machine, edit);
+    this->fillInputs(machine, map);
+    this->fillOutputs(machine, map);
 
+
+    QTableWidget * tableSpecTransitions = (*map.find(QString("specificationTransitions")));
+    QTableWidget * tableMutaTransitions = (*map.find(QString("mutationTransitions")));
+
+    QTableWidget * tableSpecTimeouts = (*map.find(QString("specificationTimeouts")));
+    QTableWidget * tableMutaTimeouts = (*map.find(QString("mutationTimeouts")));
+
+    tableSpecTransitions->setRowCount(0);
+    tableSpecTransitions->setRowCount(1);
+    tableMutaTransitions->setRowCount(0);
+    tableMutaTransitions->setRowCount(1);
+
+    tableSpecTimeouts->setRowCount(0);
+    tableSpecTimeouts->setRowCount(1);
+    tableMutaTimeouts->setRowCount(0);
+    tableMutaTimeouts->setRowCount(1);
+
+    int rowSpec = 0;
+    int rowMuta = 0;
+    for (IOTransition * t : machine->transitions) {
+        if ((*machine->mutatedTransitions.find(t->id)).second == false) {
+            tableSpecTransitions->setRowCount(tableSpecTransitions->rowCount()+1);
+            tableSpecTransitions->setItem(rowSpec, 0, new QTableWidgetItem(QString::number(t->src)));
+            tableSpecTransitions->setItem(rowSpec, 1, new QTableWidgetItem(QString::fromStdString(t->i)));
+            tableSpecTransitions->setItem(rowSpec, 2, new QTableWidgetItem(QString::fromStdString(t->o)));
+            tableSpecTransitions->setItem(rowSpec, 3, new QTableWidgetItem(QString::number(t->tgt)));
+            rowSpec++;
+        }
+        else {
+            tableMutaTransitions->setRowCount(tableMutaTransitions->rowCount()+1);
+            tableMutaTransitions->setItem(rowMuta, 0, new QTableWidgetItem(QString::number(t->src)));
+            tableMutaTransitions->setItem(rowMuta, 1, new QTableWidgetItem(QString::fromStdString(t->i)));
+            tableMutaTransitions->setItem(rowMuta, 2, new QTableWidgetItem(QString::fromStdString(t->o)));
+            tableMutaTransitions->setItem(rowMuta, 3, new QTableWidgetItem(QString::number(t->tgt)));
+            rowMuta++;
+        }
+    }
+
+    rowSpec = 0;
+    rowMuta = 0;
+    for (TimeoutTransition * t : machine->getTimeouts()) {
+        if ((*machine->mutatedTransitions.find(t->id)).second == false) {
+            tableSpecTimeouts->setRowCount(tableSpecTimeouts->rowCount()+1);
+            tableSpecTimeouts->setItem(rowSpec, 0, new QTableWidgetItem(QString::number(t->src)));
+            if (t->t == inf)
+                tableSpecTimeouts->setItem(rowSpec, 1, new QTableWidgetItem(QString("inf")));
+            else
+                tableSpecTimeouts->setItem(rowSpec, 1, new QTableWidgetItem(QString::number(t->t)));
+            tableSpecTimeouts->setItem(rowSpec, 2, new QTableWidgetItem(QString::number(t->tgt)));
+            rowSpec++;
+        }
+        else {
+            tableMutaTimeouts->setRowCount(tableMutaTimeouts->rowCount()+1);
+            tableMutaTimeouts->setItem(rowMuta, 0, new QTableWidgetItem(QString::number(t->src)));
+            if (t->t == inf)
+                tableMutaTimeouts->setItem(rowMuta, 1, new QTableWidgetItem(QString("inf")));
+            else
+                tableMutaTimeouts->setItem(rowMuta, 1, new QTableWidgetItem(QString::number(t->t)));
+            tableMutaTimeouts->setItem(rowMuta, 2, new QTableWidgetItem(QString::number(t->tgt)));
+            rowMuta++;
+        }
+    }
 }

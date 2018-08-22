@@ -114,30 +114,20 @@ MachineLoader * FSMFactory::getLoader()
 
 void FSMFactory::fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLineEdit * edit)
 {
-    edit->setText(QString::number(machine->states.size()));
-    QTableWidget * tableInputs = (*map.find(QString("inputs")));
-    QTableWidget * tableOutputs = (*map.find(QString("outputs")));
+    this->fillNbStates(machine, edit);
+    this->fillInputs(machine, map);
+    this->fillOutputs(machine, map);
+
+
     QTableWidget * tableSpecTransitions = (*map.find(QString("specificationTransitions")));
     QTableWidget * tableMutaTransitions = (*map.find(QString("mutationTransitions")));
-    tableInputs->setRowCount(0);
-    tableInputs->setRowCount(machine->inputs.size()+1);
-    tableOutputs->setRowCount(0);
-    tableOutputs->setRowCount(machine->outputs.size()+1);
+
     tableSpecTransitions->setRowCount(0);
     tableSpecTransitions->setRowCount(1);
     tableMutaTransitions->setRowCount(0);
     tableMutaTransitions->setRowCount(1);
-    int row = 0;
-    machine->print();
-    for (string i : machine->inputs) {
-        tableInputs->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(i)));
-        row++;
-    }
-    row = 0;
-    for (string o : machine->outputs) {
-        tableOutputs->setItem(row, 0, new QTableWidgetItem(QString::fromStdString(o)));
-        row++;
-    }
+
+
     int rowSpec = 0;
     int rowMuta = 0;
     for (IOTransition * t : machine->transitions) {

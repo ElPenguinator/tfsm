@@ -1,5 +1,6 @@
 #include "tfsmtoloader.h"
 #include <QObject>
+#include <iostream>
 using namespace std;
 TFSMTOLoader::TFSMTOLoader()
 {
@@ -57,13 +58,17 @@ void TFSMTOLoader::readLine(string line, bool createSpecification)
         }
     }
     else {
-
         QString patternTO("label\=\"([^\\s]+)\\s*\\[([0-9]+)\\]\"");
-        QRegExp rxtO(patternTO);
-        index = rxtO.indexIn(QString::fromStdString(line));
+        QRegExp rxTO(patternTO);
+        index = rxTO.indexIn(QString::fromStdString(line));
         if (index != -1) {
-            t = rxIO.cap(1).toInt();
-            id = rxIO.cap(2).toInt();
+            if (rxTO.cap(1).toStdString() == "∞") {
+                t = inf;
+            }
+            else {
+                t = rxTO.cap(1).toInt();
+            }
+            id = rxTO.cap(2).toInt();
             createTransition = createTransition && true;
             bool mutant = false;
             if (line.find("dashed") != string::npos) {
