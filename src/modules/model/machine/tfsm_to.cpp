@@ -22,6 +22,9 @@ void TFSM_TO::addTimeouts(vector<TimeoutTransition *> timeouts, bool isMutated)
 {
     this->timeouts.insert(this->timeouts.end(), timeouts.begin(), timeouts.end());
     this->computeMaps();
+    for (TimeoutTransition * t : timeouts) {
+        this->mutatedTransitions.insert(make_pair(t->id, isMutated));
+    }
 }
 
 vector<IOTransition *> TFSM_TO::getXi(int s, string i)

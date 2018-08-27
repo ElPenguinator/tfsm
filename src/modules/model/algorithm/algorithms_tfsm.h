@@ -32,6 +32,8 @@ public:
     void checkingSequenceBenchmarks();
 
     std::vector<sequence> removePrefixes(std::vector<sequence> E);
+
+    FSM * completeMutation(FSM * M);
 };
 
 #endif // ALGORITHMS_TFSM_H

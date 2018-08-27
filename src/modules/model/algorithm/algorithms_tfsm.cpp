@@ -450,3 +450,73 @@ vector<sequence> Algorithms_TFSM::removePrefixes(vector<sequence> E)
     }
     return newE;
 }
+
+FSM * Algorithms_TFSM::completeMutation(FSM * M)
+{
+    TFSM * newM = new TFSM(M->states, M->initialState, M->inputs, M->outputs, M->getTransitions(), M->getTimeouts());
+    int lastID = newM->getTransitionSize();
+    for (int src : newM->states) {
+        for (string i : newM->inputs) {
+            Bracket newLeft = Bracket::Square;
+            int newtMin = 0;
+            int newtMax = 0;
+            Bracket newRight = Bracket::Curly;
+            vector<Guard> availableGuards;
+            for (IOTransition * t : newM->getXi(src, i)) {
+                availableGuards.push_back(t->getGuard());
+            }
+            int nbGuards = availableGuards.size();
+            Guard lastGuard("(", inf, inf, ")");
+            for (int index=0; index<nbGuards+1; index++) {
+                Guard minGuard("(", inf, inf, ")");
+                bool isOneAvailable = false;
+                for (Guard g : availableGuards) {
+                    if (g.tmin < minGuard.tmin && !g.equals(lastGuard)) {
+                        minGuard = g;
+                        isOneAvailable = true;
+                    }
+                }
+                if (!isOneAvailable && lastGuard.tmax != inf) {
+                    if (lastGuard.right == Bracket::Curly)
+                        newLeft == Bracket::Square;
+                    else
+                        newLeft == Bracket::Curly;
+                    Guard newGuard(newLeft, lastGuard.tmax, inf, Bracket::Curly);
+                    vector<IOTransition *> newLambda;
+                    for (string o : newM->outputs) {
+                        for (int tgt : newM->states) {
+                            newLambda.push_back(new GuardedTransition(src, i, newGuard, o, tgt, lastID++));
+                        }
+                    }
+                    newM->addTransitions(newLambda, true);
+                }
+                else {
+                lastGuard = minGuard;
+                if (minGuard.tmin > newtMax || (minGuard.tmin == newtMax && newRight == minGuard.left == Bracket::Curly)) {
+                    if (minGuard.left == Bracket::Curly)
+                        newRight == Bracket::Square;
+                    else
+                        newRight == Bracket::Curly;
+
+                    Guard newGuard(newLeft, newtMin, minGuard.tmin, newRight);
+                    vector<IOTransition *> newLambda;
+                    for (string o : newM->outputs) {
+                        for (int tgt : newM->states) {
+                            newLambda.push_back(new GuardedTransition(src, i, newGuard, o, tgt, lastID++));
+                        }
+                    }
+                    newM->addTransitions(newLambda, true);
+                }
+                if (minGuard.right == Bracket::Curly)
+                    newLeft == Bracket::Square;
+                else
+                    newLeft == Bracket::Curly;
+                newtMin = minGuard.tmax;
+                newtMax = minGuard.tmax;
+                newRight = Bracket::Curly;
+                }
+            }
+        }
+    }
+    return newM;
+}

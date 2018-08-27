@@ -370,3 +370,8 @@ vector<sequence> Algorithms_FSM::removePrefixes(vector<sequence> E)
     }
     return newE;
 }
+
+FSM * Algorithms_FSM::completeMutation(FSM * M)
+{
+
+}

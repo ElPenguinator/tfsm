@@ -51,6 +51,7 @@ public:
     bool saveSVG(std::string dotPath, std::string svgPath, std::string dot);
 
     void savePath(std::string pathsPath, std::vector<executingPath> paths);
+    virtual FSM * completeMutation(FSM * M) = 0;
 };
 
 #endif // ALGORITHMS_H

@@ -408,3 +408,8 @@ vector<sequence> Algorithms_TFSM_TO::removePrefixes(vector<sequence> E)
     }
     return newE;
 }
+
+FSM * Algorithms_TFSM_TO::completeMutation(FSM * M)
+{
+
+}

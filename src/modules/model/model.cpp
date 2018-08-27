@@ -22,7 +22,7 @@ void testOmer()
                                      new GuardedTransition(4, "a", Guard("[", 1, 5, "]"), "y", 1, 6)
                                     };
     vector<TimeoutTransition *> delta = {new TimeoutTransition(1, 5, 2, 7),
-                                         new TimeoutTransition(2, inf, 2, 8),
+                                         new TimeoutTransition(2, 5, 1, 8),
                                          new TimeoutTransition(3, 5, 1, 9),
                                          new TimeoutTransition(4, 6, 1, 10),
                                         };
@@ -30,8 +30,8 @@ void testOmer()
     TFSM * Spec = new TFSM(S, s0, I, O, lambda, delta);
     TFSM * Muta = new TFSM(S, s0, I, O, lambda, delta);
     vector<IOTransition *> newLambda = {new GuardedTransition(3, "a", Guard("[", 3, 4, "]"), "y", 3, 11),
-                                        new GuardedTransition(3, "a", Guard("[", 1, 3, "["), "x", 4, 12),
-                                        new GuardedTransition(4, "a", Guard("[", 1, 4, "["), "y", 2, 13),
+                                        new GuardedTransition(3, "a", Guard("[", 1, 3, ")"), "x", 4, 12),
+                                        new GuardedTransition(4, "a", Guard("[", 1, 4, ")"), "y", 2, 13),
                                         new GuardedTransition(4, "a", Guard("[", 2, 5, "]"), "y", 2, 14),
                                         new GuardedTransition(4, "a", Guard("[", 4, 5, "]"), "y", 1, 15)
                                        };
@@ -39,10 +39,15 @@ void testOmer()
     vector<TimeoutTransition *> newDelta = {new TimeoutTransition(4, 5, 2, 16),
                                         new TimeoutTransition(3, 4, 1, 17)
                                        };
-    Muta->addTransitions(newLambda, true);
+    //Muta->addTransitions(newLambda, true);
     Muta->addTimeouts(newDelta, true);
     Spec->print();
     Muta->print();
+
+    Algorithms * transformator = new Algorithms_TFSM(false);
+    FSM * fullMuta = transformator->completeMutation(Muta);
+    fullMuta->print();
+
     DistinguishingAutomaton_TFSM * product = new DistinguishingAutomaton_TFSM(Spec, Muta);
     product->initialize();
     product->print();
