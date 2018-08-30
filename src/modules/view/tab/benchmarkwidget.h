@@ -6,6 +6,12 @@
 #include <QGridLayout>
 #include <QPushButton>
 #include <QTextBrowser>
+#include <QtSvg>
+#include <QMap>
+
+#include "svgview.h"
+
+#include "../../model/structs.h"
 
 class BenchmarkWidget : public QWidget
 {
@@ -13,9 +19,19 @@ class BenchmarkWidget : public QWidget
 
 private:
     QGridLayout *_main_layout;
-    QPushButton *_import_button;
-    QTextBrowser *_FAQ_text_browser;
-
+    QComboBox *_machine_type;
+    QComboBox *_format_type;
+    QLabel *_nbStates_label;
+    QLineEdit *_nbStates_input;
+    QLabel *_nbMachines_label;
+    QLineEdit *_nbMachines_input;
+    QLabel *_timeoutedValue_label;
+    QLineEdit *_timeoutedValue_input;
+    QLabel *_maxTimeout_label;
+    QLineEdit *_maxTimeout_input;
+    QPushButton *_select_folder_button;
+    QPushButton *_ce_button;
+    QPushButton *_cs_button;
     void buildInterface();
     void fillInterface();
     void relaySignals();
