@@ -3,7 +3,7 @@
 using namespace std;
 using namespace CMSat;
 
-Algorithms_TFSM_TO::Algorithms_TFSM_TO(bool generateLogs) : Algorithms(generateLogs)
+Algorithms_TFSM_TO::Algorithms_TFSM_TO(bool generateLogs, bool onlyDot) : Algorithms(generateLogs, onlyDot)
 {
 
 }
@@ -57,7 +57,7 @@ void Algorithms_TFSM_TO::computePhiE(SATSolver * &solver, vector<sequence> E, Di
     for (auto alpha : E) {
         vector<executingPath> rev = D->revealingPaths(alpha);
         if (generateLogs) {
-            savePath("test/paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
+            savePath(logPath + "paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
         }
         for (auto path : rev) {
             vector<Lit> clause;
@@ -143,8 +143,8 @@ sequence Algorithms_TFSM_TO::verifyCheckingExperiment(SATSolver * &solver,vector
             DistinguishingAutomaton_TFSM_TO * DP = new DistinguishingAutomaton_TFSM_TO(S, P);
             DP->initialize();
             if (generateLogs) {
-                saveSVG("test/mutant" + to_string(nbPassedMutants) +".dot", "test/mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
-                saveSVG("test/productMutant" + to_string(nbPassedMutants) + ".dot", "test/productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
+                saveSVG(logPath + "mutant" + to_string(nbPassedMutants) +".dot", logPath + "mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
+                saveSVG(logPath + "productMutant" + to_string(nbPassedMutants) + ".dot", logPath + "productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
             }
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
@@ -200,9 +200,9 @@ vector<sequence> Algorithms_TFSM_TO::generateCheckingExperiment(vector<sequence>
     DistinguishingAutomaton_TFSM_TO * D = new DistinguishingAutomaton_TFSM_TO(S, M);
     D->initialize();
     if (generateLogs) {
-        saveSVG("test/specification.dot", "test/specification.svg", S->generateDot());
-        saveSVG("test/mutation.dot", "test/mutation.svg", M->generateDot());
-        saveSVG("test/distinguishing.dot", "test/distinguishing.svg", D->generateDot());
+        saveSVG(logPath + "specification.dot", logPath + "specification.svg", S->generateDot());
+        saveSVG(logPath + "mutation.dot", logPath + "mutation.svg", M->generateDot());
+        saveSVG(logPath + "distinguishing.dot", logPath + "distinguishing.svg", D->generateDot());
     }
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
@@ -287,7 +287,7 @@ sequence Algorithms_TFSM_TO::generateCheckingSequence(FSM * S, FSM * M)
     return CS;
 }
 
-void Algorithms_TFSM_TO::checkingExperimentBenchmarks()
+void Algorithms_TFSM_TO::checkingExperimentBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
     //    set<string> I = {"a", "b"};
     //    set<string> O = {"0", "1"};
@@ -335,7 +335,7 @@ void Algorithms_TFSM_TO::checkingExperimentBenchmarks()
 }
 
 
-void Algorithms_TFSM_TO::checkingSequenceBenchmarks()
+void Algorithms_TFSM_TO::checkingSequenceBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
     //    set<string> I = {"a", "b"};
     //    set<string> O = {"0", "1"};
@@ -412,4 +412,113 @@ vector<sequence> Algorithms_TFSM_TO::removePrefixes(vector<sequence> E)
 FSM * Algorithms_TFSM_TO::completeMutation(FSM * M)
 {
 
+}
+
+FSM * Algorithms_TFSM_TO::generateRandomSpecification(int nbOfStates, int maxTime, set<string> I, set<string> O)
+{
+    set<int> S;
+    int s0 = 0;
+    vector<IOTransition *> lambda;
+    vector<TimeoutTransition *> delta;
+    int transitionId;
+    srand (time(NULL));
+    bool isConnected = false;
+
+    TFSM_TO * res;
+
+    while (!isConnected) {
+        transitionId = 0;
+        S.clear();
+        lambda.clear();
+        delta.clear();
+        for (int s=0; s<nbOfStates; s++) {
+            S.insert(s);
+            for (string i : I) {
+                string randomO = getRandomStringFromSet(O);
+                int randomTgt = floor(rand() % nbOfStates);
+
+                lambda.push_back(new IOTransition(s, i, randomO, randomTgt, transitionId));
+                transitionId++;
+            }
+
+            int randomT = floor(rand() % maxTime);
+            int randomTgt = floor(rand() % nbOfStates);
+            if (randomT == 0) {
+                randomT = inf;
+                randomTgt = s;
+            }
+            delta.push_back(new TimeoutTransition(s, randomT, randomTgt, transitionId));
+            transitionId++;
+        }
+        res = new TFSM_TO(S, s0, I, O, lambda, delta);
+        /*
+        isConnected = isTFSMConnected(res);
+        if (!isConnected)
+            delete res;
+            */
+    }
+    return res;
+}
+
+FSM * Algorithms_TFSM_TO::generateRandomMutation(FSM * S, int maxTime, int numberOfMutations)
+{
+    set<int> States(S->states);
+    int s0 = S->initialState;
+    set<string> I(S->inputs);
+    set<string> O(S->outputs);
+    vector<IOTransition *> lambda(S->transitions);
+    vector<TimeoutTransition *> delta(S->getTimeouts());
+    TFSM_TO * M = new TFSM_TO(States, s0, I, O, lambda, delta);
+
+    srand (time(NULL));
+    vector<IOTransition *> newLambda;
+    vector<TimeoutTransition *> newDelta;
+    for (int i=0; i<numberOfMutations; i++) {
+        bool alreadyExisting = true;
+        while (alreadyExisting) {
+            bool createTimeout = rand()%2;
+            int randomSrc = floor(rand() % S->states.size());
+            int randomTgt = floor(rand() % S->states.size());
+            int newId = i + (S->transitions.size() + S->getTimeouts().size());
+            if (createTimeout) {
+                int randomT = floor(rand() % (maxTime+1));
+                if (randomT == 0) {
+                    randomT = inf;
+                    randomTgt = randomSrc;
+                }
+                TimeoutTransition  * newTimeout = new TimeoutTransition(randomSrc,randomT, randomTgt, newId);
+                if (!timeoutAlreadyExist(newTimeout, delta, newDelta)) {
+                    newDelta.push_back(newTimeout);
+                    alreadyExisting = false;
+                }
+            }
+            else {
+                string randomI = getRandomStringFromSet(I);
+                string randomO = getRandomStringFromSet(O);
+                IOTransition * newTransition = new IOTransition(randomSrc,randomI, randomO, randomTgt, newId);
+                if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
+                    newLambda.push_back(newTransition);
+                    alreadyExisting = false;
+                }
+            }
+        }
+    }
+    M->addTransitions(newLambda, true);
+    M->addTimeouts(newDelta, true);
+    return M;
+}
+
+InfInt Algorithms_TFSM_TO::computeNumberOfMutants(FSM * M) {
+    InfInt res = 1;
+    for (int s : M->states) {
+        for (string i : M->inputs) {
+            if (M->getXi(s, i).size() > 1)
+                res *= M->getXi(s, i).size();
+        }
+    }
+    for (int s : M->states) {
+        if (M->getXi(s).size() > 1)
+            res *= M->getXi(s).size();
+    }
+    return res;
 }

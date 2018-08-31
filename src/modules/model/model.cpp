@@ -44,7 +44,7 @@ void testOmer()
     Spec->print();
     Muta->print();
 
-    Algorithms * transformator = new Algorithms_TFSM(false);
+    Algorithms * transformator = new Algorithms_TFSM(false, false);
     FSM * fullMuta = transformator->completeMutation(Muta);
     fullMuta->print();
 
@@ -204,7 +204,7 @@ void Model::exportFile(QString fileName)
 void Model::checkingExperiment()
 {
     cout << ":D " << endl;
-    Algorithms * algo = currentFactory->getAlgorithms(true);
+    Algorithms * algo = currentFactory->getAlgorithms(true, false);
     vector<sequence> E;
     vector<sequence> Einit;
     SpecificationMachine->print();
@@ -220,7 +220,7 @@ void Model::checkingExperiment()
 void Model::checkingSequence()
 {
     cout << ":( " << endl;
-    Algorithms * algo = currentFactory->getAlgorithms(false);
+    Algorithms * algo = currentFactory->getAlgorithms(true, false);
     sequence seq;
     seq = algo->generateCheckingSequence(SpecificationMachine, MutationMachine);
     printSequence(seq);
@@ -297,4 +297,16 @@ void Model::getImportedType(std::string header)
     if (index != -1) {
         changeMachineType(rx.cap(2));
     }
+}
+
+void Model::checkingExperimentBenchmark(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
+{
+    cout << "Coucou !" << endl;
+    Algorithms * algo = currentFactory->getAlgorithms(true, true);
+    algo->checkingExperimentBenchmarks(folder, nbStates, nbMutations, nbMachines, timeoutedValue, maxTimeout);
+}
+
+void Model::checkingSequenceBenchmark(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
+{
+cout << "Yo !" << endl;
 }

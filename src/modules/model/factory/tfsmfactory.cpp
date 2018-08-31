@@ -9,9 +9,9 @@ TFSMFactory::TFSMFactory() : MachineFactory()
 
 }
 
-Algorithms * TFSMFactory::getAlgorithms(bool generateLogs)
+Algorithms * TFSMFactory::getAlgorithms(bool generateLogs, bool onlyDot)
 {
-    return new Algorithms_TFSM(generateLogs);
+    return new Algorithms_TFSM(generateLogs, onlyDot);
 }
 
 Guard generateGuard(QString cap1, QString cap2, QString cap3, QString cap4)

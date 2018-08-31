@@ -9,7 +9,7 @@
 #include <ctime>
 #include <fstream>
 #include <math.h>
-
+#include "../../../lib/infint.h"
 
 class Algorithms
 {
@@ -17,8 +17,10 @@ protected:
     bool generateLogs;
     int nbPassedMutants;
     int nbVerifying;
+    std::string logPath;
+    bool onlyDot;
 public:
-    Algorithms(bool generateLogs);
+    Algorithms(bool generateLogs, bool onlyDot);
 
     void printDOT(std::string content, std::string path);
 
@@ -42,9 +44,13 @@ public:
 
     virtual sequence generateCheckingSequence(FSM * S, FSM * M) = 0;
 
-    virtual void checkingExperimentBenchmarks() = 0;
+    virtual FSM * generateRandomSpecification(int nbOfStates, int maxTime, std::set<std::string> I, std::set<std::string> O) = 0;
 
-    virtual void checkingSequenceBenchmarks() = 0;
+    virtual FSM * generateRandomMutation(FSM * S, int maxTime, int numberOfMutations) = 0;
+
+    virtual void checkingExperimentBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout) = 0;
+
+    virtual void checkingSequenceBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout) = 0;
 
     virtual std::vector<sequence> removePrefixes(std::vector<sequence> E) = 0;
 
@@ -52,6 +58,8 @@ public:
 
     void savePath(std::string pathsPath, std::vector<executingPath> paths);
     virtual FSM * completeMutation(FSM * M) = 0;
+
+    virtual InfInt computeNumberOfMutants(FSM * M) = 0;
 };
 
 #endif // ALGORITHMS_H

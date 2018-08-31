@@ -30,6 +30,8 @@ public slots:
     void exportFile(QString fileName);
     void checkingExperiment();
     void checkingSequence();
+    void checkingExperimentBenchmark(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout);
+    void checkingSequenceBenchmark(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout);
     void generateSpecification(QMap<QString, QTableWidget *> map, int nbOfStates);
     void generateMutation(QMap<QString, QTableWidget *> map, int nbOfStates);
     void changeMachineType(const QString & type);

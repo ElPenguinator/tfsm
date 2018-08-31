@@ -2,7 +2,7 @@
 using namespace std;
 using namespace CMSat;
 
-Algorithms_FSM::Algorithms_FSM(bool generateLogs) : Algorithms(generateLogs)
+Algorithms_FSM::Algorithms_FSM(bool generateLogs, bool onlyDot) : Algorithms(generateLogs, onlyDot)
 {
 
 }
@@ -46,7 +46,7 @@ void Algorithms_FSM::computePhiE(SATSolver * &solver, vector<sequence> E, Distin
     for (auto alpha : E) {
         vector<executingPath> rev = D->revealingPaths(alpha);
         if (generateLogs) {
-            savePath("test/paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
+            savePath(logPath + "paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
         }
         for (auto path : rev) {
             vector<Lit> clause;
@@ -102,8 +102,8 @@ sequence Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<seq
             DistinguishingAutomaton_FSM * DP = new DistinguishingAutomaton_FSM(S, P);
             DP->initialize();
             if (generateLogs) {
-                saveSVG("test/mutant" + to_string(nbPassedMutants) +".dot", "test/mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
-                saveSVG("test/productMutant" + to_string(nbPassedMutants) + ".dot", "test/productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
+                saveSVG(logPath + "mutant" + to_string(nbPassedMutants) +".dot", logPath + "mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
+                saveSVG(logPath + "productMutant" + to_string(nbPassedMutants) + ".dot", logPath + "productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
             }
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
@@ -161,9 +161,9 @@ vector<sequence> Algorithms_FSM::generateCheckingExperiment(vector<sequence> Ein
     DistinguishingAutomaton_FSM * D = new DistinguishingAutomaton_FSM(S, M);
     D->initialize();
     if (generateLogs) {
-        saveSVG("test/specification.dot", "test/specification.svg", S->generateDot());
-        saveSVG("test/mutation.dot", "test/mutation.svg", M->generateDot());
-        saveSVG("test/distinguishing.dot", "test/distinguishing.svg", D->generateDot());
+        saveSVG(logPath + "specification.dot", logPath + "specification.svg", S->generateDot());
+        saveSVG(logPath + "mutation.dot", logPath + "mutation.svg", M->generateDot());
+        saveSVG(logPath + "distinguishing.dot", logPath + "distinguishing.svg", D->generateDot());
     }
     vector<sequence> E;
     vector<sequence> Ecurr = Einit;
@@ -248,7 +248,7 @@ sequence Algorithms_FSM::generateCheckingSequence(FSM * S, FSM * M)
     return CS;
 }
 
-void Algorithms_FSM::checkingExperimentBenchmarks()
+void Algorithms_FSM::checkingExperimentBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
     //    set<string> I = {"a", "b"};
     //    set<string> O = {"0", "1"};
@@ -293,10 +293,48 @@ void Algorithms_FSM::checkingExperimentBenchmarks()
     //        }
 
     //    }
+
+    cout << folder << " | " << nbMachines << " | " << timeoutedValue << " | " << maxTimeout << " | " << " | " << endl;
+    set<string> I = {"a", "b"};
+    set<string> O = {"0", "1"};
+
+    ofstream benchFile;
+    for (int states : nbStates) {
+            cout << "States : " << states << endl;
+        for (int i = 0; i < nbMachines; i++) {
+            cout << "Machines : " << i << endl;
+            FSM * randomSpec = generateRandomSpecification(states, maxTimeout, I, O);
+            int transitionsInSpec = states * I.size();
+            for (int mutations : nbMutations) {
+                cout << "Mutations : " << mutations << endl;
+                int maximumTransitions = states * I.size() * O.size() * states;
+                if (mutations < maximumTransitions - transitionsInSpec) {
+                    randomSpec->print();
+                    FSM * randomMuta = generateRandomMutation(randomSpec, maxTimeout * 2, mutations);
+                    string pathName = folder + "/bench_CE_" + to_string(states) + "_" + to_string(mutations) + '_' + to_string(i);
+                    benchFile.open(pathName + "_results.txt");
+
+                    vector<sequence> E;
+                    vector<sequence> Einit;
+                    cout << "Begin" << endl;
+                    clock_t begin = clock();
+                    this->logPath = pathName + "_";
+                    E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
+                    clock_t end = clock();
+                    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+                    cout << "End" << endl;
+                    benchFile << states << " " << mutations << " " << maxTimeout << " " << maxTimeout*2 << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
+                    delete randomMuta;
+                    benchFile.close();
+                }
+            }
+            delete randomSpec;
+        }
+    }
 }
 
 
-void Algorithms_FSM::checkingSequenceBenchmarks()
+void Algorithms_FSM::checkingSequenceBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
     //    set<string> I = {"a", "b"};
     //    set<string> O = {"0", "1"};
@@ -337,29 +375,19 @@ vector<sequence> Algorithms_FSM::removePrefixes(vector<sequence> E)
     vector<sequence> newE;
     for (sequence s1 : E) {
         bool found = false;
-        cout << "S1 : ";
-        printSequence(s1);
 
         vector<sequence> copyNewE(newE);
         int j = 0;
         for (sequence s2 : copyNewE) {
-            cout << "S2 : ";
-            printSequence(s2);
             int i=0;
             while (i < min(s1.size(), s2.size()) && s1[i].first == s2[i].first && s1[i].second == s2[i].second) {
                 i++;
             }
             if (i == min(s1.size(), s2.size())) {
                 if (s1.size() <= s2.size()) {
-                    printSequence(s1);
-                    cout << "Is prefix of" << endl;
-                    printSequence(s2);
                     found = true;
                 }
                 else {
-                    printSequence(s2);
-                    cout << "Is prefix of" << endl;
-                    printSequence(s1);
                     newE.erase(newE.begin() + j);
                 }
             }
@@ -374,4 +402,80 @@ vector<sequence> Algorithms_FSM::removePrefixes(vector<sequence> E)
 FSM * Algorithms_FSM::completeMutation(FSM * M)
 {
 
+}
+
+FSM * Algorithms_FSM::generateRandomSpecification(int nbOfStates, int maxTime, set<string> I, set<string> O)
+{
+    set<int> S;
+    int s0 = 0;
+    vector<IOTransition *> lambda;
+    int transitionId;
+    srand (time(NULL));
+    bool isConnected = false;
+
+    FSM * res;
+
+    //while (!isConnected) {
+        transitionId = 0;
+        S.clear();
+        lambda.clear();
+        for (int s=0; s<nbOfStates; s++) {
+            S.insert(s);
+            for (string i : I) {
+                string randomO = getRandomStringFromSet(O);
+                int randomTgt = floor(rand() % nbOfStates);
+
+                lambda.push_back(new IOTransition(s, i, randomO, randomTgt, transitionId));
+                transitionId++;
+            }
+        }
+        res = new FSM(S, s0, I, O, lambda);
+        /*
+         * isConnected = isTFSMConnected(res);
+        if (!isConnected)
+            delete res;
+        */
+    //}
+    return res;
+}
+
+FSM * Algorithms_FSM::generateRandomMutation(FSM * S, int maxTime, int numberOfMutations)
+{
+    set<int> States(S->states);
+    int s0 = S->initialState;
+    set<string> I(S->inputs);
+    set<string> O(S->outputs);
+    vector<IOTransition *> lambda(S->transitions);
+    FSM * M = new FSM(States, s0, I, O, lambda);
+
+    srand (time(NULL));
+    vector<IOTransition *> newLambda;
+    for (int i=0; i<numberOfMutations; i++) {
+        bool alreadyExisting = true;
+        while (alreadyExisting) {
+            int randomSrc = floor(rand() % S->states.size());
+            int randomTgt = floor(rand() % S->states.size());
+            int newId = i + (S->transitions.size() + S->getTimeouts().size());
+            string randomI = getRandomStringFromSet(I);
+            string randomO = getRandomStringFromSet(O);
+            IOTransition * newTransition = new IOTransition(randomSrc,randomI, randomO, randomTgt, newId);
+            if (!transitionAlreadyExist(newTransition, lambda, newLambda)) {
+                newLambda.push_back(newTransition);
+                alreadyExisting = false;
+            }
+        }
+    }
+    M->addTransitions(newLambda, true);
+    return M;
+}
+
+InfInt Algorithms_FSM::computeNumberOfMutants(FSM * M) {
+    InfInt res = 1;
+    for (int s : M->states) {
+        for (string i : M->inputs) {
+            if (M->getXi(s, i).size() > 1)
+                res *= M->getXi(s, i).size();
+        }
+    }
+    return res;
 }

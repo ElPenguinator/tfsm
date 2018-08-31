@@ -23,6 +23,8 @@ void Controller::bindEvents(View &view, Model &model)
     connect(_view, &View::exportedFile, _model, &Model::exportFile);
     connect(_view, &View::checkingExperiment, _model, &Model::checkingExperiment);
     connect(_view, &View::checkingSequence, _model, &Model::checkingSequence);
+    connect(_view, &View::checkingExperimentBenchmark, _model, &Model::checkingExperimentBenchmark);
+    connect(_view, &View::checkingSequenceBenchmark, _model, &Model::checkingSequenceBenchmark);
     connect(_view, &View::generateSpecification, _model, &Model::generateSpecification);
     connect(_view, &View::generateMutation, _model, &Model::generateMutation);
     connect(_view, &View::machineTypeChanged, _model, &Model::changeMachineType);

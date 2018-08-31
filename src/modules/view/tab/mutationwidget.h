@@ -40,7 +40,6 @@ private:
     QTableWidget *_output_tab;
     SvgView *_renderer;
     void buildInterface();
-    void fillInterface();
     void relaySignals();
     void updateTab(bool needGuards, bool needTimeouts);
     void setButtonStyle(QPushButton *);

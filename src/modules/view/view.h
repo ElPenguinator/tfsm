@@ -28,6 +28,8 @@ signals:
     void generateSpecification(QMap<QString, QTableWidget *>, int);
     void generateMutation(QMap<QString, QTableWidget *>, int);
     void machineTypeChanged(const QString &);
+    void checkingExperimentBenchmark(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout);
+    void checkingSequenceBenchmark(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout);
 };
 
 #endif // VIEW_H

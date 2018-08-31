@@ -62,6 +62,7 @@ private:
 public:
     MainWindow(QWidget *parent = 0);
     MutationWidget * getMutationWidget();
+    BenchmarkWidget * getBenchmarkWidget();
 };
 
 #endif // MAINWINDOW_H

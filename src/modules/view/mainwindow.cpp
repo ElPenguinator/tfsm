@@ -38,3 +38,8 @@ MutationWidget * MainWindow::getMutationWidget()
 {
     return this->_mutation_widget;
 }
+
+BenchmarkWidget * MainWindow::getBenchmarkWidget()
+{
+    return this->_benchmark_widget;
+}

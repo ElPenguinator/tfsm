@@ -5,7 +5,7 @@
 class Algorithms_FSM : public Algorithms
 {
 public:
-    Algorithms_FSM(bool generateLogs);
+    Algorithms_FSM(bool generateLogs, bool onlyDot);
 
     FSM * generateSubmachine(CMSat::SATSolver * &solver, FSM * M);
 
@@ -27,13 +27,19 @@ public:
 
     sequence generateCheckingSequence(FSM * S, FSM * M);
 
-    void checkingExperimentBenchmarks();
+    FSM * generateRandomSpecification(int nbOfStates, int maxTime, std::set<std::string> I, std::set<std::string> O);
 
-    void checkingSequenceBenchmarks();
+    FSM * generateRandomMutation(FSM * S, int maxTime, int numberOfMutations);
+
+    void checkingExperimentBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout);
+
+    void checkingSequenceBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout);
 
     std::vector<sequence> removePrefixes(std::vector<sequence> E);
 
     FSM * completeMutation(FSM * M);
+
+    InfInt computeNumberOfMutants(FSM * M);
 };
 
 #endif // FSMALGORITHMS_H

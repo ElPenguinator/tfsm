@@ -13,9 +13,9 @@ FSMFactory::FSMFactory() : MachineFactory()
 
 }
 
-Algorithms * FSMFactory::getAlgorithms(bool generateLogs)
+Algorithms * FSMFactory::getAlgorithms(bool generateLogs, bool onlyDot)
 {
-    return new Algorithms_FSM(generateLogs);
+    return new Algorithms_FSM(generateLogs, onlyDot);
 }
 
 FSM * FSMFactory::generateSpecification(QMap<QString, QTableWidget *> map, int nbOfStates)

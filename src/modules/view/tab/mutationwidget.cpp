@@ -8,7 +8,6 @@ MutationWidget::MutationWidget(QWidget *parent) : QWidget(parent)
     buildInterface();
     updateTab(false, false);
     relaySignals();
-    fillInterface();
 }
 
 void MutationWidget::setButtonStyle(QPushButton *button)
@@ -168,11 +167,6 @@ void MutationWidget::buildInterface()
     _renderer->setMaximumWidth(700);
     _main_layout->addWidget(_renderer, 0, 0, 4, 2);
 
-}
-
-void MutationWidget::fillInterface()
-{
-    //_FAQ_text_browser->setSource(QUrl("doc/homepage.html"));
 }
 
 bool MutationWidget::stateValidator(QTableWidget * ref, int row, int column, QString content)

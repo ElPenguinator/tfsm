@@ -30,6 +30,7 @@ void View::exportFile()
 void View::bindEvents()
 {
     MutationWidget *mutationWidget = _main_window->getMutationWidget();
+    BenchmarkWidget *benchmarkWidget = _main_window->getBenchmarkWidget();
     connect(mutationWidget, &MutationWidget::importFile, this, &View::importFile);
     connect(mutationWidget, &MutationWidget::exportFile, this, &View::exportFile);
     connect(mutationWidget, &MutationWidget::checkingExperiment, this, &View::checkingExperiment);
@@ -37,6 +38,9 @@ void View::bindEvents()
     connect(mutationWidget, &MutationWidget::generateSpecification, this, &View::generateSpecification);
     connect(mutationWidget, &MutationWidget::generateMutation, this, &View::generateMutation);
     connect(mutationWidget, &MutationWidget::machineTypeChanged, this, &View::machineTypeChanged);
+    connect(benchmarkWidget, &BenchmarkWidget::machineTypeChanged, this, &View::machineTypeChanged);
+    connect(benchmarkWidget, &BenchmarkWidget::checkingExperimentBenchmark, this, &View::checkingExperimentBenchmark);
+    connect(benchmarkWidget, &BenchmarkWidget::checkingSequenceBenchmark, this, &View::checkingSequenceBenchmark);
     connect(this, &View::checkingExperimentResults, mutationWidget, &MutationWidget::checkingExperimentResults);
     connect(this, &View::checkingSequenceResults, mutationWidget, &MutationWidget::checkingSequenceResults);
     connect(this, &View::machineSVGGenerated, mutationWidget, &MutationWidget::machineSVGGenerated);
