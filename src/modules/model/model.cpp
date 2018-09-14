@@ -209,6 +209,19 @@ void Model::checkingExperiment()
     vector<sequence> Einit;
     SpecificationMachine->print();
     MutationMachine->print();
+    for (int s : MutationMachine->states) {
+        for (string i : MutationMachine->inputs) {
+            cout << "[" << s << " | " << i << "] : " << endl;
+            for (auto eta : MutationMachine->getEta(s, i)) {
+                cout << "{";
+                for (int id : eta) {
+                    cout << id << " " << endl;
+                }
+                cout << "}";
+            }
+        }
+    }
+
     E = algo->generateCheckingExperiment(Einit, SpecificationMachine, MutationMachine);
     cout << "E : " << endl;
     for (auto s : E) {
@@ -243,6 +256,7 @@ bool Model::saveSVG(string dot)
     GVC_t *gvc;
     Agraph_t * g;
     gvc = gvContext();
+
     gvParseArgs(gvc, argc, args);
     FILE * fpDot;
     FILE * fpSVG;
@@ -254,6 +268,7 @@ bool Model::saveSVG(string dot)
     gvFreeLayout(gvc, g);
     agclose(g);
     fclose(fpDot);
+
     return (gvFreeContext(gvc));
 }
 

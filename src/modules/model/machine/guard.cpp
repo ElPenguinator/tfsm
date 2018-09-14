@@ -35,7 +35,7 @@ bool Guard::isIntersectionEmpty(Guard other) {
         tmin = this->tmin;
         left = this->left;
     }
-    if (this->tmin < other.tmin) {
+    else if (this->tmin < other.tmin) {
         tmin = other.tmin;
         left = other.left;
     }
@@ -53,7 +53,7 @@ bool Guard::isIntersectionEmpty(Guard other) {
         tmax = this->tmax;
         right = this->right;
     }
-    if (this->tmax > other.tmax) {
+    else if (this->tmax > other.tmax) {
         tmax = other.tmax;
         right = other.right;
     }

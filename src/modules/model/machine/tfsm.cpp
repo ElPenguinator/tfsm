@@ -132,6 +132,21 @@ void TFSM::computeMaps()
                 if (isUnionEverything(toCheck) && isIntersectionEmpty(toCheck)) {
                     combinations.insert(combination);
                 }
+                /*
+                else {
+                    cout << "Not possible for : { ";
+                    for (IOTransition * transition : toCheck) {
+                        cout << transition->getGuard().toString() << " ";
+                    }
+                    cout << " } because of : " << endl;
+                    if (!isUnionEverything(toCheck)) {
+                        cout << "Union is not everything" << endl;
+                    }
+                    if (!isIntersectionEmpty(toCheck)) {
+                        cout << "Intersection is not empty" << endl;
+                    }
+                }
+                */
             }
             elt.insert(make_pair(i, combinations));
         }
@@ -154,6 +169,7 @@ void TFSM::computeMaps()
         }
     }
     */
+
 
 
 }

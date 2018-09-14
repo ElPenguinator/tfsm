@@ -25,7 +25,6 @@ SOURCES += src/main.cpp \
     src/modules/view/mainwindow.cpp \
     src/modules/controller/controller.cpp \
     src/modules/model/model.cpp \
-    src/tmp.cpp \
     src/modules/view/tab/homepagewidget.cpp \
     src/modules/model/machine/distinguishingautomaton_fsm.cpp \
     src/modules/model/machine/distinguishingautomaton_tfsm_to.cpp \

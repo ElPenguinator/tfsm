@@ -132,11 +132,21 @@ void Algorithms_TFSM::computePhiM(SATSolver * &solver, FSM * S, FSM * M)
                 }
                 newEta.insert(newSet);
             }
+            if (eta.size() == 0) {
+                cout << "Cluster empty for state " << s << " and entry " << i << endl;
+                vector<Lit> clause1;
+                clause1.push_back(Lit(1, false));
+                solver->add_clause(clause1);
+                vector<Lit> clause2;
+                clause2.push_back(Lit(1, true));
+                solver->add_clause(clause2);
+            }
+            else {
+                set<set<int>>::iterator begin = newEta.begin();
+                set<set<int>>::iterator end = newEta.end();
 
-            set<set<int>>::iterator begin = newEta.begin();
-            set<set<int>>::iterator end = newEta.end();
-
-            computePhiMRecur(solver, xi, begin, end, emptyClause);
+                computePhiMRecur(solver, xi, begin, end, emptyClause);
+            }
         }
     }
     for (auto s : M->states) {
@@ -233,7 +243,7 @@ vector<sequence> Algorithms_TFSM::generateCheckingExperimentTimeouted(vector<seq
 vector<sequence> Algorithms_TFSM::generateCheckingExperiment(vector<sequence> Einit, FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
-solver->log_to_file("/tmp/test.txt");
+    solver->log_to_file("/tmp/test.txt");
     solver->new_vars(M->getTransitionSize());
     computePhiM(solver, S, M);
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
@@ -331,83 +341,83 @@ sequence Algorithms_TFSM::generateCheckingSequence(FSM * S, FSM * M)
 
 void Algorithms_TFSM::checkingExperimentBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
-//    set<string> I = {"a", "b"};
-//    set<string> O = {"0", "1"};
+    //    set<string> I = {"a", "b"};
+    //    set<string> O = {"0", "1"};
 
 
-//    //int nbStates [5] = {4, 8, 10, 12, 15};
-//    //int nbMutants [6] = {16, 32, 64, 128, 256, 512};
+    //    //int nbStates [5] = {4, 8, 10, 12, 15};
+    //    //int nbMutants [6] = {16, 32, 64, 128, 256, 512};
 
-//    int nbStates [1] = {15};
-//    int nbMutants [1] = {96};
-//    int maxTimeSpec = 3;
-//    int maxTimeMuta = 5;
-//    ofstream benchFile;
-//    ->getTimeouts() << "Num of Bench : " << nbOfBench << endl;
-//    //for (int j=4; j<5; j++) {
-//    for (int j=0; j<1; j++) {
-//        ->getTimeouts() << nbStates[j] << " states" << endl;
-//        int maximumTransitions = nbStates[j] * I.size() * O.size() * nbStates[j] + nbStates[j] * (maxTimeMuta+1) * nbStates[j];
-//        int transitionsInSpec = nbStates[j] * I.size() + nbStates[j];
-//        ->getTimeouts() << "Maximum : " << maximumTransitions << " In Spec : " << transitionsInSpec << " available : " << maximumTransitions - transitionsInSpec << endl;
-//        //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
-//        //for (int i=0; i < 6; i++) {
-//        for (int i=0; i < 1; i++) {
-//            ->getTimeouts() << nbMutants[i] << " mutated transitions/timeouts" << endl;
-//            if (nbMutants[i] < maximumTransitions - transitionsInSpec) {
-//                benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
-//                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTimeSpec, I, O);
-//                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTimeMuta, nbMutants[i]);
-//                vector<sequence> E;
-//                vector<sequence> Einit;
-//                ->getTimeouts() << "Begin" << endl;
-//                clock_t begin = clock();
-//                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
-//                clock_t end = clock();
-//                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//                ->getTimeouts() << "End" << endl;
-//                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTimeSpec << " " << maxTimeMuta << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
-//                delete randomSpec;
-//                delete randomMuta;
-//                benchFile.close();
-//            }
-//        }
+    //    int nbStates [1] = {15};
+    //    int nbMutants [1] = {96};
+    //    int maxTimeSpec = 3;
+    //    int maxTimeMuta = 5;
+    //    ofstream benchFile;
+    //    ->getTimeouts() << "Num of Bench : " << nbOfBench << endl;
+    //    //for (int j=4; j<5; j++) {
+    //    for (int j=0; j<1; j++) {
+    //        ->getTimeouts() << nbStates[j] << " states" << endl;
+    //        int maximumTransitions = nbStates[j] * I.size() * O.size() * nbStates[j] + nbStates[j] * (maxTimeMuta+1) * nbStates[j];
+    //        int transitionsInSpec = nbStates[j] * I.size() + nbStates[j];
+    //        ->getTimeouts() << "Maximum : " << maximumTransitions << " In Spec : " << transitionsInSpec << " available : " << maximumTransitions - transitionsInSpec << endl;
+    //        //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
+    //        //for (int i=0; i < 6; i++) {
+    //        for (int i=0; i < 1; i++) {
+    //            ->getTimeouts() << nbMutants[i] << " mutated transitions/timeouts" << endl;
+    //            if (nbMutants[i] < maximumTransitions - transitionsInSpec) {
+    //                benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+    //                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTimeSpec, I, O);
+    //                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTimeMuta, nbMutants[i]);
+    //                vector<sequence> E;
+    //                vector<sequence> Einit;
+    //                ->getTimeouts() << "Begin" << endl;
+    //                clock_t begin = clock();
+    //                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
+    //                clock_t end = clock();
+    //                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    //                ->getTimeouts() << "End" << endl;
+    //                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTimeSpec << " " << maxTimeMuta << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
+    //                delete randomSpec;
+    //                delete randomMuta;
+    //                benchFile.close();
+    //            }
+    //        }
 
-//    }
+    //    }
 }
 
 
 void Algorithms_TFSM::checkingSequenceBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
-//    set<string> I = {"a", "b"};
-//    set<string> O = {"0", "1"};
+    //    set<string> I = {"a", "b"};
+    //    set<string> O = {"0", "1"};
 
 
-//    int nbStates [5] = {4, 8, 10, 12, 15};
-//    int nbMutants [6] = {16, 32, 64, 128, 300, 400};
-//    int maxTime = 5;
+    //    int nbStates [5] = {4, 8, 10, 12, 15};
+    //    int nbMutants [6] = {16, 32, 64, 128, 300, 400};
+    //    int maxTime = 5;
 
-//    for (int nbOfBench=0; nbOfBench < 5; nbOfBench++) {
-//        ofstream benchFile;
+    //    for (int nbOfBench=0; nbOfBench < 5; nbOfBench++) {
+    //        ofstream benchFile;
 
-//        for (int j=0; j<3; j++) {
-//            for (int i=0; i < 6; i++) {
-//                benchFile.open("bench_CS_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
-//                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
-//                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
-//                sequence CS;
-//                clock_t begin = clock();
-//                CS = generateCheckingSequenceTimeouted(randomSpec, randomMuta);
-//                clock_t end = clock();
-//                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << CS.size() << "\n";
-//                delete randomSpec;
-//                delete randomMuta;
-//                benchFile.close();
-//            }
-//        }
+    //        for (int j=0; j<3; j++) {
+    //            for (int i=0; i < 6; i++) {
+    //                benchFile.open("bench_CS_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+    //                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
+    //                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
+    //                sequence CS;
+    //                clock_t begin = clock();
+    //                CS = generateCheckingSequenceTimeouted(randomSpec, randomMuta);
+    //                clock_t end = clock();
+    //                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    //                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTime << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << CS.size() << "\n";
+    //                delete randomSpec;
+    //                delete randomMuta;
+    //                benchFile.close();
+    //            }
+    //        }
 
-//    }
+    //    }
 
 }
 
@@ -491,29 +501,29 @@ FSM * Algorithms_TFSM::completeMutation(FSM * M)
                     newM->addTransitions(newLambda, true);
                 }
                 else {
-                lastGuard = minGuard;
-                if (minGuard.tmin > newtMax || (minGuard.tmin == newtMax && newRight == minGuard.left == Bracket::Curly)) {
-                    if (minGuard.left == Bracket::Curly)
-                        newRight == Bracket::Square;
-                    else
-                        newRight == Bracket::Curly;
+                    lastGuard = minGuard;
+                    if (minGuard.tmin > newtMax || (minGuard.tmin == newtMax && newRight == minGuard.left == Bracket::Curly)) {
+                        if (minGuard.left == Bracket::Curly)
+                            newRight == Bracket::Square;
+                        else
+                            newRight == Bracket::Curly;
 
-                    Guard newGuard(newLeft, newtMin, minGuard.tmin, newRight);
-                    vector<IOTransition *> newLambda;
-                    for (string o : newM->outputs) {
-                        for (int tgt : newM->states) {
-                            newLambda.push_back(new GuardedTransition(src, i, newGuard, o, tgt, lastID++));
+                        Guard newGuard(newLeft, newtMin, minGuard.tmin, newRight);
+                        vector<IOTransition *> newLambda;
+                        for (string o : newM->outputs) {
+                            for (int tgt : newM->states) {
+                                newLambda.push_back(new GuardedTransition(src, i, newGuard, o, tgt, lastID++));
+                            }
                         }
+                        newM->addTransitions(newLambda, true);
                     }
-                    newM->addTransitions(newLambda, true);
-                }
-                if (minGuard.right == Bracket::Curly)
-                    newLeft == Bracket::Square;
-                else
-                    newLeft == Bracket::Curly;
-                newtMin = minGuard.tmax;
-                newtMax = minGuard.tmax;
-                newRight = Bracket::Curly;
+                    if (minGuard.right == Bracket::Curly)
+                        newLeft == Bracket::Square;
+                    else
+                        newLeft == Bracket::Curly;
+                    newtMin = minGuard.tmax;
+                    newtMax = minGuard.tmax;
+                    newRight = Bracket::Curly;
                 }
             }
         }

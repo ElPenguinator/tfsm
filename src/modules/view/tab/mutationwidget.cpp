@@ -236,7 +236,7 @@ bool MutationWidget::guardValidator(QTableWidget * ref, int row, int column, QSt
     QString pattern = "([\\[\\(])\\s*([0-9]+)\\s*,\\s*([0-9]+|inf)\\s*([\\)\\]])";
     QRegExp rx(pattern);
     int index = rx.indexIn(content);
-    cout << "Guard : " << content.toStdString() << " " << index << " " << rx.matchedLength() << " " << content.length() << endl;
+    //cout << "Guard : " << content.toStdString() << " " << index << " " << rx.matchedLength() << " " << content.length() << endl;
     if (index != -1  && rx.matchedLength() == content.length()) {
         //Valid
     }

@@ -24,7 +24,7 @@ Guard generateGuard(QString cap1, QString cap2, QString cap3, QString cap4)
     else
         tmax = cap3.toInt();
     string rightBracket = cap4.toStdString();
-    cout << "Guard : " << leftBracket << tmin << "," << tmax << rightBracket << endl;
+    //cout << "Guard : " << leftBracket << tmin << "," << tmax << rightBracket << endl;
 
     return Guard(leftBracket, tmin, tmax, rightBracket);
 }
@@ -110,7 +110,6 @@ FSM * TFSMFactory::generateMutation(FSM *specification, QMap<QString, QTableWidg
     set<int> S = generateStates(nbOfStates);
     int s0 = 1;
 
-    cout << "Hello" << endl;
     QTableWidget * tableInputs = (*map.find(QString("inputs")));
     QTableWidget * tableOutputs = (*map.find(QString("outputs")));
     QTableWidget * tableTransitions = (*map.find(QString("transitions")));
@@ -226,7 +225,10 @@ void TFSMFactory::fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLi
             tableSpecTransitions->setRowCount(tableSpecTransitions->rowCount()+1);
             tableSpecTransitions->setItem(rowSpec, 0, new QTableWidgetItem(QString::number(t->src)));
             tableSpecTransitions->setItem(rowSpec, 1, new QTableWidgetItem(QString::fromStdString(t->i)));
-            tableSpecTransitions->setItem(rowSpec, 2, new QTableWidgetItem(QString::fromStdString(t->getGuard().toString())));
+            string g = t->getGuard().toString();
+            if (g.find("∞") != string::npos)
+                g.replace(g.find("∞"), 1, "inf");
+            tableSpecTransitions->setItem(rowSpec, 2, new QTableWidgetItem(QString::fromStdString(g)));
             tableSpecTransitions->setItem(rowSpec, 3, new QTableWidgetItem(QString::fromStdString(t->o)));
             tableSpecTransitions->setItem(rowSpec, 4, new QTableWidgetItem(QString::number(t->tgt)));
             rowSpec++;
@@ -235,7 +237,10 @@ void TFSMFactory::fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLi
             tableMutaTransitions->setRowCount(tableMutaTransitions->rowCount()+1);
             tableMutaTransitions->setItem(rowMuta, 0, new QTableWidgetItem(QString::number(t->src)));
             tableMutaTransitions->setItem(rowMuta, 1, new QTableWidgetItem(QString::fromStdString(t->i)));
-            tableMutaTransitions->setItem(rowMuta, 2, new QTableWidgetItem(QString::fromStdString(t->getGuard().toString())));
+            string g = t->getGuard().toString();
+            if (g.find("∞") != string::npos)
+                g.replace(g.find("∞"), 3, "inf");
+            tableMutaTransitions->setItem(rowMuta, 2, new QTableWidgetItem(QString::fromStdString(g)));
             tableMutaTransitions->setItem(rowMuta, 3, new QTableWidgetItem(QString::fromStdString(t->o)));
             tableMutaTransitions->setItem(rowMuta, 4, new QTableWidgetItem(QString::number(t->tgt)));
             rowMuta++;

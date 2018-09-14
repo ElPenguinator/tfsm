@@ -27,6 +27,7 @@ bool Algorithms::saveSVG(string dotPath, string svgPath, string dot)
     dotFile << dot;
     dotFile.close();
     if (!onlyDot) {
+
         string o_arg = "-o " + svgPath;
         char* args[] = {const_cast<char*>("dot"), const_cast<char*>("-Tsvg"), const_cast<char*>(dotPath.c_str()), const_cast<char*>(o_arg.c_str()) };
 
@@ -46,6 +47,7 @@ bool Algorithms::saveSVG(string dotPath, string svgPath, string dot)
         agclose(g);
         fclose(fpDot);
         return (gvFreeContext(gvc));
+        //return false;
     }
     else {
         return false;

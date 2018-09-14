@@ -42,7 +42,12 @@ void TFSMLoader::readLine(string line, bool createSpecification)
     if (index != -1) {
         leftBracket = rxIO.cap(1).toStdString();
         tmin = rxIO.cap(2).toInt();
-        tmax = rxIO.cap(3).toInt();
+        if (rxIO.cap(3).toStdString() == "∞") {
+            tmax = inf;
+        }
+        else {
+            tmax = rxIO.cap(3).toInt();
+        }
         rightBracket = rxIO.cap(4).toStdString();
         i = rxIO.cap(5).toStdString();
         o = rxIO.cap(6).toStdString();
