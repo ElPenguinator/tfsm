@@ -5,6 +5,7 @@
 #include <sstream>
 #include <queue>
 #include "../tools.h"
+#include "../algorithm/inputsequence.h"
 using namespace std;
 
 DistinguishingAutomaton_FSM::DistinguishingAutomaton_FSM(FSM * S, FSM * M)
@@ -64,7 +65,7 @@ void DistinguishingAutomaton_FSM::generateNext(ProductState * state)
     }
 }
 
-std::vector<executingPath> DistinguishingAutomaton_FSM::revealingPaths(sequence alpha)
+std::vector<executingPath> DistinguishingAutomaton_FSM::revealingPaths(Sequence * alpha)
 {
     vector<executingPath> results;
     executingPath currentPath;
@@ -84,14 +85,14 @@ bool DistinguishingAutomaton_FSM::isPathDeterministic(const executingPath p)
     return true;
 }
 
-void DistinguishingAutomaton_FSM::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, sequence alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_FSM::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, Sequence * alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() == "sink") {
         results.push_back(currentPath);
     }
-    else if (sequenceIndex < alpha.size()) {
-        ts timed_symbol = alpha[sequenceIndex];
-        string symbol = timed_symbol.first;
+    else if (sequenceIndex < alpha->getSize()) {
+        string symbol = dynamic_cast<InputSequence *>(alpha)->getElement(sequenceIndex);
+        //string symbol = timed_symbol.first;
         //Time to spend, so take only timeouts
         for (auto transition : this->transitions) {
             if (transition->src == state->getKey() && !transition->isTimeout) {
@@ -214,12 +215,12 @@ std::deque<ProductTransition *> DistinguishingAutomaton_FSM::Dijkstra(string key
     return results;
 }
 
-void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, sequence alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, Sequence * alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() != "sink") {
-        if (sequenceIndex < alpha.size()) {
-            ts timed_symbol = alpha[sequenceIndex];
-            string symbol = timed_symbol.first;
+        if (sequenceIndex < alpha->getSize()) {
+            //ts timed_symbol = alpha[sequenceIndex];
+            string symbol = dynamic_cast<InputSequence *>(alpha)->getElement(sequenceIndex);
             for (auto transition : this->transitions) {
                 if (transition->src == state->getKey() && !transition->isTimeout) {
                     if (transition->i == symbol) {
@@ -238,23 +239,18 @@ void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executin
     }
 }
 
-sequence DistinguishingAutomaton_FSM::inputSequenceFromAcceptedLanguage(set<string> beginningStates, sequence prefix)
+Sequence * DistinguishingAutomaton_FSM::inputSequenceFromAcceptedLanguage(set<string> beginningStates, Sequence * prefix)
 {
-    sequence input;
+    InputSequence * input = new InputSequence();
     if (!this->hasNoSinkState && this->isConnected) {
         set<string> results;
         executingPath currentPath;
         reachableStates(this->initialState, currentPath, results, prefix, 0, 0);
         for (string key : results) {
             deque<ProductTransition *> res = Dijkstra(key);
-            int time = 0;
-            if (prefix.size() > 0)
-                time = prefix[prefix.size()-1].second;
             for (auto transition : res) {
-                if (transition->isTimeout)
-                    time += atoi(transition->i.c_str());
-                else
-                    input.push_back(ts(transition->i, time));
+                //input.push_back(ts(transition->i, time));
+                input->addElement(transition->i);
             }
             if (res.size() > 0)
                 return input;

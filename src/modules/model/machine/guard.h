@@ -1,7 +1,7 @@
 #ifndef GUARD_H
 #define GUARD_H
 #include <string>
-#include "../structs.h"
+//#include "../structs.h"
 
 enum Bracket { Square, Curly };
 

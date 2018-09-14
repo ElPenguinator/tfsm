@@ -4,6 +4,7 @@
 #include <vector>
 #include "tfsm_to.h"
 #include "tfsm.h"
+#include "../structs.h"
 
 class ProductTransition {
 public:

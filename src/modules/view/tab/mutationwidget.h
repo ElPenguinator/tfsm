@@ -10,7 +10,7 @@
 
 #include "svgview.h"
 
-#include "../../model/structs.h"
+#include "../../model/algorithm/sequence.h"
 
 class MutationWidget : public QWidget
 {
@@ -68,8 +68,8 @@ signals:
     void machineTypeChanged(const QString &);
 public slots:
     void prepareImportFile();
-    void checkingExperimentResults(std::vector<sequence> E);
-    void checkingSequenceResults(sequence s);
+    void checkingExperimentResults(std::vector<Sequence *> E);
+    void checkingSequenceResults(Sequence * s);
     void machineSVGGenerated(bool success);
     void updateSpecificationTransitions(int row, int column);
     void updateMutationTransitions(int row, int column);

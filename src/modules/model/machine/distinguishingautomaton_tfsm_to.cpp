@@ -5,6 +5,7 @@
 #include <sstream>
 #include <queue>
 #include "../tools.h"
+#include "../algorithm/timedinputsequence.h"
 using namespace std;
 
 DistinguishingAutomaton_TFSM_TO::DistinguishingAutomaton_TFSM_TO(FSM *S, FSM *M) : DistinguishingAutomaton_FSM(S, M)
@@ -102,7 +103,7 @@ void DistinguishingAutomaton_TFSM_TO::generateNext(ProductState * state)
     }
 }
 
-std::vector<executingPath> DistinguishingAutomaton_TFSM_TO::revealingPaths(sequence alpha)
+std::vector<executingPath> DistinguishingAutomaton_TFSM_TO::revealingPaths(Sequence * alpha)
 {
     vector<executingPath> results;
     executingPath currentPath;
@@ -131,19 +132,19 @@ bool DistinguishingAutomaton_TFSM_TO::isPathDeterministic(const executingPath p)
     return true;
 }
 
-void DistinguishingAutomaton_TFSM_TO::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, sequence alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_TFSM_TO::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, Sequence * alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() == "sink") {
         results.push_back(currentPath);
     }
-    else if (sequenceIndex < alpha.size()) {
-        ts timed_symbol = alpha[sequenceIndex];
+    else if (sequenceIndex < alpha->getSize()) {
+        ts timed_symbol = dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex);
         string symbol = timed_symbol.first;
         int symbol_time = timed_symbol.second;
         int t = symbol_time - timeBuffer;
         if (sequenceIndex > 0) {
-            t -= alpha[sequenceIndex -1].second;
-            symbol_time -= alpha[sequenceIndex -1].second;
+            t -= dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex - 1).second;
+            symbol_time -= dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex - 1).second;
         }
         //Time to spend, so take only timeouts
         if (t > 0) {
@@ -299,17 +300,17 @@ std::deque<ProductTransition *> DistinguishingAutomaton_TFSM_TO::Dijkstra(string
     return results;
 }
 
-void DistinguishingAutomaton_TFSM_TO::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, sequence alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_TFSM_TO::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, Sequence * alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() != "sink") {
-        if (sequenceIndex < alpha.size()) {
-            ts timed_symbol = alpha[sequenceIndex];
+        if (sequenceIndex < alpha->getSize()) {
+            ts timed_symbol = dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex);
             string symbol = timed_symbol.first;
             int symbol_time = timed_symbol.second;
             int t = symbol_time - timeBuffer;
             if (sequenceIndex > 0) {
-                t -= alpha[sequenceIndex -1].second;
-                symbol_time -= alpha[sequenceIndex -1].second;
+                t -= dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex - 1).second;
+                symbol_time -= dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex - 1).second;
             }
             //Time to spend, so take only timeouts
             if (t > 0) {
@@ -358,9 +359,9 @@ void DistinguishingAutomaton_TFSM_TO::reachableStates(ProductState * state, exec
     }
 }
 
-sequence DistinguishingAutomaton_TFSM_TO::inputSequenceFromAcceptedLanguage(set<string> beginningStates, sequence prefix)
+Sequence * DistinguishingAutomaton_TFSM_TO::inputSequenceFromAcceptedLanguage(set<string> beginningStates, Sequence * prefix)
 {
-    sequence input;
+    TimedInputSequence * input = new TimedInputSequence();
     if (!this->hasNoSinkState && this->isConnected) {
         set<string> results;
         executingPath currentPath;
@@ -368,13 +369,13 @@ sequence DistinguishingAutomaton_TFSM_TO::inputSequenceFromAcceptedLanguage(set<
         for (string key : results) {
             deque<ProductTransition *> res = Dijkstra(key);
             int time = 0;
-            if (prefix.size() > 0)
-                time = prefix[prefix.size()-1].second;
+            if (prefix->getSize() > 0)
+                time = dynamic_cast<TimedInputSequence *>(prefix)->getElement(prefix->getSize()-1).second;
             for (auto transition : res) {
                 if (transition->isTimeout)
                     time += atoi(transition->i.c_str());
                 else
-                    input.push_back(ts(transition->i, time));
+                    input->addElement(ts(transition->i, time));
             }
             if (res.size() > 0)
                 return input;

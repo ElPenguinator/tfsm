@@ -1,4 +1,5 @@
 #include "guard.h"
+#include "../structs.h"
 using namespace std;
 
 Guard::Guard() {
@@ -173,5 +174,5 @@ Guard Guard::substracted(int counter) {
         newRight = Bracket::Curly;
         newTmax = 0;
     }
-    return Guard(left, newTmin, newTmax, newRight);
+    return Guard(newLeft, newTmin, newTmax, newRight);
 }

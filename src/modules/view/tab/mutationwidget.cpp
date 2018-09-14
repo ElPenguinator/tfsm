@@ -587,27 +587,24 @@ void MutationWidget::relaySignals()
     */
 }
 
-void MutationWidget::checkingExperimentResults(std::vector<sequence> E)
+void MutationWidget::checkingExperimentResults(std::vector<Sequence *> E)
 {
     _test_results_text->clear();
+
     ostringstream text;
-    for (sequence s : E) {
-        for (ts timeState : s) {
-            text << "(" << timeState.first << ", " << timeState.second << ")";
-        }
-        text << endl;
+
+    for (Sequence * s : E) {
+        text << s->toString() << endl;
     }
     _test_results_text->appendPlainText(QString(text.str().c_str()));
 
 }
 
-void MutationWidget::checkingSequenceResults(sequence s)
+void MutationWidget::checkingSequenceResults(Sequence * s)
 {
     _test_results_text->clear();
     ostringstream text;
-    for (ts timeState : s) {
-        text << "(" << timeState.first << ", " << timeState.second << ")";
-    }
+    text << s->toString();
     _test_results_text->appendPlainText(QString(text.str().c_str()));
 }
 

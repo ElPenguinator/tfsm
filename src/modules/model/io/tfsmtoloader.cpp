@@ -1,6 +1,7 @@
 #include "tfsmtoloader.h"
 #include <QObject>
 #include <iostream>
+#include "../structs.h"
 using namespace std;
 TFSMTOLoader::TFSMTOLoader()
 {

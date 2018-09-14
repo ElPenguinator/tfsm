@@ -14,6 +14,7 @@ void printPath(executingPath p)
     cout << endl;
 }
 
+/*
 void printSequence(sequence s)
 {
     cout << "Sequence : ";
@@ -22,6 +23,7 @@ void printSequence(sequence s)
     }
     cout << endl;
 }
+*/
 
 void printClause(vector<Lit> clause)
 {

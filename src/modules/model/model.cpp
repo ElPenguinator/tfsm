@@ -205,8 +205,8 @@ void Model::checkingExperiment()
 {
     cout << ":D " << endl;
     Algorithms * algo = currentFactory->getAlgorithms(true, false);
-    vector<sequence> E;
-    vector<sequence> Einit;
+    vector<Sequence *> E;
+    vector<Sequence *> Einit;
     SpecificationMachine->print();
     MutationMachine->print();
     for (int s : MutationMachine->states) {
@@ -225,8 +225,9 @@ void Model::checkingExperiment()
     E = algo->generateCheckingExperiment(Einit, SpecificationMachine, MutationMachine);
     cout << "E : " << endl;
     for (auto s : E) {
-        printSequence(s);
+        cout << s->toString() << endl;//printSequence(s);
     }
+
     emit checkingExperimentResults(E);
 }
 
@@ -234,9 +235,10 @@ void Model::checkingSequence()
 {
     cout << ":( " << endl;
     Algorithms * algo = currentFactory->getAlgorithms(true, false);
-    sequence seq;
+    Sequence * seq;
     seq = algo->generateCheckingSequence(SpecificationMachine, MutationMachine);
-    printSequence(seq);
+    cout << seq->toString() << endl;
+    //printSequence(seq);
     emit checkingSequenceResults(seq);
 }
 

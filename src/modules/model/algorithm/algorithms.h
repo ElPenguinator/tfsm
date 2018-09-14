@@ -28,21 +28,21 @@ public:
 
     virtual void computePhiP(CMSat::SATSolver * &solver, FSM * P) = 0;
 
-    virtual void computePhiE(CMSat::SATSolver * &solver, std::vector<sequence> E, DistinguishingAutomaton_FSM * D) = 0;
+    virtual void computePhiE(CMSat::SATSolver * &solver, std::vector<Sequence *> E, DistinguishingAutomaton_FSM * D) = 0;
 
     virtual void computePhiM(CMSat::SATSolver * &solver, FSM * S, FSM * M) = 0;
 
-    virtual sequence verifyCheckingExperiment(CMSat::SATSolver * &solver,std::vector<sequence> E, FSM * S, DistinguishingAutomaton_FSM * D) = 0;
+    virtual Sequence * verifyCheckingExperiment(CMSat::SATSolver * &solver,std::vector<Sequence *> E, FSM * S, DistinguishingAutomaton_FSM * D) = 0;
 
-    virtual std::vector<sequence> generateCheckingExperimentTimeouted(std::vector<sequence> Einit, FSM * S, FSM * M) = 0;
+    virtual std::vector<Sequence *> generateCheckingExperimentTimeouted(std::vector<Sequence *> Einit, FSM * S, FSM * M) = 0;
 
-    virtual std::vector<sequence> generateCheckingExperiment(std::vector<sequence> Einit, FSM * S, FSM * M) = 0;
+    virtual std::vector<Sequence *> generateCheckingExperiment(std::vector<Sequence *> Einit, FSM * S, FSM * M) = 0;
 
-    virtual sequence verifyCheckingSequence(CMSat::SATSolver * &solver,sequence CS, FSM * S, DistinguishingAutomaton_FSM * D) = 0;
+    virtual Sequence * verifyCheckingSequence(CMSat::SATSolver * &solver,Sequence * CS, FSM * S, DistinguishingAutomaton_FSM * D) = 0;
 
-    virtual sequence generateCheckingSequenceTimeouted(FSM * S, FSM * M) = 0;
+    virtual Sequence * generateCheckingSequenceTimeouted(FSM * S, FSM * M) = 0;
 
-    virtual sequence generateCheckingSequence(FSM * S, FSM * M) = 0;
+    virtual Sequence * generateCheckingSequence(FSM * S, FSM * M) = 0;
 
     virtual FSM * generateRandomSpecification(int nbOfStates, int maxTime, std::set<std::string> I, std::set<std::string> O) = 0;
 
@@ -52,7 +52,7 @@ public:
 
     virtual void checkingSequenceBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout) = 0;
 
-    virtual std::vector<sequence> removePrefixes(std::vector<sequence> E) = 0;
+    virtual std::vector<Sequence *> removePrefixes(std::vector<Sequence *> E) = 0;
 
     bool saveSVG(std::string dotPath, std::string svgPath, std::string dot);
 

@@ -22,8 +22,8 @@ signals:
     void exportedFile(QString);
     void checkingExperiment();
     void checkingSequence();
-    void checkingExperimentResults(std::vector<sequence>);
-    void checkingSequenceResults(sequence);
+    void checkingExperimentResults(std::vector<Sequence *>);
+    void checkingSequenceResults(Sequence *);
     void machineSVGGenerated(bool);
     void generateSpecification(QMap<QString, QTableWidget *>, int);
     void generateMutation(QMap<QString, QTableWidget *>, int);

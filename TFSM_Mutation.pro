@@ -43,7 +43,11 @@ SOURCES += src/main.cpp \
     src/modules/model/io/machineloader.cpp \
     src/modules/model/io/fsmloader.cpp \
     src/modules/model/io/tfsmloader.cpp \
-    src/modules/model/io/tfsmtoloader.cpp
+    src/modules/model/io/tfsmtoloader.cpp \
+    src/modules/model/algorithm/sequence.cpp \
+    src/modules/model/algorithm/inputsequence.cpp \
+    src/modules/model/algorithm/timedinputsequence.cpp \
+    src/modules/model/algorithm/timedintervalinputsequence.cpp
 
 HEADERS += \
     src/modules/model/machine/tfsm_to.h \
@@ -81,7 +85,11 @@ HEADERS += \
     src/modules/model/io/machineloader.h \
     src/modules/model/io/fsmloader.h \
     src/modules/model/io/tfsmloader.h \
-    src/modules/model/io/tfsmtoloader.h
+    src/modules/model/io/tfsmtoloader.h \
+    src/modules/model/algorithm/sequence.h \
+    src/modules/model/algorithm/inputsequence.h \
+    src/modules/model/algorithm/timedinputsequence.h \
+    src/modules/model/algorithm/timedintervalinputsequence.h
 
 INCLUDEPATH += /misc/home/asyd/prestadi/include/
 

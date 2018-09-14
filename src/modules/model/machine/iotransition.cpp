@@ -1,4 +1,5 @@
 #include "iotransition.h"
+#include "../structs.h"
 using namespace std;
 
 

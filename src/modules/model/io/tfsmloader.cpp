@@ -1,4 +1,5 @@
 #include "tfsmloader.h"
+#include "../structs.h"
 #include <QObject>
 using namespace std;
 TFSMLoader::TFSMLoader()

@@ -36,8 +36,8 @@ public slots:
     void generateMutation(QMap<QString, QTableWidget *> map, int nbOfStates);
     void changeMachineType(const QString & type);
 signals:
-    void checkingExperimentResults(std::vector<sequence>);
-    void checkingSequenceResults(sequence);
+    void checkingExperimentResults(std::vector<Sequence *>);
+    void checkingSequenceResults(Sequence *);
     void machineSVGGenerated(bool);
 };
 

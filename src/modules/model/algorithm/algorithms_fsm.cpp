@@ -1,6 +1,7 @@
 #include "algorithms_fsm.h"
 using namespace std;
 using namespace CMSat;
+#include "../algorithm/inputsequence.h"
 
 Algorithms_FSM::Algorithms_FSM(bool generateLogs, bool onlyDot) : Algorithms(generateLogs, onlyDot)
 {
@@ -40,7 +41,7 @@ void Algorithms_FSM::computePhiP(SATSolver * &solver, FSM * P)
     solver->add_clause(clause);
 }
 
-void Algorithms_FSM::computePhiE(SATSolver * &solver, vector<sequence> E, DistinguishingAutomaton_FSM * D)
+void Algorithms_FSM::computePhiE(SATSolver * &solver, std::vector<Sequence *> E, DistinguishingAutomaton_FSM * D)
 {
     int cpt = 1;
     for (auto alpha : E) {
@@ -90,12 +91,12 @@ void Algorithms_FSM::computePhiM(SATSolver * &solver, FSM * S, FSM * M)
     solver->add_clause(clause);
 }
 
-sequence Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<sequence> E, FSM * S, DistinguishingAutomaton_FSM * D)
+Sequence * Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<Sequence *> E, FSM * S, DistinguishingAutomaton_FSM * D)
 {
     computePhiE(solver, E, D);
-    sequence alpha;
+    Sequence * alpha = new InputSequence();
     FSM * P = D->mutationMachine;
-    while (alpha.size() == 0 && P != NULL) {
+    while (alpha->getSize() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
             nbPassedMutants++;
@@ -109,7 +110,7 @@ sequence Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<seq
                 computePhiP(solver, P);
             }
             else {
-                sequence nullPrefix;
+                Sequence * nullPrefix = new InputSequence();
                 set<string> beginningStates;
                 beginningStates.insert(DP->initialState->getKey());
                 alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, nullPrefix);
@@ -121,7 +122,7 @@ sequence Algorithms_FSM::verifyCheckingExperiment(SATSolver * &solver,vector<seq
     return alpha;
 }
 
-vector<sequence> Algorithms_FSM::generateCheckingExperimentTimeouted(vector<sequence> Einit, FSM * S, FSM * M)
+vector<Sequence *> Algorithms_FSM::generateCheckingExperimentTimeouted(vector<Sequence *> Einit, FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
 
@@ -129,16 +130,16 @@ vector<sequence> Algorithms_FSM::generateCheckingExperimentTimeouted(vector<sequ
     computePhiM(solver, S, M);
     DistinguishingAutomaton_FSM * D = new DistinguishingAutomaton_FSM(S, M);
     D->initialize();
-    vector<sequence> E;
-    vector<sequence> Ecurr = Einit;
+    vector<Sequence *> E;
+    vector<Sequence *> Ecurr = Einit;
     nbPassedMutants = 0;
     double elapsed_secs = 0;
     do {
         clock_t begin = clock();
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
-        sequence alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
+        Sequence * alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
         Ecurr.clear();
-        if (alpha.size() > 0)
+        if (alpha->getSize() > 0)
             Ecurr.push_back(alpha);
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
@@ -150,7 +151,7 @@ vector<sequence> Algorithms_FSM::generateCheckingExperimentTimeouted(vector<sequ
     return removePrefixes(E);
 }
 
-vector<sequence> Algorithms_FSM::generateCheckingExperiment(vector<sequence> Einit, FSM * S, FSM * M)
+vector<Sequence *> Algorithms_FSM::generateCheckingExperiment(vector<Sequence *> Einit, FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
 
@@ -165,28 +166,28 @@ vector<sequence> Algorithms_FSM::generateCheckingExperiment(vector<sequence> Ein
         saveSVG(logPath + "mutation.dot", logPath + "mutation.svg", M->generateDot());
         saveSVG(logPath + "distinguishing.dot", logPath + "distinguishing.svg", D->generateDot());
     }
-    vector<sequence> E;
-    vector<sequence> Ecurr = Einit;
-    sequence alpha;
+    vector<Sequence *> E;
+    vector<Sequence *> Ecurr = Einit;
+    Sequence * alpha = new InputSequence();
     do {
         E.insert(E.end(), Ecurr.begin(), Ecurr.end());
         alpha = verifyCheckingExperiment(solver, Ecurr, S, D);
         Ecurr.clear();
         Ecurr.push_back(alpha);
     }
-    while (alpha.size() != 0);
+    while (alpha->getSize() != 0);
     return removePrefixes(E);
 }
 
-sequence Algorithms_FSM::verifyCheckingSequence(SATSolver * &solver,sequence CS, FSM * S, DistinguishingAutomaton_FSM * D)
+Sequence * Algorithms_FSM::verifyCheckingSequence(SATSolver * &solver,Sequence * CS, FSM * S, DistinguishingAutomaton_FSM * D)
 {
-    vector<sequence> E;
+    vector<Sequence *> E;
     E.push_back(CS);
     set<string> beginningStates;
     computePhiE(solver, E, D);
-    sequence alpha;
+    Sequence * alpha = new InputSequence();
     FSM * P = D->mutationMachine;
-    while (alpha.size() == 0 && P != NULL) {
+    while (alpha->getSize() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
             DistinguishingAutomaton_FSM * DP = new DistinguishingAutomaton_FSM(S, P);
@@ -196,7 +197,7 @@ sequence Algorithms_FSM::verifyCheckingSequence(SATSolver * &solver,sequence CS,
             }
             else {
                 alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, CS);
-                if (alpha.size() == 0) {
+                if (alpha->getSize() == 0) {
                     computePhiP(solver, P);
                 }
             }
@@ -206,7 +207,7 @@ sequence Algorithms_FSM::verifyCheckingSequence(SATSolver * &solver,sequence CS,
     return alpha;
 }
 
-sequence Algorithms_FSM::generateCheckingSequenceTimeouted(FSM * S, FSM * M)
+Sequence * Algorithms_FSM::generateCheckingSequenceTimeouted(FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
 
@@ -215,21 +216,22 @@ sequence Algorithms_FSM::generateCheckingSequenceTimeouted(FSM * S, FSM * M)
     computePhiM(solver, S, M);
     DistinguishingAutomaton_FSM * D = new DistinguishingAutomaton_FSM(S, M);
     D->initialize();
-    sequence CS;
-    sequence alpha;
+    Sequence * CS;
+    Sequence * alpha = new InputSequence();
     double elapsed_secs = 0;
     do {
         clock_t begin = clock();
-        CS.insert(CS.end(), alpha.begin(), alpha.end());
+        //CS.insert(CS.end(), alpha.begin(), alpha.end());
+        dynamic_cast<InputSequence *>(CS)->addElements(dynamic_cast<InputSequence *>(alpha)->content);
         alpha = verifyCheckingSequence(solver, CS, S, D);
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
     }
-    while (alpha.size() != 0 && elapsed_secs < 3600);
+    while (alpha->getSize() != 0 && elapsed_secs < 3600);
     return CS;
 }
 
-sequence Algorithms_FSM::generateCheckingSequence(FSM * S, FSM * M)
+Sequence * Algorithms_FSM::generateCheckingSequence(FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
 
@@ -238,13 +240,14 @@ sequence Algorithms_FSM::generateCheckingSequence(FSM * S, FSM * M)
     computePhiM(solver, S, M);
     DistinguishingAutomaton_FSM * D = new DistinguishingAutomaton_FSM(S, M);
     D->initialize();
-    sequence CS;
-    sequence alpha;
+    Sequence * CS = new InputSequence();
+    Sequence * alpha = new InputSequence();
     do {
-        CS.insert(CS.end(), alpha.begin(), alpha.end());
+        //CS.insert(CS.end(), alpha.begin(), alpha.end());
+        dynamic_cast<InputSequence *>(CS)->addElements(dynamic_cast<InputSequence *>(alpha)->content);
         alpha = verifyCheckingSequence(solver, CS, S, D);
     }
-    while (alpha.size() != 0);
+    while (alpha->getSize() != 0);
     return CS;
 }
 
@@ -277,8 +280,8 @@ void Algorithms_FSM::checkingExperimentBenchmarks(std::string folder, std::set<i
     //                benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
     //                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTimeSpec, I, O);
     //                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTimeMuta, nbMutants[i]);
-    //                vector<sequence> E;
-    //                vector<sequence> Einit;
+    //                vector<Sequence *> E;
+    //                vector<Sequence *> Einit;
     //                cout << "Begin" << endl;
     //                clock_t begin = clock();
     //                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
@@ -314,8 +317,8 @@ void Algorithms_FSM::checkingExperimentBenchmarks(std::string folder, std::set<i
                     string pathName = folder + "/bench_CE_" + to_string(states) + "_" + to_string(mutations) + '_' + to_string(i);
                     benchFile.open(pathName + "_results.txt");
 
-                    vector<sequence> E;
-                    vector<sequence> Einit;
+                    vector<Sequence *> E;
+                    vector<Sequence *> Einit;
                     cout << "Begin" << endl;
                     clock_t begin = clock();
                     this->logPath = pathName + "_";
@@ -352,7 +355,7 @@ void Algorithms_FSM::checkingSequenceBenchmarks(std::string folder, std::set<int
     //                benchFile.open("bench_CS_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
     //                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTime, I, O);
     //                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTime*2, nbMutants[i]);
-    //                sequence CS;
+    //                Sequence * CS;
     //                clock_t begin = clock();
     //                CS = generateCheckingSequenceTimeouted(randomSpec, randomMuta);
     //                clock_t end = clock();
@@ -370,21 +373,22 @@ void Algorithms_FSM::checkingSequenceBenchmarks(std::string folder, std::set<int
 
 
 //Will be factorized later with a class
-vector<sequence> Algorithms_FSM::removePrefixes(vector<sequence> E)
+vector<Sequence *> Algorithms_FSM::removePrefixes(vector<Sequence *> E)
 {
-    vector<sequence> newE;
-    for (sequence s1 : E) {
+    vector<Sequence *> newE;
+    for (Sequence * s1 : E) {
         bool found = false;
 
-        vector<sequence> copyNewE(newE);
+        vector<Sequence *> copyNewE(newE);
         int j = 0;
-        for (sequence s2 : copyNewE) {
+        for (Sequence * s2 : copyNewE) {
             int i=0;
-            while (i < min(s1.size(), s2.size()) && s1[i].first == s2[i].first && s1[i].second == s2[i].second) {
+            while (i < min(s1->getSize(), s2->getSize())
+                   && dynamic_cast<InputSequence *>(s1)->getElement(i) == dynamic_cast<InputSequence *>(s2)->getElement(i)) {
                 i++;
             }
-            if (i == min(s1.size(), s2.size())) {
-                if (s1.size() <= s2.size()) {
+            if (i == min(s1->getSize(), s2->getSize())) {
+                if (s1->getSize() <= s2->getSize()) {
                     found = true;
                 }
                 else {
