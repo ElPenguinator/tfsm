@@ -176,3 +176,35 @@ Guard Guard::substracted(int counter) {
     }
     return Guard(newLeft, newTmin, newTmax, newRight);
 }
+
+Guard Guard::substracted(Guard other) {
+    int newTmin = this->tmin - other.tmin;
+    int newTmax = this->tmax - other.tmax;
+    Bracket newLeft = this->left;
+    Bracket newRight = this->right;
+    if (newTmin < 0) {
+        newLeft = Bracket::Square;
+        newTmin = 0;
+    }
+    if (newTmax < 0) {
+        newRight = Bracket::Curly;
+        newTmax = 0;
+    }
+    return Guard(newLeft, newTmin, newTmax, newRight);
+}
+
+Guard Guard::added(int counter) {
+    int newTmin = this->tmin + counter;
+    int newTmax = this->tmax + counter;
+    Bracket newLeft = this->left;
+    Bracket newRight = this->right;
+    return Guard(newLeft, newTmin, newTmax, newRight);
+}
+
+Guard Guard::added(Guard other) {
+    int newTmin = this->tmin + other.tmin;
+    int newTmax = this->tmax + other.tmax;
+    Bracket newLeft = this->left;
+    Bracket newRight = this->right;
+    return Guard(newLeft, newTmin, newTmax, newRight);
+}

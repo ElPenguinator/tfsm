@@ -1,6 +1,6 @@
 #include "algorithms_tfsm.h"
 #include "../machine/distinguishingautomaton_tfsm.h"
-#include "../algorithm/timedinputsequence.h"
+#include "../algorithm/timedintervalinputsequence.h"
 using namespace std;
 using namespace CMSat;
 
@@ -86,25 +86,20 @@ void Algorithms_TFSM::computePhiE(SATSolver * &solver, vector<Sequence *> E, Dis
     }
 }
 
-void computePhiMRecur(SATSolver * &solver, const vector<IOTransition *> &xi, const set<set<int>>::iterator &current, const set<set<int>>::iterator &end, vector<int> currentClause) {
-    set<int> combi = (*current);
-    for (int elt : combi) {
-        set<set<int>>::iterator copyCurrent(current);
+void computePhiMRecur(SATSolver * &solver, const vector<IOTransition *> &xi, const set<set<pair<int, bool>>>::iterator &current, const set<set<pair<int, bool>>>::iterator &end, vector<pair<int, bool>> currentClause) {
+    set<pair<int, bool>> combi = (*current);
+    for (pair<int, bool> elt : combi) {
+        set<set<pair<int, bool>>>::iterator copyCurrent(current);
         copyCurrent++;
-        vector<int> copyCurrentClause(currentClause);
+        vector<pair<int, bool>> copyCurrentClause(currentClause);
         copyCurrentClause.push_back(elt);
         if (copyCurrent != end) {
             computePhiMRecur(solver, xi, copyCurrent, end, copyCurrentClause);
         }
         else {
             vector<Lit> clause;
-            for (int li : copyCurrentClause) {;
-                if (li >= 0) {
-                    clause.push_back(Lit(li, false));
-                }
-                else {
-                    clause.push_back(Lit(-li, true));
-                }
+            for (pair<int, bool> li : copyCurrentClause) {
+                clause.push_back(Lit(li.first, li.second));
             }
             solver->add_clause(clause);
         }
@@ -113,28 +108,26 @@ void computePhiMRecur(SATSolver * &solver, const vector<IOTransition *> &xi, con
 
 void Algorithms_TFSM::computePhiM(SATSolver * &solver, FSM * S, FSM * M)
 {
-
     for (auto s : M->states) {
         for (auto i : M->inputs) {
             vector<IOTransition *> xi = M->getXi(s, i);
             set<set<int>> eta = M->getEta(s, i);
-            vector<int> emptyClause;
-            set<set<int>> newEta;
+            vector<pair<int, bool>> emptyClause;
+            set<set<pair<int, bool>>> newEta;
 
             for (set<int> combi : eta) {
-                set<int> newSet;
+                set<pair<int, bool>> newSet;
                 for (int elt : combi) {
-                    newSet.insert(elt);
+                    newSet.insert(pair<int, bool>(elt, false));
                 }
                 for (IOTransition * elt : xi) {
                     if (combi.find(elt->id) == combi.end()) {
-                        newSet.insert(-elt->id);
+                        newSet.insert(pair<int, bool>(elt->id, true));
                     }
                 }
                 newEta.insert(newSet);
             }
             if (eta.size() == 0) {
-                cout << "Cluster empty for state " << s << " and entry " << i << endl;
                 vector<Lit> clause1;
                 clause1.push_back(Lit(1, false));
                 solver->add_clause(clause1);
@@ -143,8 +136,8 @@ void Algorithms_TFSM::computePhiM(SATSolver * &solver, FSM * S, FSM * M)
                 solver->add_clause(clause2);
             }
             else {
-                set<set<int>>::iterator begin = newEta.begin();
-                set<set<int>>::iterator end = newEta.end();
+                set<set<pair<int, bool>>>::iterator begin = newEta.begin();
+                set<set<pair<int, bool>>>::iterator end = newEta.end();
 
                 computePhiMRecur(solver, xi, begin, end, emptyClause);
             }
@@ -180,7 +173,7 @@ Sequence * Algorithms_TFSM::verifyCheckingExperiment(SATSolver * &solver,vector<
 {
 
     computePhiE(solver, E, D);
-    Sequence * alpha = new TimedInputSequence();
+    Sequence * alpha = new TimedIntervalInputSequence();
     FSM * P = D->mutationMachine;
     while (alpha->getSize() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
@@ -196,9 +189,10 @@ Sequence * Algorithms_TFSM::verifyCheckingExperiment(SATSolver * &solver,vector<
                 computePhiP(solver, P);
             }
             else {
-                Sequence * nullPrefix = new TimedInputSequence();
+                Sequence * nullPrefix = new TimedIntervalInputSequence();
                 set<string> beginningStates;
                 beginningStates.insert(DP->initialState->getKey());
+                DP->print();
                 alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, nullPrefix);
                 //No deterministic input sequence
                 if (alpha->getSize() == 0) {
@@ -277,7 +271,7 @@ Sequence * Algorithms_TFSM::verifyCheckingSequence(SATSolver * &solver,Sequence 
     E.push_back(CS);
     set<string> beginningStates;
     computePhiE(solver, E, D);
-    Sequence * alpha = new TimedInputSequence();
+    Sequence * alpha = new TimedIntervalInputSequence();
     FSM * P = D->mutationMachine;
     while (alpha->getSize() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
@@ -308,13 +302,13 @@ Sequence * Algorithms_TFSM::generateCheckingSequenceTimeouted(FSM * S, FSM * M)
     computePhiM(solver, S, M);
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
     D->initialize();
-    Sequence * CS = new TimedInputSequence();
-    Sequence * alpha = new TimedInputSequence();
+    Sequence * CS = new TimedIntervalInputSequence();
+    Sequence * alpha = new TimedIntervalInputSequence();
     double elapsed_secs = 0;
     do {
         clock_t begin = clock();
         //CS.insert(CS.end(), alpha.begin(), alpha.end());
-        dynamic_cast<TimedInputSequence *>(CS)->addElements(dynamic_cast<TimedInputSequence *>(alpha)->content);
+        dynamic_cast<TimedIntervalInputSequence *>(CS)->addElements(dynamic_cast<TimedIntervalInputSequence *>(alpha)->content);
         alpha = verifyCheckingSequence(solver, CS, S, D);
         clock_t end = clock();
         elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
@@ -331,11 +325,11 @@ Sequence * Algorithms_TFSM::generateCheckingSequence(FSM * S, FSM * M)
     computePhiM(solver, S, M);
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
     D->initialize();
-    Sequence * CS = new TimedInputSequence();
-    Sequence * alpha = new TimedInputSequence();
+    Sequence * CS = new TimedIntervalInputSequence();
+    Sequence * alpha = new TimedIntervalInputSequence();
     do {
         //CS.insert(CS.end(), alpha.begin(), alpha.end());
-        dynamic_cast<TimedInputSequence *>(CS)->addElements(dynamic_cast<TimedInputSequence *>(alpha)->content);
+        dynamic_cast<TimedIntervalInputSequence *>(CS)->addElements(dynamic_cast<TimedIntervalInputSequence *>(alpha)->content);
         alpha = verifyCheckingSequence(solver, CS, S, D);
     }
     while (alpha->getSize() != 0);
@@ -440,8 +434,8 @@ vector<Sequence *> Algorithms_TFSM::removePrefixes(vector<Sequence *> E)
             //printSequence(s2);
             int i=0;
             while (i < min(s1->getSize(), s2->getSize())
-                   && dynamic_cast<TimedInputSequence *>(s1)->getElement(i).first == dynamic_cast<TimedInputSequence *>(s2)->getElement(i).first
-                   && dynamic_cast<TimedInputSequence *>(s1)->getElement(i).second == dynamic_cast<TimedInputSequence *>(s2)->getElement(i).second) {
+                   && dynamic_cast<TimedIntervalInputSequence *>(s1)->getElement(i).first == dynamic_cast<TimedIntervalInputSequence *>(s2)->getElement(i).first
+                   && dynamic_cast<TimedIntervalInputSequence *>(s1)->getElement(i).second.equals(dynamic_cast<TimedIntervalInputSequence *>(s2)->getElement(i).second)) {
                 i++;
             }
             if (i == min(s1->getSize(), s2->getSize())) {

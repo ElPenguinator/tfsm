@@ -1,5 +1,5 @@
 #include "timedintervalinputsequence.h"
-
+#include <sstream>
 using namespace std;
 
 TimedIntervalInputSequence::TimedIntervalInputSequence() : Sequence()
@@ -9,7 +9,11 @@ TimedIntervalInputSequence::TimedIntervalInputSequence() : Sequence()
 
 string TimedIntervalInputSequence::toString()
 {
-    return "!";
+    ostringstream res;
+    for (pair<string, Guard> timeState : this->content) {
+        res << "(" << timeState.first << "," << timeState.second.toString() << ")";
+    }
+    return res.str();
 }
 
 int TimedIntervalInputSequence::getSize()

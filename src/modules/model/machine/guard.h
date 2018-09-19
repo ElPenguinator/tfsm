@@ -20,6 +20,9 @@ public:
     bool contains(int x);
     bool equals(Guard other);
     Guard substracted(int counter);
+    Guard substracted(Guard other);
+    Guard added(int counter);
+    Guard added(Guard other);
 };
 
 #endif // GUARD_H

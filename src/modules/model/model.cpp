@@ -234,7 +234,7 @@ void Model::checkingExperiment()
 void Model::checkingSequence()
 {
     cout << ":( " << endl;
-    Algorithms * algo = currentFactory->getAlgorithms(true, false);
+    Algorithms * algo = currentFactory->getAlgorithms(true, true);
     Sequence * seq;
     seq = algo->generateCheckingSequence(SpecificationMachine, MutationMachine);
     cout << seq->toString() << endl;
