@@ -300,7 +300,7 @@ std::deque<ProductTransition *> DistinguishingAutomaton_TFSM_TO::Dijkstra(string
     return results;
 }
 
-void DistinguishingAutomaton_TFSM_TO::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, Sequence * alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_TFSM_TO::reachableStates(ProductState * state, executingPath currentPath, set<string> * results, Sequence * alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() != "sink") {
         if (sequenceIndex < alpha->getSize()) {
@@ -354,7 +354,7 @@ void DistinguishingAutomaton_TFSM_TO::reachableStates(ProductState * state, exec
             }
         }
         else {
-            results.insert(state->getKey());
+            results->insert(state->getKey());
         }
     }
 }
@@ -363,10 +363,10 @@ Sequence * DistinguishingAutomaton_TFSM_TO::inputSequenceFromAcceptedLanguage(se
 {
     TimedInputSequence * input = new TimedInputSequence();
     if (!this->hasNoSinkState && this->isConnected) {
-        set<string> results;
+        set<string> * results = new set<string>();
         executingPath currentPath;
         reachableStates(this->initialState, currentPath, results, prefix, 0, 0);
-        for (string key : results) {
+        for (string key : (*results)) {
             deque<ProductTransition *> res = Dijkstra(key);
             int time = 0;
             if (prefix->getSize() > 0)

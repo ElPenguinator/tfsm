@@ -148,10 +148,12 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
         string symbol = timed_symbol.first;
         Guard symbol_time = timed_symbol.second;
         int t = symbol_time.tmin - timeBuffer;
+        /*
         if (sequenceIndex > 0) {
             t -= dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second.tmin;
             symbol_time = symbol_time.substracted(dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second);
         }
+        */
         //Time to spend, so take only timeouts
         if (t > 0) {
             for (auto transition : this->transitions) {
@@ -167,7 +169,7 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
                     }
                     else {
                         for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
-                            if (t < mutaTimeout->t) {
+                            if (t <= mutaTimeout->t) {
                                 executingPath newPath(currentPath);
                                 newPath.push_back(transition->id);
                                 if (this->isPathDeterministic(newPath)) {
@@ -308,19 +310,24 @@ std::deque<ProductTransition *> DistinguishingAutomaton_TFSM::Dijkstra(string ke
     return results;
 }
 
-void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, Sequence * alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executingPath currentPath, set<string> * results, Sequence * alpha, int sequenceIndex, int timeBuffer, int timeLeftOver)
 {
-
+    cout << "State : " << state->getKey() << endl;
     if (state->getKey() != "sink") {
         if (sequenceIndex < alpha->getSize()) {
+
             pair<string, Guard> timed_symbol = dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex);
             string symbol = timed_symbol.first;
+
             Guard symbol_time = timed_symbol.second;
-            int t = symbol_time.tmax - timeBuffer;
+            cout << "Symbol : " << symbol << " " << symbol_time.toString() << endl;
+            int t = symbol_time.tmin - timeBuffer;
+            /*
             if (sequenceIndex > 0) {
                 t -= dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second.tmin;
                 symbol_time = symbol_time.substracted(dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second);
             }
+            */
             //Time to spend, so take only timeouts
             if (t > 0) {
                 for (auto transition : this->transitions) {
@@ -331,16 +338,16 @@ void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executi
                             executingPath newPath(currentPath);
                             newPath.push_back(transition->id);
                             if (this->isPathDeterministic(newPath)) {
-                                this->reachableStates(tgtNode, newPath, results, alpha, sequenceIndex, timeBuffer + timeout);
+                                this->reachableStates(tgtNode, newPath, results, alpha, sequenceIndex, timeBuffer + timeout, 0);
                             }
                         }
                         else {
                             for (auto mutaTimeout : this->mutationMachine->delta(state->mutationState)) {
-                                if (timeout <= mutaTimeout->t) {
+                                if (t <= mutaTimeout->t) {
                                     executingPath newPath(currentPath);
                                     newPath.push_back(transition->id);
                                     if (this->isPathDeterministic(newPath)) {
-                                        this->reachableStates(state, newPath, results, alpha, sequenceIndex, symbol_time.tmin);
+                                        this->reachableStates(state, newPath, results, alpha, sequenceIndex, symbol_time.tmin, t);
                                     }
                                 }
                             }
@@ -351,19 +358,20 @@ void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executi
             else {
                 for (auto transition : this->transitions) {
                     if (transition->src == state->getKey() && !transition->isTimeout) {
-                        if (transition->i == symbol) {
+                        if (transition->i == symbol && transition->getGuard().contains(timeLeftOver)) {
                             ProductState * tgtNode = this->states.find(transition->tgt)->second;
                             executingPath newPath(currentPath);
                             newPath.push_back(transition->id);
                             if (this->isPathDeterministic(newPath))
-                                this->reachableStates(tgtNode, newPath, results, alpha, sequenceIndex+1, 0);
+                                this->reachableStates(tgtNode, newPath, results, alpha, sequenceIndex+1, 0, 0);
                         }
                     }
                 }
             }
         }
         else {
-            results.insert(state->getKey());
+            cout << "Add to result : " << state->getKey() << endl;
+            results->insert(state->getKey());
         }
     }
 
@@ -371,21 +379,19 @@ void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executi
 
 Sequence * DistinguishingAutomaton_TFSM::inputSequenceFromAcceptedLanguage(set<string> beginningStates, Sequence * prefix)
 {
-    cout << "Salut ?" << endl;
     TimedIntervalInputSequence * input = new TimedIntervalInputSequence();
     if (!this->hasNoSinkState && this->isConnected) {
-        set<string> results;
+        set<string> * results = new set<string>();
         executingPath currentPath;
-        reachableStates(this->initialState, currentPath, results, prefix, 0, 0);
-        for (string key : results) {
+        reachableStates(this->initialState, currentPath, results, prefix, 0, 0, 0);
+        for (string key : (*results)) {
+            cout << "Result : " << key << endl;
             deque<ProductTransition *> res = Dijkstra(key);
+            /*
             Guard time("[", 0, 0, ")");
             if (prefix->getSize() > 0)
                 time = dynamic_cast<TimedIntervalInputSequence *>(prefix)->getElement(prefix->getSize()-1).second;
             for (auto transition : res) {
-                cout << "Test 1 : " << transition->getKey() << endl;
-                cout << "Test 2 : " << dynamic_cast<GuardedProductTransition *>(transition)->getKey() << endl;
-                cout << "Time : " << time.toString() << endl;
                 GuardedProductTransition * guardedTransition = dynamic_cast<GuardedProductTransition *>(transition);
                 if (guardedTransition->isTimeout) {
                     time = time.added(atoi(guardedTransition->i.c_str()));
@@ -395,13 +401,24 @@ Sequence * DistinguishingAutomaton_TFSM::inputSequenceFromAcceptedLanguage(set<s
                     input->addElement(pair<string, Guard>(guardedTransition->i, time));
                 }
             }
+            */
+            int time = 0;
+            for (auto transition : res) {
+                GuardedProductTransition * guardedTransition = dynamic_cast<GuardedProductTransition *>(transition);
+                if (guardedTransition->isTimeout) {
+                    time = time + atoi(guardedTransition->i.c_str());
+                }
+                else {
+                    input->addElement(pair<string, Guard>(guardedTransition->i, guardedTransition->getGuard().added(time)));
+                    time = 0;
+                }
+            }
             if (res.size() > 0) {
-                cout << "Input : " << input->toString() << endl;
                 return input;
             }
         }
+        delete results;
     }
-    cout << " REs : " << input->toString();
     return input;
 }
 

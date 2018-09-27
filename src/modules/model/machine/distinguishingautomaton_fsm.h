@@ -26,7 +26,7 @@ public:
     virtual void revealingPathsRecursive(ProductState * state, executingPath currentPath, std::vector<executingPath> & results, Sequence * alpha, int sequenceIndex, int timeBuffer);
     virtual void print();
     virtual Sequence * inputSequenceFromAcceptedLanguage(std::set<std::string> beginningStates, Sequence * prefix);
-    virtual void reachableStates(ProductState * state, executingPath currentPath, std::set<std::string> &results, Sequence * alpha, int sequenceIndex, int timeBuffer);
+    virtual void reachableStates(ProductState * state, executingPath currentPath, std::set<std::string> *results, Sequence * alpha, int sequenceIndex, int timeBuffer);
     virtual std::string DijkstraFindMin(std::map<std::string, int> distances, std::set<std::string> Q);
     virtual void DijkstraUpdateDistancesMin(std::map<std::string, int> & distances, std::map<std::string, ProductTransition *> & predecessors, std::string s1, std::string s2, ProductTransition * transition);
     virtual std::deque<ProductTransition *> Dijkstra(std::string key);

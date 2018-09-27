@@ -8,6 +8,9 @@ using namespace std;
 #include "factory/tfsmfactory.h"
 #include "factory/tfsmtofactory.h"
 
+//TMP
+#include "algorithm/timedintervalinputsequence.h"
+
 void testOmer()
 {
     set<int> S = {1, 2, 3, 4};
@@ -233,6 +236,28 @@ void Model::checkingExperiment()
 
 void Model::checkingSequence()
 {
+    /*
+    TimedIntervalInputSequence *test = new TimedIntervalInputSequence();
+    vector<pair<string, Guard>> elements = {make_pair<string, Guard>("b", Guard("[", 0, inf, ")")),
+                                           make_pair<string, Guard>("a", Guard("[", 0, inf, ")")),
+                                           make_pair<string, Guard>("a", Guard("[", 0, 3, ")")),
+                                           make_pair<string, Guard>("a", Guard("[", 0, 3, ")"))};
+    test->addElements(elements);
+    cout << test->toString() << endl;
+    DistinguishingAutomaton_TFSM * testD = new DistinguishingAutomaton_TFSM(this->SpecificationMachine, this->MutationMachine);
+    testD->initialize();
+    set<string> * results = new set<string>();
+    executingPath currentPath;
+    testD->reachableStates(testD->initialState, currentPath, results, test, 0, 0, 0);
+    for (string key : (*results)) {
+        cout << "Result : " << key << endl;
+    }
+    set<string> tmp;
+    Sequence * newSeq = testD->inputSequenceFromAcceptedLanguage(tmp, test);
+
+    cout << newSeq->toString() << endl;
+    */
+
     cout << ":( " << endl;
     Algorithms * algo = currentFactory->getAlgorithms(true, true);
     Sequence * seq;
@@ -240,6 +265,7 @@ void Model::checkingSequence()
     cout << seq->toString() << endl;
     //printSequence(seq);
     emit checkingSequenceResults(seq);
+
 }
 
 bool Model::saveSVG(string dot)

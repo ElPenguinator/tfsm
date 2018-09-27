@@ -66,3 +66,11 @@ void Algorithms::savePath(std::string pathsPath, std::vector<executingPath> path
     }
     pathsFile.close();
 }
+
+void Algorithms::saveSequence(std::string sequencePath, Sequence * seq)
+{
+    ofstream seqFile;
+    seqFile.open(sequencePath);
+    seqFile << seq->toString();
+    seqFile.close();
+}

@@ -215,7 +215,7 @@ std::deque<ProductTransition *> DistinguishingAutomaton_FSM::Dijkstra(string key
     return results;
 }
 
-void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executingPath currentPath, set<string> &results, Sequence * alpha, int sequenceIndex, int timeBuffer)
+void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executingPath currentPath, set<string> * results, Sequence * alpha, int sequenceIndex, int timeBuffer)
 {
     if (state->getKey() != "sink") {
         if (sequenceIndex < alpha->getSize()) {
@@ -234,7 +234,7 @@ void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executin
             }
         }
         else {
-            results.insert(state->getKey());
+            results->insert(state->getKey());
         }
     }
 }
@@ -243,10 +243,10 @@ Sequence * DistinguishingAutomaton_FSM::inputSequenceFromAcceptedLanguage(set<st
 {
     InputSequence * input = new InputSequence();
     if (!this->hasNoSinkState && this->isConnected) {
-        set<string> results;
+        set<string> * results = new set<string>();
         executingPath currentPath;
         reachableStates(this->initialState, currentPath, results, prefix, 0, 0);
-        for (string key : results) {
+        for (string key : (*results)) {
             deque<ProductTransition *> res = Dijkstra(key);
             for (auto transition : res) {
                 //input.push_back(ts(transition->i, time));
@@ -255,6 +255,7 @@ Sequence * DistinguishingAutomaton_FSM::inputSequenceFromAcceptedLanguage(set<st
             if (res.size() > 0)
                 return input;
         }
+        delete results;
     }
     return input;
 }

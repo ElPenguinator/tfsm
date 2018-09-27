@@ -58,6 +58,7 @@ void Algorithms_TFSM::computePhiE(SATSolver * &solver, vector<Sequence *> E, Dis
     for (auto alpha : E) {
         vector<executingPath> rev = D->revealingPaths(alpha);
         if (generateLogs) {
+            saveSequence(logPath + "paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".sequence", alpha);
             savePath(logPath + "paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
         }
         cout << "Paths : " << endl;
@@ -276,8 +277,13 @@ Sequence * Algorithms_TFSM::verifyCheckingSequence(SATSolver * &solver,Sequence 
     while (alpha->getSize() == 0 && P != NULL) {
         P = generateSubmachine(solver, D->mutationMachine);
         if (P != NULL) {
+            nbPassedMutants++;
             DistinguishingAutomaton_TFSM * DP = new DistinguishingAutomaton_TFSM(S, P);
             DP->initialize();
+            if (generateLogs) {
+                saveSVG(logPath + "mutant" + to_string(nbPassedMutants) +".dot", logPath + "mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
+                saveSVG(logPath + "productMutant" + to_string(nbPassedMutants) + ".dot", logPath + "productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
+            }
             if (DP->hasNoSinkState || !DP->isConnected) {
                 computePhiP(solver, P);
             }
@@ -290,6 +296,7 @@ Sequence * Algorithms_TFSM::verifyCheckingSequence(SATSolver * &solver,Sequence 
             delete DP;
         }
     }
+    nbVerifying++;
     return alpha;
 }
 
@@ -320,16 +327,24 @@ Sequence * Algorithms_TFSM::generateCheckingSequenceTimeouted(FSM * S, FSM * M)
 Sequence * Algorithms_TFSM::generateCheckingSequence(FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
-
+    solver->log_to_file("/tmp/test.txt");
     solver->new_vars(M->getTransitionSize());
     computePhiM(solver, S, M);
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
     D->initialize();
+    if (generateLogs) {
+        saveSVG(logPath + "specification.dot", logPath + "specification.svg", S->generateDot());
+        saveSVG(logPath + "mutation.dot", logPath + "mutation.svg", M->generateDot());
+        saveSVG(logPath + "distinguishing.dot", logPath + "distinguishing.svg", D->generateDot());
+    }
     Sequence * CS = new TimedIntervalInputSequence();
     Sequence * alpha = new TimedIntervalInputSequence();
     do {
         //CS.insert(CS.end(), alpha.begin(), alpha.end());
         dynamic_cast<TimedIntervalInputSequence *>(CS)->addElements(dynamic_cast<TimedIntervalInputSequence *>(alpha)->content);
+        if (generateLogs) {
+            saveSequence(logPath + "sequence" + to_string(nbVerifying) +".sequence", CS);
+        }
         alpha = verifyCheckingSequence(solver, CS, S, D);
     }
     while (alpha->getSize() != 0);

@@ -60,6 +60,8 @@ public:
     virtual FSM * completeMutation(FSM * M) = 0;
 
     virtual InfInt computeNumberOfMutants(FSM * M) = 0;
+
+    void saveSequence(std::string sequencePath, Sequence * seq);
 };
 
 #endif // ALGORITHMS_H

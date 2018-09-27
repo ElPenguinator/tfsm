@@ -227,7 +227,7 @@ void TFSMFactory::fillTabs(FSM * machine, QMap<QString, QTableWidget *> map, QLi
             tableSpecTransitions->setItem(rowSpec, 1, new QTableWidgetItem(QString::fromStdString(t->i)));
             string g = t->getGuard().toString();
             if (g.find("∞") != string::npos)
-                g.replace(g.find("∞"), 1, "inf");
+                g.replace(g.find("∞"), 3, "inf");
             tableSpecTransitions->setItem(rowSpec, 2, new QTableWidgetItem(QString::fromStdString(g)));
             tableSpecTransitions->setItem(rowSpec, 3, new QTableWidgetItem(QString::fromStdString(t->o)));
             tableSpecTransitions->setItem(rowSpec, 4, new QTableWidgetItem(QString::number(t->tgt)));
