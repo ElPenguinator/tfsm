@@ -61,7 +61,6 @@ void Algorithms_TFSM::computePhiE(SATSolver * &solver, vector<Sequence *> E, Dis
             saveSequence(logPath + "paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".sequence", alpha);
             savePath(logPath + "paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
         }
-        cout << "Paths : " << endl;
         for (auto path : rev) {
             printPath(path);
             vector<Lit> clause;
@@ -186,17 +185,20 @@ Sequence * Algorithms_TFSM::verifyCheckingExperiment(SATSolver * &solver,vector<
                 saveSVG(logPath + "mutant" + to_string(nbPassedMutants) +".dot", logPath + "mutant" + to_string(nbPassedMutants) +".svg", P->generateDot());
                 saveSVG(logPath + "productMutant" + to_string(nbPassedMutants) + ".dot", logPath + "productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
             }
-            if (DP->hasNoSinkState || !DP->isConnected) {
+            if (DP->hasNoSinkState/* || !DP->isConnected*/) {
+                cout << "Mutant " << nbPassedMutants << " conform " << "No Sink State : " << DP->hasNoSinkState << " Connected : " << DP->isConnected << endl;
                 computePhiP(solver, P);
             }
             else {
+                cout << "Mutant " << nbPassedMutants << " not conform" << endl;
                 Sequence * nullPrefix = new TimedIntervalInputSequence();
                 set<string> beginningStates;
                 beginningStates.insert(DP->initialState->getKey());
-                DP->print();
+                //DP->print();
                 alpha = DP->inputSequenceFromAcceptedLanguage(beginningStates, nullPrefix);
                 //No deterministic input sequence
                 if (alpha->getSize() == 0) {
+                    cout << "but empty" << endl;
                     computePhiP(solver, P);
                 }
             }
@@ -238,12 +240,15 @@ vector<Sequence *> Algorithms_TFSM::generateCheckingExperimentTimeouted(vector<S
 
 vector<Sequence *> Algorithms_TFSM::generateCheckingExperiment(vector<Sequence *> Einit, FSM * S, FSM * M)
 {
+    cout << "Test !" << endl;
     SATSolver * solver = new SATSolver();
-    solver->log_to_file("/tmp/test.txt");
+    solver->log_to_file("tmp/test.txt");
     solver->new_vars(M->getTransitionSize());
     computePhiM(solver, S, M);
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
+    cout << "before initialize" << endl;
     D->initialize();
+    cout << "after initialize" << endl;
     if (generateLogs) {
         saveSVG(logPath + "specification.dot", logPath + "specification.svg", S->generateDot());
         saveSVG(logPath + "mutation.dot", logPath + "mutation.svg", M->generateDot());
@@ -261,9 +266,14 @@ vector<Sequence *> Algorithms_TFSM::generateCheckingExperiment(vector<Sequence *
         //printSequence(alpha);
         if (alpha->getSize() > 0)
             Ecurr.push_back(alpha);
+        cout << "E : " << endl;
+        for (auto s : Ecurr) {
+            cout << s->toString() << endl;//printSequence(s);
+        }
     }
     while (Ecurr.size() != 0);
-    return removePrefixes(E);
+    //return removePrefixes(E);
+    return E;
 }
 
 Sequence * Algorithms_TFSM::verifyCheckingSequence(SATSolver * &solver,Sequence * CS, FSM * S, DistinguishingAutomaton_FSM * D)

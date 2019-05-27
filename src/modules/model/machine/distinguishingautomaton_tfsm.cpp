@@ -2,10 +2,11 @@
 #include <limits>
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <queue>
 #include "../tools.h"
-#include "../algorithm/timedintervalinputsequence.h"
+#include "../algorithm/timedinputsequence.h"
 using namespace std;
 
 DistinguishingAutomaton_TFSM::DistinguishingAutomaton_TFSM(FSM *S, FSM *M) : DistinguishingAutomaton_TFSM_TO(S, M)
@@ -35,11 +36,19 @@ void DistinguishingAutomaton_TFSM::insertState(ProductState * state, string i, G
 
 void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
 {
-
     for (IOTransition * mutationTransition : this->mutationMachine->lambda(state->mutationState)) {
         for (IOTransition * specificationTransition : this->specification->getXi(state->specificationState, mutationTransition->i)) {
-            if (!mutationTransition->getGuard().substracted(state->getMutationCounter()).isIntersectionEmpty(specificationTransition->getGuard().substracted(state->getSpecificationCounter()))) {
 
+            if (!mutationTransition->getGuard().substracted(state->getMutationCounter()).isIntersectionEmpty(specificationTransition->getGuard().substracted(state->getSpecificationCounter()))) {
+                int maxTimeout = 0;
+                for (auto t : this->mutationMachine->delta(state->mutationState)) {
+                        if (t->t > maxTimeout)
+                            maxTimeout = t->t;
+                }
+                maxTimeout = min(maxTimeout, this->specification->delta(state->specificationState).front()->t);
+                Guard newGuard = mutationTransition->getGuard().substracted(state->getMutationCounter()).intersect(specificationTransition->getGuard().substracted(state->getSpecificationCounter()));
+
+                if (newGuard.tmin < maxTimeout) {
                 ProductState * newState;
                 if (specificationTransition->o == mutationTransition->o)
                     newState = new TimedProductState(specificationTransition->tgt, mutationTransition->tgt, 0, 0);
@@ -47,7 +56,9 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
                     newState = new TimedProductSinkState();
                     this->hasNoSinkState = false;
                 }
-                this->insertState(state, specificationTransition->i, mutationTransition->getGuard().substracted(state->getMutationCounter()).intersect(specificationTransition->getGuard().substracted(state->getSpecificationCounter())), newState, false, mutationTransition->id);
+                //cout << "State : " << state->getKey() << " MaxTimeout : " << maxTimeout << " Guard : " << newGuard.toString() << " Target : " << newState->getKey() << endl;
+                this->insertState(state, specificationTransition->i, newGuard, newState, false, mutationTransition->id);
+                }
             }
         }
 
@@ -64,6 +75,7 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
     Guard dummy("[", 0, inf, ")");
 
     for (auto mutationTimeout : this->mutationMachine->delta(state->mutationState)) {
+
         int muta_t = mutationTimeout->t;
         if (muta_t != inf)
             muta_t -= state->getMutationCounter();
@@ -73,10 +85,12 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
                 newState = new TimedProductState(state->specificationState, mutationTimeout->tgt, state->getSpecificationCounter() + muta_t, 0);
                 this->insertState(state, to_string(muta_t), dummy, newState, true, mutationTimeout->id);
             }
+
             else if (muta_t < spec_t && spec_t == inf) {
                 newState = new TimedProductState(state->specificationState, mutationTimeout->tgt, inf, 0);
                 this->insertState(state, to_string(muta_t), dummy, newState, true, mutationTimeout->id);
             }
+
             else if (muta_t == spec_t) {
                 newState = new TimedProductState(related->tgt, mutationTimeout->tgt, 0, 0);
                 this->insertState(state, to_string(muta_t), dummy, newState, true, mutationTimeout->id);
@@ -85,10 +99,12 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
                 newState = new TimedProductState(related->tgt, state->mutationState, 0, state->getMutationCounter() + spec_t);
                 this->insertState(state, to_string(spec_t), dummy, newState, true, mutationTimeout->id);
             }
+
             else if (muta_t > spec_t && muta_t == inf) {
                 newState = new TimedProductState(related->tgt, state->mutationState, 0, inf);
                 this->insertState(state, to_string(spec_t), dummy, newState, true, mutationTimeout->id);
             }
+
         }
     }
     delete related;
@@ -138,16 +154,17 @@ bool DistinguishingAutomaton_TFSM::isPathDeterministic(const executingPath p)
     return true;
 }
 
-void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, Sequence * alpha, int sequenceIndex, int timeBuffer, int timeLeftOver)
+void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, Sequence * alpha, int sequenceIndex, double timeBuffer, double timeLeftOver)
 {
     if (state->getKey() == "sink") {
         results.push_back(currentPath);
     }
     else if (sequenceIndex < alpha->getSize()) {
-        pair<string, Guard> timed_symbol = dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex);
+        ts timed_symbol = dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex);
         string symbol = timed_symbol.first;
-        Guard symbol_time = timed_symbol.second;
-        int t = symbol_time.tmin - timeBuffer;
+        double symbol_time = timed_symbol.second;
+        double t = symbol_time - timeBuffer;
+        //cout << "State : " << state->getKey() << " Time : " << std::setprecision(3) << t << " Symbol : " << symbol << endl;
         /*
         if (sequenceIndex > 0) {
             t -= dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second.tmin;
@@ -173,7 +190,7 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
                                 executingPath newPath(currentPath);
                                 newPath.push_back(transition->id);
                                 if (this->isPathDeterministic(newPath)) {
-                                    this->revealingPathsRecursive(state, newPath, results, alpha, sequenceIndex, symbol_time.tmin, t);
+                                    this->revealingPathsRecursive(state, newPath, results, alpha, sequenceIndex, symbol_time, t);
                                 }
                             }
                         }
@@ -264,6 +281,7 @@ bool DistinguishingAutomaton_TFSM::isProductConnected()
 
 std::deque<ProductTransition *> DistinguishingAutomaton_TFSM::Dijkstra(string key)
 {
+    //this->print();
     map<string, ProductTransition *> predecessors;
     set<string> Q;
     map<string, int> distances;
@@ -281,18 +299,35 @@ std::deque<ProductTransition *> DistinguishingAutomaton_TFSM::Dijkstra(string ke
         for (auto transition : this->transitions) {
             if (transition->src == s1) {
                 if (atoi(transition->i.c_str()) != inf) {
-                    if (transition->getGuard().tmin < this->mutationMachine->getMaxDelta(this->states.find(transition->src)->second->mutationState) - this->states.find(transition->src)->second->getMutationCounter()
-                            || this->mutationMachine->getMaxDelta(this->states.find(transition->src)->second->mutationState) == 0) {
+                    int maxTimeout = 0;
+                    for (auto t : this->mutationMachine->delta(this->states.find(transition->src)->second->mutationState)) {
+                            if (t->t > maxTimeout)
+                                maxTimeout = t->t;
+                    }
+                    maxTimeout = min(maxTimeout, this->specification->delta(this->states.find(transition->src)->second->specificationState).front()->t);
+                    if (transition->getGuard().tmin < maxTimeout) {
                         DijkstraUpdateDistancesMin(distances, predecessors, s1, transition->tgt, transition);
-                    }}
+                    }
+                }
             }
         }
     }
+    /*
+    cout << "Dijkstra (distances) : " << endl;
+    for (const auto dist : distances) {
+        cout << dist.first << " " << dist.second << endl;
+    }
+    cout << "Dijkstra (predcessors) : " << endl;
+    for (const auto pred : predecessors) {
+        cout << pred.first << " " << pred.second->src << endl;
+    }
+    */
 
     string currentStateKey = "sink";
     deque<ProductTransition *> results;
 
     if (distances.find("sink")->second != inf) {
+        //cout << "Sink accessible" << endl;
         while (currentStateKey != key) {
             if (distances.find(currentStateKey)->second == inf) {
                 results.clear();
@@ -312,16 +347,16 @@ std::deque<ProductTransition *> DistinguishingAutomaton_TFSM::Dijkstra(string ke
 
 void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executingPath currentPath, set<string> * results, Sequence * alpha, int sequenceIndex, int timeBuffer, int timeLeftOver)
 {
-    cout << "State : " << state->getKey() << endl;
+    //cout << "State : " << state->getKey() << endl;
     if (state->getKey() != "sink") {
         if (sequenceIndex < alpha->getSize()) {
 
-            pair<string, Guard> timed_symbol = dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex);
+            ts timed_symbol = dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex);
             string symbol = timed_symbol.first;
 
-            Guard symbol_time = timed_symbol.second;
-            cout << "Symbol : " << symbol << " " << symbol_time.toString() << endl;
-            int t = symbol_time.tmin - timeBuffer;
+            int symbol_time = timed_symbol.second;
+            //cout << "Symbol : " << symbol << " " << symbol_time.toString() << endl;
+            int t = symbol_time - timeBuffer;
             /*
             if (sequenceIndex > 0) {
                 t -= dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second.tmin;
@@ -347,7 +382,7 @@ void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executi
                                     executingPath newPath(currentPath);
                                     newPath.push_back(transition->id);
                                     if (this->isPathDeterministic(newPath)) {
-                                        this->reachableStates(state, newPath, results, alpha, sequenceIndex, symbol_time.tmin, t);
+                                        this->reachableStates(state, newPath, results, alpha, sequenceIndex, symbol_time, t);
                                     }
                                 }
                             }
@@ -370,7 +405,7 @@ void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executi
             }
         }
         else {
-            cout << "Add to result : " << state->getKey() << endl;
+            //cout << "Add to result : " << state->getKey() << endl;
             results->insert(state->getKey());
         }
     }
@@ -379,38 +414,34 @@ void DistinguishingAutomaton_TFSM::reachableStates(ProductState * state, executi
 
 Sequence * DistinguishingAutomaton_TFSM::inputSequenceFromAcceptedLanguage(set<string> beginningStates, Sequence * prefix)
 {
-    TimedIntervalInputSequence * input = new TimedIntervalInputSequence();
+    TimedInputSequence * input = new TimedInputSequence();
     if (!this->hasNoSinkState && this->isConnected) {
+        cout << "Okay ?" << endl;
         set<string> * results = new set<string>();
         executingPath currentPath;
         reachableStates(this->initialState, currentPath, results, prefix, 0, 0, 0);
         for (string key : (*results)) {
-            cout << "Result : " << key << endl;
+            cout << "Result : " << key << " : ";
             deque<ProductTransition *> res = Dijkstra(key);
-            /*
-            Guard time("[", 0, 0, ")");
-            if (prefix->getSize() > 0)
-                time = dynamic_cast<TimedIntervalInputSequence *>(prefix)->getElement(prefix->getSize()-1).second;
-            for (auto transition : res) {
-                GuardedProductTransition * guardedTransition = dynamic_cast<GuardedProductTransition *>(transition);
-                if (guardedTransition->isTimeout) {
-                    time = time.added(atoi(guardedTransition->i.c_str()));
-                }
-                else {
-                    time = time.added(guardedTransition->getGuard());
-                    input->addElement(pair<string, Guard>(guardedTransition->i, time));
-                }
+            double time = 0;
+            if (prefix->getSize() > 0) {
+                time = dynamic_cast<TimedInputSequence *>(prefix)->getElement(prefix->getSize()-1).second;
             }
-            */
-            int time = 0;
             for (auto transition : res) {
+                cout << "Transition" << endl;
                 GuardedProductTransition * guardedTransition = dynamic_cast<GuardedProductTransition *>(transition);
                 if (guardedTransition->isTimeout) {
                     time = time + atoi(guardedTransition->i.c_str());
                 }
                 else {
-                    input->addElement(pair<string, Guard>(guardedTransition->i, guardedTransition->getGuard().added(time)));
-                    time = 0;
+                    //input->addElement(pair<string, Guard>(guardedTransition->i, guardedTransition->getGuard().added(time)));
+                    time = guardedTransition->getGuard().tmin + time;
+                    if (guardedTransition->getGuard().left == Bracket::Curly) {
+                        time += 0.01;
+                    }
+                    input->addElement(ts(transition->i, time));
+
+                    //time = 0;
                 }
             }
             if (res.size() > 0) {
@@ -419,12 +450,16 @@ Sequence * DistinguishingAutomaton_TFSM::inputSequenceFromAcceptedLanguage(set<s
         }
         delete results;
     }
+    else {
+        cout << "Sink or not connected ! No Sink : " << this->hasNoSinkState << " Connected : " << this->isConnected << endl;
+    }
     return input;
 }
 
 void DistinguishingAutomaton_TFSM::initialize() {
     this->generateNext(this->initialState);
-    this->isConnected = this->isProductConnected();
+    //this->isConnected = this->isProductConnected();
+    this->isConnected = true;
 }
 
 string DistinguishingAutomaton_TFSM::generateDot()

@@ -253,12 +253,6 @@ void BenchmarkWidget::checkingSequence()
 
 void BenchmarkWidget::relaySignals()
 {
-    //connect(_import_button, &QPushButton::released, this, &BenchmarkWidget::switchToImport);
-    /*
-    connect(_graph_button, &QPushButton::released, this, &BenchmarkWidget::switchToGraph);
-    connect(_gestion_button, &QPushButton::released, this, &BenchmarkWidget::switchToGestion);
-    connect(_config_file_button, &QPushButton::released, this, &BenchmarkWidget::switchToConfigFile);
-    */
 
     connect(_ce_button, &QPushButton::released, this, &BenchmarkWidget::checkingExperiment);
     connect(_cs_button, &QPushButton::released, this, &BenchmarkWidget::checkingSequence);

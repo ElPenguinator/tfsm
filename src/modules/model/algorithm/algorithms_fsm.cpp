@@ -253,63 +253,15 @@ Sequence * Algorithms_FSM::generateCheckingSequence(FSM * S, FSM * M)
 
 void Algorithms_FSM::checkingExperimentBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
-    //    set<string> I = {"a", "b"};
-    //    set<string> O = {"0", "1"};
-
-
-    //    //int nbStates [5] = {4, 8, 10, 12, 15};
-    //    //int nbMutants [6] = {16, 32, 64, 128, 256, 512};
-
-    //    int nbStates [1] = {15};
-    //    int nbMutants [1] = {96};
-    //    int maxTimeSpec = 3;
-    //    int maxTimeMuta = 5;
-    //    ofstream benchFile;
-    //    cout << "Num of Bench : " << nbOfBench << endl;
-    //    //for (int j=4; j<5; j++) {
-    //    for (int j=0; j<1; j++) {
-    //        cout << nbStates[j] << " states" << endl;
-    //        int maximumTransitions = nbStates[j] * I.size() * O.size() * nbStates[j] + nbStates[j] * (maxTimeMuta+1) * nbStates[j];
-    //        int transitionsInSpec = nbStates[j] * I.size() + nbStates[j];
-    //        cout << "Maximum : " << maximumTransitions << " In Spec : " << transitionsInSpec << " available : " << maximumTransitions - transitionsInSpec << endl;
-    //        //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
-    //        //for (int i=0; i < 6; i++) {
-    //        for (int i=0; i < 1; i++) {
-    //            cout << nbMutants[i] << " mutated transitions/timeouts" << endl;
-    //            if (nbMutants[i] < maximumTransitions - transitionsInSpec) {
-    //                benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
-    //                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTimeSpec, I, O);
-    //                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTimeMuta, nbMutants[i]);
-    //                vector<Sequence *> E;
-    //                vector<Sequence *> Einit;
-    //                cout << "Begin" << endl;
-    //                clock_t begin = clock();
-    //                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
-    //                clock_t end = clock();
-    //                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    //                cout << "End" << endl;
-    //                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTimeSpec << " " << maxTimeMuta << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
-    //                delete randomSpec;
-    //                delete randomMuta;
-    //                benchFile.close();
-    //            }
-    //        }
-
-    //    }
-
-    cout << folder << " | " << nbMachines << " | " << timeoutedValue << " | " << maxTimeout << " | " << " | " << endl;
     set<string> I = {"a", "b"};
     set<string> O = {"0", "1"};
 
     ofstream benchFile;
     for (int states : nbStates) {
-            cout << "States : " << states << endl;
         for (int i = 0; i < nbMachines; i++) {
-            cout << "Machines : " << i << endl;
             FSM * randomSpec = generateRandomSpecification(states, maxTimeout, I, O);
             int transitionsInSpec = states * I.size();
             for (int mutations : nbMutations) {
-                cout << "Mutations : " << mutations << endl;
                 int maximumTransitions = states * I.size() * O.size() * states;
                 if (mutations < maximumTransitions - transitionsInSpec) {
                     randomSpec->print();
@@ -319,13 +271,11 @@ void Algorithms_FSM::checkingExperimentBenchmarks(std::string folder, std::set<i
 
                     vector<Sequence *> E;
                     vector<Sequence *> Einit;
-                    cout << "Begin" << endl;
                     clock_t begin = clock();
                     this->logPath = pathName + "_";
                     E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
                     clock_t end = clock();
                     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-                    cout << "End" << endl;
                     benchFile << states << " " << mutations << " " << maxTimeout << " " << maxTimeout*2 << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
                     delete randomMuta;
                     benchFile.close();

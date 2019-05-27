@@ -125,7 +125,7 @@ bool Guard::equals(Guard other) {
             && this->right == other.right);
 }
 
-bool Guard::contains(int x) {
+bool Guard::contains(double x) {
     bool guard1;
     if (this->left == Bracket::Square) {
         guard1 = x >= this->tmin;

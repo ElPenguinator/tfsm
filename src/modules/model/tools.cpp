@@ -14,17 +14,6 @@ void printPath(executingPath p)
     cout << endl;
 }
 
-/*
-void printSequence(sequence s)
-{
-    cout << "Sequence : ";
-    for (ts timeState : s) {
-        cout << "(" << timeState.first << "," << timeState.second << ")";
-    }
-    cout << endl;
-}
-*/
-
 void printClause(vector<Lit> clause)
 {
     for (Lit l : clause) {

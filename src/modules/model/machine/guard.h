@@ -17,7 +17,7 @@ public:
     std::string toString();
     bool isIntersectionEmpty(Guard other);
     Guard intersect(Guard other);
-    bool contains(int x);
+    bool contains(double x);
     bool equals(Guard other);
     Guard substracted(int counter);
     Guard substracted(Guard other);

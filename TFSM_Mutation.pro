@@ -9,6 +9,8 @@ qtHaveModule(opengl): QT += opengl
 TARGET = MutationTesting
 TEMPLATE = app
 
+CONFIG += c++11
+
 SOURCES += src/main.cpp \
     src/modules/model/machine/tfsm_to.cpp \
     src/modules/model/machine/productstate.cpp \

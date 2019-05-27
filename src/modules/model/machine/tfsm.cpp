@@ -50,26 +50,16 @@ bool isUnionEverything(vector<IOTransition *> toCheck) {
             toCheck.erase(minGuard);
         }
     }
-    /*
-    cout << "Ordered : ";
-    for (Guard g : orderedGuards) {
-        cout << g.toString() << " ";
-    }
-    cout << endl;
-*/
     lastMax = 0;
     Bracket lastBracket = Bracket::Curly;
     for (Guard g : orderedGuards) {
-        //cout << lastMax << " " << g.tmin << " " << lastBracket << " " << g.left << endl;
         if (g.tmin <= lastMax) {
             if (lastMax == g.tmin && lastBracket == g.left) {
-                //cout << "Here!" << endl;
                 return false;
             }
         }
         else {
             if (lastMax == g.tmin && lastBracket == g.left) {
-                //cout << "Here? " << g.tmin << " " << lastMax << endl;
                 return false;
             }
             else {
@@ -80,7 +70,6 @@ bool isUnionEverything(vector<IOTransition *> toCheck) {
         lastBracket = g.right;
     }
     if (lastMax != inf) {
-        //cout << "Here:" << endl;
         return false;
     }
     return true;
@@ -132,46 +121,11 @@ void TFSM::computeMaps()
                 if (isUnionEverything(toCheck) && isIntersectionEmpty(toCheck)) {
                     combinations.insert(combination);
                 }
-                /*
-                else {
-                    cout << "Not possible for : { ";
-                    for (IOTransition * transition : toCheck) {
-                        cout << transition->getGuard().toString() << " ";
-                    }
-                    cout << " } because of : " << endl;
-                    if (!isUnionEverything(toCheck)) {
-                        cout << "Union is not everything" << endl;
-                    }
-                    if (!isIntersectionEmpty(toCheck)) {
-                        cout << "Intersection is not empty" << endl;
-                    }
-                }
-                */
             }
             elt.insert(make_pair(i, combinations));
         }
         this->combinationsMaps.insert(make_pair(s, elt));
     }
-    /*
-    cout << "Combinations : " << endl;
-    for (auto a : this->combinationsMaps) {
-        cout << "State : " << a.first << endl;
-        for (auto b : a.second) {
-            cout << "Input : " << b.first << endl;
-            for (auto c : b.second) {
-                cout << "Res : {";
-                for (auto d : c) {
-                    cout << d << " ";
-                    cout << this->getTransitionFromId(d)->getGuard().toString() << ", ";
-                }
-                cout << "}" << endl;
-            }
-        }
-    }
-    */
-
-
-
 }
 
 void TFSM::addTransitions(vector<IOTransition *> transitions, bool isMutated)
@@ -184,9 +138,6 @@ void TFSM::addTimeouts(vector<TimeoutTransition *> timeouts, bool isMutated)
 {
     TFSM_TO::addTimeouts(timeouts, isMutated);
     this->computeMaps();
-    for (TimeoutTransition * t : timeouts) {
-        this->mutatedTransitions.insert(make_pair(t->id, isMutated));
-    }
 }
 
 vector<IOTransition *> TFSM::getXi(int s, string i)
