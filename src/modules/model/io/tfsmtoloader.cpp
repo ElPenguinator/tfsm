@@ -23,7 +23,6 @@ void TFSMTOLoader::readLine(string line, bool createSpecification)
     int t;
 
     QString patternTS("([0-9]+)\\s*->\\s*([0-9]+)");
-    //label="([^"]+)"
     QRegExp rxTS(patternTS);
     int index = rxTS.indexIn(QString::fromStdString(line));
     bool createTransition = false;

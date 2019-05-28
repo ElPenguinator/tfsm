@@ -618,7 +618,6 @@ void MutationWidget::machineSVGGenerated(bool success)
 
 void MutationWidget::changeMachineType(const QString &text)
 {
-    cout << "Type : " << text.toStdString() << endl;
     //Change tab if needed
     if (text == "FSM") {
         updateTab(false, false);

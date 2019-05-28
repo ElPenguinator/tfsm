@@ -244,7 +244,9 @@ vector<Sequence *> Algorithms_TFSM::generateCheckingExperiment(vector<Sequence *
     SATSolver * solver = new SATSolver();
     solver->log_to_file("tmp/test.txt");
     solver->new_vars(M->getTransitionSize());
+    cout << "Here !" << endl;
     computePhiM(solver, S, M);
+    cout << "Here ?" << endl;
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
     cout << "before initialize" << endl;
     D->initialize();

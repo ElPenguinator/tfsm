@@ -21,8 +21,6 @@ DistinguishingAutomaton_TFSM::DistinguishingAutomaton_TFSM(FSM *S, FSM *M) : Dis
     this->initialState = initialState;
     this->hasNoSinkState = true;
     this->isConnected = true;
-    //this->generateNext(initialState);
-    //this->isConnected = this->isProductConnected();
 }
 
 void DistinguishingAutomaton_TFSM::insertState(ProductState * state, string i, Guard g, ProductState * newState, bool isTimeout, int id)
@@ -42,21 +40,20 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
             if (!mutationTransition->getGuard().substracted(state->getMutationCounter()).isIntersectionEmpty(specificationTransition->getGuard().substracted(state->getSpecificationCounter()))) {
                 int maxTimeout = 0;
                 for (auto t : this->mutationMachine->delta(state->mutationState)) {
-                        if (t->t > maxTimeout)
-                            maxTimeout = t->t;
+                        if (t->t - state->getMutationCounter() > maxTimeout)
+                            maxTimeout = t->t - state->getMutationCounter();
                 }
-                maxTimeout = min(maxTimeout, this->specification->delta(state->specificationState).front()->t);
+                maxTimeout = min(maxTimeout, this->specification->delta(state->specificationState).front()->t - state->getSpecificationCounter());
                 Guard newGuard = mutationTransition->getGuard().substracted(state->getMutationCounter()).intersect(specificationTransition->getGuard().substracted(state->getSpecificationCounter()));
 
-                if (newGuard.tmin < maxTimeout) {
-                ProductState * newState;
+                if (newGuard.tmin < maxTimeout && !(newGuard.tmin == newGuard.tmax && (newGuard.left == Bracket::Curly || newGuard.right == Bracket::Curly))) {
+                    ProductState * newState;
                 if (specificationTransition->o == mutationTransition->o)
                     newState = new TimedProductState(specificationTransition->tgt, mutationTransition->tgt, 0, 0);
                 else {
                     newState = new TimedProductSinkState();
                     this->hasNoSinkState = false;
                 }
-                //cout << "State : " << state->getKey() << " MaxTimeout : " << maxTimeout << " Guard : " << newGuard.toString() << " Target : " << newState->getKey() << endl;
                 this->insertState(state, specificationTransition->i, newGuard, newState, false, mutationTransition->id);
                 }
             }
@@ -66,7 +63,7 @@ void DistinguishingAutomaton_TFSM::generateNext(ProductState * state)
 
     TimeoutTransition * related = NULL;
     for (auto specificationTimeout : this->specification->delta(state->specificationState)) {
-        related = new TimeoutTransition(specificationTimeout->src, specificationTimeout->t, specificationTimeout->tgt, specificationTimeout->id);//&specificationTimeout;
+        related = new TimeoutTransition(specificationTimeout->src, specificationTimeout->t, specificationTimeout->tgt, specificationTimeout->id);
     }
     int spec_t = related->t;
     if (spec_t != inf)
@@ -139,12 +136,44 @@ bool DistinguishingAutomaton_TFSM::isPathDeterministic(const executingPath p)
             }
         }
         else {
+            //WRONG TO CORRECT
+            //Get all combinations from the source state of "id" and the input of "id"
             set<set<int>> eta = this->mutationMachine->getEta(this->mutationMachine->getTransitionFromId(id)->src, this->mutationMachine->getTransitionFromId(id)->i);
-            for (set<int> combi : eta) {
-                if (find(combi.begin(), combi.end(), id) == combi.end()) {
-                    for (int elt : combi) {
-                        if (find(p.begin(), p.end(), elt) != p.end() && elt != id) {
-                            return false;
+            cout << "Test id : " << id << endl;
+            cout << "Path : ";
+            for (int elt2 : p) {
+                cout << elt2 << " " ;
+            }
+            cout << endl;
+
+            //Iterate through each combination
+            for (set<int> combi1 : eta) {
+                //If combination have id
+                if (find(combi1.begin(), combi1.end(), id) != combi1.end()) {
+                    cout << "Test Combi 1" << endl;
+                    cout << "{";
+                    for (int elt2 : combi1) {
+                        cout << elt2 << " ";
+                    }
+                    cout << "}" << endl;
+                    //Compare to each other combinations
+                    for (set<int> combi2 : eta) {
+                        if (combi1 != combi2) {
+                            cout << "Compare Combi 2" << endl;
+                            cout << "{";
+                            for (int elt2 : combi2) {
+                                cout << elt2 << " ";
+                            }
+                            cout << "}" << endl;
+                            //for each transition t2 in combi2
+                            //if t2 is not in combi1 and t2 then combi2 is mandatory and we increment the counter
+                            for (int t2 : combi2) {
+                                if (find(combi1.begin(), combi1.end(), t2) == combi1.end()
+                                        && find(p.begin(), p.end(), t2) != p.end()) {
+                                    cout << "Too bad : " << t2 << endl;
+                                    return false;
+                                }
+                            }
                         }
                     }
                 }
@@ -157,6 +186,7 @@ bool DistinguishingAutomaton_TFSM::isPathDeterministic(const executingPath p)
 void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state, executingPath currentPath, vector<executingPath> &results, Sequence * alpha, int sequenceIndex, double timeBuffer, double timeLeftOver)
 {
     if (state->getKey() == "sink") {
+        cout << " Arrived " << endl;
         results.push_back(currentPath);
     }
     else if (sequenceIndex < alpha->getSize()) {
@@ -164,13 +194,13 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
         string symbol = timed_symbol.first;
         double symbol_time = timed_symbol.second;
         double t = symbol_time - timeBuffer;
-        //cout << "State : " << state->getKey() << " Time : " << std::setprecision(3) << t << " Symbol : " << symbol << endl;
-        /*
+
         if (sequenceIndex > 0) {
-            t -= dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second.tmin;
-            symbol_time = symbol_time.substracted(dynamic_cast<TimedIntervalInputSequence *>(alpha)->getElement(sequenceIndex - 1).second);
+            t -= dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex - 1).second;
+            symbol_time -= dynamic_cast<TimedInputSequence *>(alpha)->getElement(sequenceIndex - 1).second;
         }
-        */
+        cout << "State : " << state->getKey() << " Time : " << std::setprecision(3) << t << " Symbol : " << symbol << " TimeLeftOver : " << std::setprecision(3) << timeLeftOver << endl;
+
         //Time to spend, so take only timeouts
         if (t > 0) {
             for (auto transition : this->transitions) {
@@ -181,6 +211,7 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
                         executingPath newPath(currentPath);
                         newPath.push_back(transition->id);
                         if (this->isPathDeterministic(newPath)) {
+                            cout << state->getKey() << " Take timeout : " << transition->id << endl;
                             this->revealingPathsRecursive(tgtNode, newPath, results, alpha, sequenceIndex, timeBuffer + timeout, 0);
                         }
                     }
@@ -201,12 +232,19 @@ void DistinguishingAutomaton_TFSM::revealingPathsRecursive(ProductState * state,
         else {
             for (auto transition : this->transitions) {
                 if (transition->src == state->getKey() && !transition->isTimeout) {
+                    cout << "Transition : " << transition->id << endl;
                     if (transition->i == symbol && transition->getGuard().contains(timeLeftOver)) {
+                        cout << "Symbol and contained" << endl;
                         ProductState * tgtNode = this->states.find(transition->tgt)->second;
                         executingPath newPath(currentPath);
                         newPath.push_back(transition->id);
-                        if (this->isPathDeterministic(newPath))
+                        if (this->isPathDeterministic(newPath)) {
+                            cout << state->getKey() << " Take transition : " << transition->id << endl;
                             this->revealingPathsRecursive(tgtNode, newPath, results, alpha, sequenceIndex+1, 0, 0);
+                        }
+                        else {
+                            cout << "Not deterministic" << endl;
+                        }
                     }
                 }
             }

@@ -19,9 +19,6 @@ DistinguishingAutomaton_FSM::DistinguishingAutomaton_FSM(FSM * S, FSM * M)
     this->initialState = initialState;
     this->hasNoSinkState = true;
     this->isConnected = true;
-
-    //    this->generateNext(initialState);
-    //    this->isConnected = this->isProductConnected();
 }
 
 void DistinguishingAutomaton_FSM::insertState(ProductState * state, string i, ProductState * newState, bool isTimeout, int id)
@@ -92,7 +89,6 @@ void DistinguishingAutomaton_FSM::revealingPathsRecursive(ProductState * state, 
     }
     else if (sequenceIndex < alpha->getSize()) {
         string symbol = dynamic_cast<InputSequence *>(alpha)->getElement(sequenceIndex);
-        //string symbol = timed_symbol.first;
         //Time to spend, so take only timeouts
         for (auto transition : this->transitions) {
             if (transition->src == state->getKey() && !transition->isTimeout) {
@@ -219,7 +215,6 @@ void DistinguishingAutomaton_FSM::reachableStates(ProductState * state, executin
 {
     if (state->getKey() != "sink") {
         if (sequenceIndex < alpha->getSize()) {
-            //ts timed_symbol = alpha[sequenceIndex];
             string symbol = dynamic_cast<InputSequence *>(alpha)->getElement(sequenceIndex);
             for (auto transition : this->transitions) {
                 if (transition->src == state->getKey() && !transition->isTimeout) {
@@ -249,7 +244,6 @@ Sequence * DistinguishingAutomaton_FSM::inputSequenceFromAcceptedLanguage(set<st
         for (string key : (*results)) {
             deque<ProductTransition *> res = Dijkstra(key);
             for (auto transition : res) {
-                //input.push_back(ts(transition->i, time));
                 input->addElement(transition->i);
             }
             if (res.size() > 0)
@@ -270,7 +264,6 @@ string DistinguishingAutomaton_FSM::generateDot()
     ostringstream res;
     res << "digraph DistinguishingFSM {" << endl << "forcelabels=true;" << endl;
     for (auto s : this->states) {
-        //res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " " << s.second->specificationCounter << " " << s.second->mutationCounter << "\"];" << endl;
         if (s.first == "sink") {
             res << s.second->id << " [label=\"∇\"];" << endl;
         }

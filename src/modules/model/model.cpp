@@ -206,7 +206,7 @@ Model::Model() : QObject()
 {
     showSpecification = true;
     currentFactory = new FSMFactory();
-    testOmer2();
+    testOmer1();
 }
 
 Model::~Model()

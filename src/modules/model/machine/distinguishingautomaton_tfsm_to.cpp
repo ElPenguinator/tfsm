@@ -20,8 +20,6 @@ DistinguishingAutomaton_TFSM_TO::DistinguishingAutomaton_TFSM_TO(FSM *S, FSM *M)
     this->initialState = initialState;
     this->hasNoSinkState = true;
     this->isConnected = true;
-    //this->generateNext(initialState);
-    //this->isConnected = this->isProductConnected();
 }
 
 void DistinguishingAutomaton_TFSM_TO::insertState(ProductState * state, string i, ProductState * newState, bool isTimeout, int id)
@@ -56,7 +54,7 @@ void DistinguishingAutomaton_TFSM_TO::generateNext(ProductState * state)
 
     TimeoutTransition * related = NULL;
     for (auto specificationTimeout : this->specification->delta(state->specificationState)) {
-        related = new TimeoutTransition(specificationTimeout->src, specificationTimeout->t, specificationTimeout->tgt, specificationTimeout->id);//&specificationTimeout;
+        related = new TimeoutTransition(specificationTimeout->src, specificationTimeout->t, specificationTimeout->tgt, specificationTimeout->id);
     }
     int spec_t = related->t;
     if (spec_t != inf)
@@ -288,11 +286,6 @@ std::deque<ProductTransition *> DistinguishingAutomaton_TFSM_TO::Dijkstra(string
                 results.clear();
                 return results;
             }
-            /*
-            cout << "Res :" << endl;
-            cout << currentStateKey << endl;
-            cout << predecessors.find(currentStateKey)->second.getKey() << endl;
-            */
             results.push_front(predecessors.find(currentStateKey)->second);
             currentStateKey = predecessors.find(currentStateKey)->second->src;
         }
@@ -394,13 +387,10 @@ string DistinguishingAutomaton_TFSM_TO::generateDot()
     ostringstream res;
     res << "digraph DistinguishingTFSM_TO {" << endl << "forcelabels=true;" << endl;
     for (auto s : this->states) {
-        //res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " " << s.second->specificationCounter << " " << s.second->mutationCounter << "\"];" << endl;
-        //res << s.first << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << "\"];" << endl;
-        if (s.first == "sink") {
+       if (s.first == "sink") {
             res << s.second->id << " [label=\"∇\"];" << endl;
         }
         else {
-            //res << s.second->id << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " " << s.second->getSpecificationCounter() << " " << s.second->getMutationCounter() << "\"];" << endl;
             res << s.second->id << " [label=\"" << s.second->specificationState << " " << s.second->mutationState << " ";
             if (s.second->getSpecificationCounter() == inf)
                 res << "∞";
@@ -414,11 +404,6 @@ string DistinguishingAutomaton_TFSM_TO::generateDot()
             res << "\"];" << endl;
         }
     }
-    /*
-    for (ProductTransition * t : this->transitions) {
-        res << t->src << " -> " << t->tgt << " [label=\"" << t->i<< "\"];" << endl;
-    }
-    */
     for (ProductTransition * t : this->transitions) {
         if (atoi(t->i.c_str()) == inf) {
             res << (*this->states.find(t->src)).second->id << " -> " << (*this->states.find(t->tgt)).second->id << " [label=\"" << "∞" << " [" << t->id << "]\"];" << endl;

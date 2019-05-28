@@ -87,7 +87,6 @@ FSM * TFSMTOFactory::generateMutation(FSM *specification, QMap<QString, QTableWi
     set<int> S = generateStates(nbOfStates);
     int s0 = 1;
 
-    cout << "Hello" << endl;
     QTableWidget * tableInputs = (*map.find(QString("inputs")));
     QTableWidget * tableOutputs = (*map.find(QString("outputs")));
     QTableWidget * tableTransitions = (*map.find(QString("transitions")));

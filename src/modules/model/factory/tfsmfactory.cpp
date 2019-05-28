@@ -24,7 +24,6 @@ Guard generateGuard(QString cap1, QString cap2, QString cap3, QString cap4)
     else
         tmax = cap3.toInt();
     string rightBracket = cap4.toStdString();
-    //cout << "Guard : " << leftBracket << tmin << "," << tmax << rightBracket << endl;
 
     return Guard(leftBracket, tmin, tmax, rightBracket);
 }

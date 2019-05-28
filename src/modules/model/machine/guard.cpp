@@ -71,6 +71,13 @@ bool Guard::isIntersectionEmpty(Guard other) {
     if (tmin == tmax && left != right) {
         return true;
     }
+
+    /*
+    if (tmin == tmax && left == Bracket::Curly || right == Bracket::Curly) {
+        return true;
+    }
+    */
+
     return tmin > tmax;
 }
 

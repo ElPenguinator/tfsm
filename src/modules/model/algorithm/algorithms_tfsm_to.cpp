@@ -261,7 +261,6 @@ Sequence * Algorithms_TFSM_TO::generateCheckingSequenceTimeouted(FSM * S, FSM * 
     double elapsed_secs = 0;
     do {
         clock_t begin = clock();
-        //CS.insert(CS.end(), alpha.begin(), alpha.end());
         dynamic_cast<TimedInputSequence *>(CS)->addElements(dynamic_cast<TimedInputSequence *>(alpha)->content);
         alpha = verifyCheckingSequence(solver, CS, S, D);
         clock_t end = clock();
@@ -282,7 +281,6 @@ Sequence * Algorithms_TFSM_TO::generateCheckingSequence(FSM * S, FSM * M)
     Sequence * CS = new TimedInputSequence();
     Sequence * alpha = new TimedInputSequence();
     do {
-        //CS.insert(CS.end(), alpha.begin(), alpha.end());
         dynamic_cast<TimedInputSequence *>(CS)->addElements(dynamic_cast<TimedInputSequence *>(alpha)->content);
         alpha = verifyCheckingSequence(solver, CS, S, D);
     }
@@ -390,15 +388,9 @@ vector<Sequence *> Algorithms_TFSM_TO::removePrefixes(vector<Sequence *> E)
             }
             if (i == min(s1->getSize(), s2->getSize())) {
                 if (s1->getSize() <= s2->getSize()) {
-                    //printSequence(s1);
-                    //cout << "Is prefix of" << endl;
-                    //printSequence(s2);
                     found = true;
                 }
                 else {
-                    //printSequence(s2);
-                    //cout << "Is prefix of" << endl;
-                    //printSequence(s1);
                     newE.erase(newE.begin() + j);
                 }
             }
