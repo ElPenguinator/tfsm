@@ -136,6 +136,14 @@ bool DistinguishingAutomaton_TFSM::isPathDeterministic(const executingPath p)
             }
         }
         else {
+            vector<IOTransition *> xiTransitions = this->mutationMachine->getXi(this->mutationMachine->getTransitionFromId(id)->src, this->mutationMachine->getTransitionFromId(id)->i);
+            for (auto otherTransition : xiTransitions) {
+                if (find(p.begin(), p.end(), otherTransition->id) != p.end() && otherTransition->id != id
+                        && !otherTransition->getGuard().isIntersectionEmpty(this->mutationMachine->getTransitionFromId(id)->getGuard())) {
+                    return false;
+                }
+            }
+            /*
             //WRONG TO CORRECT
             //Get all combinations from the source state of "id" and the input of "id"
             set<set<int>> eta = this->mutationMachine->getEta(this->mutationMachine->getTransitionFromId(id)->src, this->mutationMachine->getTransitionFromId(id)->i);
@@ -178,6 +186,7 @@ bool DistinguishingAutomaton_TFSM::isPathDeterministic(const executingPath p)
                     }
                 }
             }
+            */
         }
     }
     return true;

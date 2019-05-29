@@ -61,7 +61,7 @@ void testOmer1()
 
     Spec->print();
     Muta->print();
-
+    /*
     cout << "Test 1 : " << endl;
 
     vector<Sequence *> E;
@@ -72,29 +72,32 @@ void testOmer1()
     for (auto s : E) {
         cout << s->toString() << endl;//printSequence(s);
     }
+    */
 
-    /*
     cout << "Test 2 : " << endl;
 
     vector<Sequence *> E2;
     vector<Sequence *> Einit2;
 
     TimedInputSequence * seq1 = new TimedInputSequence();
-    seq1->addElements(vector<pair<string, double>>{make_pair("a", 0), make_pair("b", 4), make_pair("a", 8)});
+    seq1->addElements(vector<pair<string, double>>{make_pair("a", 3.5)});
     Einit2.push_back(seq1);
 
     TimedInputSequence * seq2 = new TimedInputSequence();
-    seq2->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("a", 9.5), make_pair("a", 10)});
+    seq2->addElements(vector<pair<string, double>>{make_pair("b", 10.5), make_pair("a", 11)});
     Einit2.push_back(seq2);
 
     TimedInputSequence * seq3 = new TimedInputSequence();
-    seq3->addElements(vector<pair<string, double>>{make_pair("b", 6.5), make_pair("a", 12), make_pair("b", 18.5), make_pair("a", 19)});
+    seq3->addElements(vector<pair<string, double>>{make_pair("b", 6.5), make_pair("a", 12)});
     Einit2.push_back(seq3);
 
     TimedInputSequence * seq4 = new TimedInputSequence();
-    seq4->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("b", 6.5)});
+    seq4->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("a", 9.5), make_pair("a", 10)});
     Einit2.push_back(seq4);
 
+    TimedInputSequence * seq5 = new TimedInputSequence();
+    seq5->addElements(vector<pair<string, double>>{make_pair("b", 6.5), make_pair("a", 12), make_pair("b", 18.5), make_pair("a", 19)});
+    Einit2.push_back(seq5);
 
     Algorithms * algo2 = currentFactory->getAlgorithms(true, false);
     E2 = algo2->generateCheckingExperiment(Einit2, Spec, Muta);
@@ -102,7 +105,7 @@ void testOmer1()
     for (auto s : E2) {
         cout << s->toString() << endl;//printSequence(s);
     }
-    */
+
 
 }
 
@@ -157,6 +160,90 @@ void testOmer2()
 
     Spec->print();
     Muta->print();
+/*
+    cout << "Test 1 : " << endl;
+
+    vector<Sequence *> E;
+    vector<Sequence *> Einit;
+    Algorithms * algo = currentFactory->getAlgorithms(false, false);
+    E = algo->generateCheckingExperiment(Einit, Spec, Muta);
+    cout << "E : " << endl;
+    for (auto s : E) {
+        cout << s->toString() << endl;//printSequence(s);
+    }
+*/
+
+    cout << "Test 2 : " << endl;
+
+    vector<Sequence *> E2;
+    vector<Sequence *> Einit2;
+
+    TimedInputSequence * seq1 = new TimedInputSequence();
+    seq1->addElements(vector<pair<string, double>>{make_pair("a", 3.5)});
+    Einit2.push_back(seq1);
+
+    TimedInputSequence * seq2 = new TimedInputSequence();
+    seq2->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 4)});
+    Einit2.push_back(seq2);
+
+    TimedInputSequence * seq3 = new TimedInputSequence();
+    seq3->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 9)});
+    Einit2.push_back(seq3);
+
+    TimedInputSequence * seq4 = new TimedInputSequence();
+    seq4->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 9), make_pair("b", 12.5), make_pair("a", 13)});
+    Einit2.push_back(seq4);
+
+    TimedInputSequence * seq5 = new TimedInputSequence();
+    seq5->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("b", 11.5), make_pair("a", 12)});
+    Einit2.push_back(seq5);
+
+    Algorithms * algo2 = currentFactory->getAlgorithms(true, false);
+    E2 = algo2->generateCheckingExperiment(Einit2, Spec, Muta);
+    cout << "E2 : " << endl;
+    for (auto s : E2) {
+        cout << s->toString() << endl;//printSequence(s);
+    }
+}
+
+void testOmer3()
+{
+    MachineFactory * currentFactory = new TFSMFactory();
+    set<int> S = {1, 2, 3};
+    int s0 = 1;
+    set<string> I = {"a", "b"};
+    set<string> O = {"x", "y"};
+
+    vector<IOTransition *> lambda = {new GuardedTransition(1, "a", Guard("[", 0, inf, ")"), "x", 1, 0),
+                                     new GuardedTransition(1, "b", Guard("[", 0, inf, ")"), "x", 2, 1),
+                                      new GuardedTransition(2, "a", Guard("[", 0, 2, ")"), "y", 3, 3),
+                                      new GuardedTransition(2, "a", Guard("[", 2, 5, ")"), "x", 3, 4),
+                                      new GuardedTransition(2, "a", Guard("[", 5, inf, ")"), "x", 1, 5),
+                                      new GuardedTransition(2, "b", Guard("[", 0, inf, ")"), "x", 2, 6),
+                                       new GuardedTransition(3, "a", Guard("[", 0, inf, ")"), "y", 3, 8),
+                                       new GuardedTransition(3, "b", Guard("[", 0, inf, ")"), "x", 1, 9)
+                                        };
+    vector<TimeoutTransition *> delta = {new TimeoutTransition(1, inf, 1, 2),
+                                         new TimeoutTransition(2, 8, 1, 7),
+                                         new TimeoutTransition(3, 5, 1, 10)
+                                        };
+
+    TFSM * Spec = new TFSM(S, s0, I, O, lambda, delta);
+    TFSM * Muta = new TFSM(S, s0, I, O, lambda, delta);
+    vector<IOTransition *> newLambda = {new GuardedTransition(2, "b", Guard("[", 0, 3, "]"), "y", 2, 11),
+                                        new GuardedTransition(2, "b", Guard("(", 3, inf, ")"), "x", 2, 12),
+                                        new GuardedTransition(3, "a", Guard("[", 0, 3, ")"), "y", 3, 14),
+                                        new GuardedTransition(3, "a", Guard("[", 3, 5, ")"), "y", 1, 15),
+                                        new GuardedTransition(3, "a", Guard("[", 5, inf, "]"), "y", 1, 16)
+                                       };
+    Muta->addTransitions(newLambda, true);
+    vector<TimeoutTransition *> newDelta = {new TimeoutTransition(2, 7, 3, 13)
+                                       };
+    Muta->addTimeouts(newDelta, true);
+
+
+    Spec->print();
+    Muta->print();
 
     cout << "Test 1 : " << endl;
 
@@ -169,28 +256,31 @@ void testOmer2()
         cout << s->toString() << endl;//printSequence(s);
     }
 
-    /*
+/*
     cout << "Test 2 : " << endl;
 
     vector<Sequence *> E2;
     vector<Sequence *> Einit2;
 
     TimedInputSequence * seq1 = new TimedInputSequence();
-    seq1->addElements(vector<pair<string, double>>{make_pair("a", 0), make_pair("b", 4), make_pair("a", 8)});
+    seq1->addElements(vector<pair<string, double>>{make_pair("a", 3.5)});
     Einit2.push_back(seq1);
 
     TimedInputSequence * seq2 = new TimedInputSequence();
-    seq2->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("a", 9.5), make_pair("a", 10)});
+    seq2->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 4)});
     Einit2.push_back(seq2);
 
     TimedInputSequence * seq3 = new TimedInputSequence();
-    seq3->addElements(vector<pair<string, double>>{make_pair("b", 6.5), make_pair("a", 12), make_pair("b", 18.5), make_pair("a", 19)});
+    seq3->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 9)});
     Einit2.push_back(seq3);
 
     TimedInputSequence * seq4 = new TimedInputSequence();
-    seq4->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("b", 6.5)});
+    seq4->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 9), make_pair("b", 12.5), make_pair("a", 13)});
     Einit2.push_back(seq4);
 
+    TimedInputSequence * seq5 = new TimedInputSequence();
+    seq5->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("b", 11.5), make_pair("a", 12)});
+    Einit2.push_back(seq5);
 
     Algorithms * algo2 = currentFactory->getAlgorithms(true, false);
     E2 = algo2->generateCheckingExperiment(Einit2, Spec, Muta);
@@ -199,14 +289,13 @@ void testOmer2()
         cout << s->toString() << endl;//printSequence(s);
     }
     */
-
 }
 
 Model::Model() : QObject()
 {
     showSpecification = true;
     currentFactory = new FSMFactory();
-    testOmer1();
+    testOmer3();
 }
 
 Model::~Model()
