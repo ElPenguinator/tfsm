@@ -62,7 +62,6 @@ void Algorithms_TFSM::computePhiE(SATSolver * &solver, vector<Sequence *> E, Dis
             savePath(logPath + "paths" + to_string(nbVerifying) + "_" + to_string(cpt) +".paths", rev);
         }
         for (auto path : rev) {
-            printPath(path);
             vector<Lit> clause;
             for (auto id : path) {
                 if (D->mutationMachine->isIdTimeout(id)) {
@@ -186,11 +185,9 @@ Sequence * Algorithms_TFSM::verifyCheckingExperiment(SATSolver * &solver,vector<
                 saveSVG(logPath + "productMutant" + to_string(nbPassedMutants) + ".dot", logPath + "productMutant" + to_string(nbPassedMutants) + ".svg", DP->generateDot());
             }
             if (DP->hasNoSinkState/* || !DP->isConnected*/) {
-                cout << "Mutant " << nbPassedMutants << " conform " << "No Sink State : " << DP->hasNoSinkState << " Connected : " << DP->isConnected << endl;
                 computePhiP(solver, P);
             }
             else {
-                cout << "Mutant " << nbPassedMutants << " not conform" << endl;
                 Sequence * nullPrefix = new TimedIntervalInputSequence();
                 set<string> beginningStates;
                 beginningStates.insert(DP->initialState->getKey());
@@ -212,11 +209,20 @@ Sequence * Algorithms_TFSM::verifyCheckingExperiment(SATSolver * &solver,vector<
 vector<Sequence *> Algorithms_TFSM::generateCheckingExperimentTimeouted(vector<Sequence *> Einit, FSM * S, FSM * M)
 {
     SATSolver * solver = new SATSolver();
-
+    cout << "Hello" << endl;
+    if (generateLogs) {
+        cout << "??" << endl;
+        saveSVG(logPath + "specification.dot", logPath + "specification.svg", S->generateDot());
+        saveSVG(logPath + "mutation.dot", logPath + "mutation.svg", M->generateDot());
+    }
     solver->new_vars(M->getTransitionSize());
     computePhiM(solver, S, M);
+    cout << "Yes !" << endl;
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
     D->initialize();
+    if (generateLogs) {
+        saveSVG(logPath + "distinguishing.dot", logPath + "distinguishing.svg", D->generateDot());
+    }
     vector<Sequence *> E;
     vector<Sequence *> Ecurr = Einit;
 
@@ -235,22 +241,18 @@ vector<Sequence *> Algorithms_TFSM::generateCheckingExperimentTimeouted(vector<S
     if (elapsed_secs > 3600) {
         E.clear();
     }
-    return removePrefixes(E);
+    //return removePrefixes(E);
+    return E;
 }
 
 vector<Sequence *> Algorithms_TFSM::generateCheckingExperiment(vector<Sequence *> Einit, FSM * S, FSM * M)
 {
-    cout << "Test !" << endl;
     SATSolver * solver = new SATSolver();
     solver->log_to_file("tmp/test.txt");
     solver->new_vars(M->getTransitionSize());
-    cout << "Here !" << endl;
     computePhiM(solver, S, M);
-    cout << "Here ?" << endl;
     DistinguishingAutomaton_TFSM * D = new DistinguishingAutomaton_TFSM(S, M);
-    cout << "before initialize" << endl;
     D->initialize();
-    cout << "after initialize" << endl;
     if (generateLogs) {
         saveSVG(logPath + "specification.dot", logPath + "specification.svg", S->generateDot());
         saveSVG(logPath + "mutation.dot", logPath + "mutation.svg", M->generateDot());
@@ -365,49 +367,52 @@ Sequence * Algorithms_TFSM::generateCheckingSequence(FSM * S, FSM * M)
 
 void Algorithms_TFSM::checkingExperimentBenchmarks(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
-    //    set<string> I = {"a", "b"};
-    //    set<string> O = {"0", "1"};
+        set<string> I = {"a", "b"};
+        set<string> O = {"0", "1"};
 
+        this->logPath = "benchmarks/";
+        ofstream benchFile;
+    cout << "Begin Benchmark" << endl;
+      for (int nbStatesIte : nbStates) {
+          cout << "States : " << nbStatesIte << endl;
+        for (int nbMutationsIte : nbMutations) {
+            cout << "Mutations : " << nbMutationsIte << endl;
+            //->getTimeouts() << nbStates[j] << " states" << endl;
+            int maximumTransitions = nbStatesIte * I.size() * O.size() * nbStatesIte + nbStatesIte * (maxTimeout+1) * nbStatesIte;
+            int transitionsInSpec = nbStatesIte * I.size() + nbStatesIte;
+            //->getTimeouts() << "Maximum : " << maximumTransitions << " In Spec : " << transitionsInSpec << " available : " << maximumTransitions - transitionsInSpec << endl;
+            //for (int i=0; i < 6; i++) {
+            for (int i=0; i<nbMachines;i++) {
+                cout << "Machine : : " << i << endl;
+                if (nbMutationsIte < maximumTransitions - transitionsInSpec) {
 
-    //    //int nbStates [5] = {4, 8, 10, 12, 15};
-    //    //int nbMutants [6] = {16, 32, 64, 128, 256, 512};
+                    cout << "Begin Generate" << endl;
+                    cout << "Spec" << endl;
+                    FSM * randomSpec = generateRandomSpecification(nbStatesIte, maxTimeout, I, O);
+                    cout << "Muta" << endl;
+                    FSM * randomMuta = generateRandomMutation(randomSpec, maxTimeout*2, nbMutationsIte);
+                    cout << "End Generate" << endl;
+                    vector<Sequence *> E;
+                    vector<Sequence *> Einit;
+                    //->getTimeouts() << "Begin" << endl;
+                    this->logPath = "benchmarks/bench_CE_Less_" + to_string(nbStatesIte) + "_" + to_string(nbMutationsIte) + '_' + to_string(i) + "/";
+                    cout << this->logPath << endl;
+                    benchFile.open(this->logPath + "bench_CE_Less_" + to_string(nbStatesIte) + "_" + to_string(nbMutationsIte) + '_' + to_string(i) + ".txt");
+                    clock_t begin = clock();
+                    E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
+                    clock_t end = clock();
+                    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+                    //->getTimeouts() << "End" << endl;
+                    benchFile << nbStatesIte << " " << nbMutationsIte << " " << maxTimeout << " " << maxTimeout*2 << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
+                    delete randomSpec;
+                    delete randomMuta;
+                    benchFile.close();
+                }
+            }
 
-    //    int nbStates [1] = {15};
-    //    int nbMutants [1] = {96};
-    //    int maxTimeSpec = 3;
-    //    int maxTimeMuta = 5;
-    //    ofstream benchFile;
-    //    ->getTimeouts() << "Num of Bench : " << nbOfBench << endl;
-    //    //for (int j=4; j<5; j++) {
-    //    for (int j=0; j<1; j++) {
-    //        ->getTimeouts() << nbStates[j] << " states" << endl;
-    //        int maximumTransitions = nbStates[j] * I.size() * O.size() * nbStates[j] + nbStates[j] * (maxTimeMuta+1) * nbStates[j];
-    //        int transitionsInSpec = nbStates[j] * I.size() + nbStates[j];
-    //        ->getTimeouts() << "Maximum : " << maximumTransitions << " In Spec : " << transitionsInSpec << " available : " << maximumTransitions - transitionsInSpec << endl;
-    //        //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
-    //        //for (int i=0; i < 6; i++) {
-    //        for (int i=0; i < 1; i++) {
-    //            ->getTimeouts() << nbMutants[i] << " mutated transitions/timeouts" << endl;
-    //            if (nbMutants[i] < maximumTransitions - transitionsInSpec) {
-    //                benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
-    //                TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTimeSpec, I, O);
-    //                TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTimeMuta, nbMutants[i]);
-    //                vector<Sequence *> E;
-    //                vector<Sequence *> Einit;
-    //                ->getTimeouts() << "Begin" << endl;
-    //                clock_t begin = clock();
-    //                E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
-    //                clock_t end = clock();
-    //                double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    //                ->getTimeouts() << "End" << endl;
-    //                benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTimeSpec << " " << maxTimeMuta << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
-    //                delete randomSpec;
-    //                delete randomMuta;
-    //                benchFile.close();
-    //            }
-    //        }
-
-    //    }
+        }
+      }
+      cout << "End Benchmark" << endl;
 }
 
 
@@ -442,7 +447,43 @@ void Algorithms_TFSM::checkingSequenceBenchmarks(std::string folder, std::set<in
     //        }
 
     //    }
+/*
+        set<string> I = {"a", "b"};
+        set<string> O = {"0", "1"};
 
+
+       //int nbStates[5] = {4, 8, 10, 12, 15};
+       //int nbMutants [6] = {16, 32, 64, 128, 256, 512};
+
+        int maxTimeSpec = 3;
+        int maxTimeMuta = 5;
+        ofstream benchFile;
+        //for (int j=4; j<5; j++) {
+        for (int j=0; j<3; j++) {
+            int maximumTransitions = nbStates[j] * I.size() * O.size() * nbStates[j] + nbStates[j] * (maxTimeMuta+1) * nbStates[j];
+            int transitionsInSpec = nbStates[j] * I.size() + nbStates[j];
+            //benchFile.open("bench_CS_" + to_string(nbStates[j]) + '_' + to_string(nbOfBench) + ".txt");
+            //for (int i=0; i < 6; i++) {
+            for (int i=0; i < 5; i++) {
+                if (nbMutants[i] < maximumTransitions - transitionsInSpec) {
+                    benchFile.open("bench_CE_Less_" + to_string(nbStates[j]) + "_" + to_string(nbMutants[i]) + '_' + to_string(nbOfBench) + ".txt");
+                    TFSM_TO * randomSpec = generateRandomSpecification_TO(nbStates[j], maxTimeSpec, I, O);
+                    TFSM_TO * randomMuta = generateRandomMutationMachine_TO(randomSpec, maxTimeMuta, nbMutants[i]);
+                    vector<Sequence *> E;
+                    vector<Sequence *> Einit;
+                    clock_t begin = clock();
+                    E = generateCheckingExperimentTimeouted(Einit, randomSpec, randomMuta);
+                    clock_t end = clock();
+                    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+                    benchFile << nbStates[j] << " " << nbMutants[i] << " " << maxTimeSpec << " " << maxTimeMuta << " " << elapsed_secs << "s "<< computeNumberOfMutants(randomMuta) << " " << E.size() << "\n";
+                    delete randomSpec;
+                    delete randomMuta;
+                    benchFile.close();
+                }
+            }
+
+        }
+*/
 }
 
 //Will be factorized later with a class
@@ -569,7 +610,7 @@ FSM * Algorithms_TFSM::generateRandomSpecification(int nbOfStates, int maxTime, 
 
     TFSM * res;
 
-    while (!isConnected) {
+    //while (!isConnected) {
         transitionId = 0;
         S.clear();
         lambda.clear();
@@ -592,9 +633,9 @@ FSM * Algorithms_TFSM::generateRandomSpecification(int nbOfStates, int maxTime, 
                 if (randomT > 1)
                     nbPartition = 1 + floor(rand() % (randomT-1));
                 int lastMax = 0;
-                cout << "nbPartition : " << nbPartition << " of : " << randomT << endl;
+                //cout << "nbPartition : " << nbPartition << " of : " << randomT << endl;
                 for (int j=0; j<nbPartition; j++) {
-                    cout << "!!" << endl;
+                    //cout << "!!" << endl;
                     int tMin = round(lastMax);
                     int tMax = round((randomT/nbPartition)*(j+1));
                     if (tMax == tMin)
@@ -605,7 +646,7 @@ FSM * Algorithms_TFSM::generateRandomSpecification(int nbOfStates, int maxTime, 
                     string randomO = getRandomStringFromSet(O);
                     int randomTgt = floor(rand() % nbOfStates);
                     Guard g("[", tMin, tMax, ")");
-                    cout << "- " << g.toString() << endl;
+                    //cout << "- " << g.toString() << endl;
                     lambda.push_back(new GuardedTransition(s, i, g, randomO, randomTgt, transitionId));
                     transitionId++;
                 }
@@ -617,7 +658,7 @@ FSM * Algorithms_TFSM::generateRandomSpecification(int nbOfStates, int maxTime, 
         if (!isConnected)
             delete res;
             */
-    }
+    //}
     return res;
 }
 
@@ -656,10 +697,10 @@ FSM * Algorithms_TFSM::generateRandomMutation(FSM * S, int maxTime, int numberOf
         else {
             int nbPartition = 1 + floor(rand() % (maxTime-1));
             int lastMax = 0;
-            cout << "nbPartition : " << nbPartition << " of : " << maxTime << endl;
+            //cout << "nbPartition : " << nbPartition << " of : " << maxTime << endl;
             string randomI = getRandomStringFromSet(I);
             for (int j=0; j<nbPartition; j++) {
-                cout << "!!" << endl;
+                //cout << "!!" << endl;
                 int tMin = round(lastMax);
                 int tMax = round((maxTime/nbPartition)*(j+1));
                 if (tMax == tMin)
@@ -670,7 +711,7 @@ FSM * Algorithms_TFSM::generateRandomMutation(FSM * S, int maxTime, int numberOf
                 int randomTgt = floor(rand() % S->states.size());
                 string randomO = getRandomStringFromSet(O);
                 Guard g("[", tMin, tMax, ")");
-                cout << "- " << g.toString() << endl;
+                //cout << "- " << g.toString() << endl;
                 GuardedTransition * newTransition = new GuardedTransition(randomSrc, randomI, g, randomO, randomTgt, i);
                 lambda.push_back(newTransition);
 
@@ -682,6 +723,7 @@ FSM * Algorithms_TFSM::generateRandomMutation(FSM * S, int maxTime, int numberOf
             }
         }
     }
+    /*
     cout << "New Transitions : {";
     for (IOTransition * t : newLambda) {
         cout << "(" << t->src << "," << t->i << "," << t->getGuard().toString() <<"," << t->o << "," << t->tgt << ") : " << t->id << "," << endl;
@@ -697,6 +739,7 @@ FSM * Algorithms_TFSM::generateRandomMutation(FSM * S, int maxTime, int numberOf
         }
     }
     cout << "}" << endl;
+    */
     M->addTransitions(newLambda, true);
     M->addTimeouts(newDelta, true);
     return M;

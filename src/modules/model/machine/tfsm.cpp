@@ -272,3 +272,42 @@ string TFSM::generateDot()
     res << "}" << endl;
     return res.str();
 }
+
+string TFSM::generateFormalism()
+{
+    ostringstream res;
+    res << "digraph TFSM {" << endl;
+    for (IOTransition * t : this->transitions) {
+        res << "s" << t->src << " -> " << "s" << t->tgt;
+        if (this->mutatedTransitions.find(t->id)->second) {
+            res << " [" << t->getGuard().toString() << " " << t->i << " / " << t->o << "*];";
+        }
+        else {
+            res << " [" << t->getGuard().toString() << " " << t->i << " / " << t->o << "];";
+        }
+        res << endl;
+    }
+    for (TimeoutTransition * t : this->timeouts) {
+        res << "s" << t->src << " -> " << "s" << t->tgt;
+
+        if (this->mutatedTransitions.find(t->id)->second) {
+            if (t->t == inf) {
+                res << " [#*];";
+            }
+            else {
+                res << " [" << t->t << "*];";
+            }
+        }
+        else {
+            if (t->t == inf) {
+                res << " [#];";
+            }
+            else {
+                res << " [" << t->t << "];";
+            }
+        }
+        res << endl;
+    }
+    res << "}" << endl;
+    return res.str();
+}

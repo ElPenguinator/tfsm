@@ -30,7 +30,7 @@ public:
     std::vector<IOTransition *> getTransitions();
     std::vector<TimeoutTransition *> getTimeouts();
     int getInitialState();
-
+    std::string generateFormalism();
     std::string generateDot();
 };
 

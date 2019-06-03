@@ -215,36 +215,36 @@ void testOmer3()
     set<string> O = {"x", "y"};
 
     vector<IOTransition *> lambda = {new GuardedTransition(1, "a", Guard("[", 0, inf, ")"), "x", 1, 0),
-                                     new GuardedTransition(1, "b", Guard("[", 0, inf, ")"), "x", 2, 1),
-                                      new GuardedTransition(2, "a", Guard("[", 0, 2, ")"), "y", 3, 3),
-                                      new GuardedTransition(2, "a", Guard("[", 2, 5, ")"), "x", 3, 4),
-                                      new GuardedTransition(2, "a", Guard("[", 5, inf, ")"), "x", 1, 5),
-                                      new GuardedTransition(2, "b", Guard("[", 0, inf, ")"), "x", 2, 6),
-                                       new GuardedTransition(3, "a", Guard("[", 0, inf, ")"), "y", 3, 8),
-                                       new GuardedTransition(3, "b", Guard("[", 0, inf, ")"), "x", 1, 9)
-                                        };
-    vector<TimeoutTransition *> delta = {new TimeoutTransition(1, inf, 1, 2),
+                                         new GuardedTransition(1, "b", Guard("[", 0, inf, ")"), "x", 2, 2),
+                                          new GuardedTransition(2, "a", Guard("[", 0, 2, ")"), "y", 3, 9),
+                                          new GuardedTransition(2, "a", Guard("[", 2, 5, ")"), "x", 3, 8),
+                                          new GuardedTransition(2, "a", Guard("[", 5, inf, ")"), "x", 1, 6),
+                                          new GuardedTransition(2, "b", Guard("[", 0, inf, ")"), "x", 2, 3),
+                                           new GuardedTransition(3, "a", Guard("[", 0, inf, ")"), "y", 3, 11),
+                                           new GuardedTransition(3, "b", Guard("[", 0, inf, ")"), "x", 1, 13)
+                                            };
+    vector<TimeoutTransition *> delta = {new TimeoutTransition(1, inf, 1, 1),
                                          new TimeoutTransition(2, 8, 1, 7),
-                                         new TimeoutTransition(3, 5, 1, 10)
+                                         new TimeoutTransition(3, 5, 1, 14)
                                         };
 
     TFSM * Spec = new TFSM(S, s0, I, O, lambda, delta);
     TFSM * Muta = new TFSM(S, s0, I, O, lambda, delta);
-    vector<IOTransition *> newLambda = {new GuardedTransition(2, "b", Guard("[", 0, 3, "]"), "y", 2, 11),
-                                        new GuardedTransition(2, "b", Guard("(", 3, inf, ")"), "x", 2, 12),
-                                        new GuardedTransition(3, "a", Guard("[", 0, 3, ")"), "y", 3, 14),
-                                        new GuardedTransition(3, "a", Guard("[", 3, 5, ")"), "y", 1, 15),
-                                        new GuardedTransition(3, "a", Guard("[", 5, inf, "]"), "y", 1, 16)
+    vector<IOTransition *> newLambda = {new GuardedTransition(2, "b", Guard("[", 0, 3, "]"), "y", 2, 4),
+                                        new GuardedTransition(2, "b", Guard("(", 3, inf, ")"), "x", 2, 5),
+                                        new GuardedTransition(3, "a", Guard("[", 0, 3, ")"), "y", 3, 12),
+                                        new GuardedTransition(3, "a", Guard("[", 3, 5, "]"), "y", 1, 15),
+                                        new GuardedTransition(3, "a", Guard("(", 5, inf, ")"), "y", 1, 16)
                                        };
     Muta->addTransitions(newLambda, true);
-    vector<TimeoutTransition *> newDelta = {new TimeoutTransition(2, 7, 3, 13)
+    vector<TimeoutTransition *> newDelta = {new TimeoutTransition(2, 7, 3, 10)
                                        };
     Muta->addTimeouts(newDelta, true);
 
 
     Spec->print();
     Muta->print();
-
+/*
     cout << "Test 1 : " << endl;
 
     vector<Sequence *> E;
@@ -255,32 +255,47 @@ void testOmer3()
     for (auto s : E) {
         cout << s->toString() << endl;//printSequence(s);
     }
+*/
 
-/*
     cout << "Test 2 : " << endl;
 
     vector<Sequence *> E2;
     vector<Sequence *> Einit2;
 
+    /*
     TimedInputSequence * seq1 = new TimedInputSequence();
-    seq1->addElements(vector<pair<string, double>>{make_pair("a", 3.5)});
+    seq1->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("a", 0.5)});
     Einit2.push_back(seq1);
 
     TimedInputSequence * seq2 = new TimedInputSequence();
-    seq2->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 4)});
+    seq2->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("a", 1.5), make_pair("a", 6), make_pair("a", 11.5)});
     Einit2.push_back(seq2);
 
     TimedInputSequence * seq3 = new TimedInputSequence();
-    seq3->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 9)});
+    seq3->addElements(vector<pair<string, double>>{make_pair("b", 0), make_pair("b", 0)});
     Einit2.push_back(seq3);
 
     TimedInputSequence * seq4 = new TimedInputSequence();
-    seq4->addElements(vector<pair<string, double>>{make_pair("b", 3.5), make_pair("a", 9), make_pair("b", 12.5), make_pair("a", 13)});
+    seq4->addElements(vector<pair<string, double>>{make_pair("b", 0), make_pair("a", 0), make_pair("a",3), make_pair("a", 3)});
     Einit2.push_back(seq4);
 
+
     TimedInputSequence * seq5 = new TimedInputSequence();
-    seq5->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 6), make_pair("b", 11.5), make_pair("a", 12)});
+    seq5->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("a", 8)});
     Einit2.push_back(seq5);
+    */
+
+    TimedInputSequence * seq1 = new TimedInputSequence();
+    seq1->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("a", 8)});
+    Einit2.push_back(seq1);
+
+    TimedInputSequence * seq2 = new TimedInputSequence();
+    seq2->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("a", 1), make_pair("a", 4.5), make_pair("a", 5)});
+    Einit2.push_back(seq2);
+
+    TimedInputSequence * seq3 = new TimedInputSequence();
+    seq3->addElements(vector<pair<string, double>>{make_pair("b", 0.5), make_pair("b", 1)});
+    Einit2.push_back(seq3);
 
     Algorithms * algo2 = currentFactory->getAlgorithms(true, false);
     E2 = algo2->generateCheckingExperiment(Einit2, Spec, Muta);
@@ -288,14 +303,14 @@ void testOmer3()
     for (auto s : E2) {
         cout << s->toString() << endl;//printSequence(s);
     }
-    */
+
 }
 
 Model::Model() : QObject()
 {
     showSpecification = true;
-    currentFactory = new FSMFactory();
-    testOmer3();
+    currentFactory = new TFSMFactory();
+    //testOmer3();
 }
 
 Model::~Model()
@@ -441,6 +456,7 @@ void Model::getImportedType(std::string header)
 void Model::checkingExperimentBenchmark(std::string folder, std::set<int> nbStates, std::set<int> nbMutations, int nbMachines, int timeoutedValue, int maxTimeout)
 {
     Algorithms * algo = currentFactory->getAlgorithms(true, true);
+    cout << "Hello ?" << endl;
     algo->checkingExperimentBenchmarks(folder, nbStates, nbMutations, nbMachines, timeoutedValue, maxTimeout);
 }
 
